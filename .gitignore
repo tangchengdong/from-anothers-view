@@ -34,5 +34,9 @@ Thumbs.db
 # Logs
 *.log
 
+# Vite temp files
+vite.config.js.timestamp-*.mjs
+*.timestamp-*.mjs
+
 # Trae documents (internal planning)
 .trae/

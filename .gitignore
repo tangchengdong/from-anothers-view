@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+backend/venv/
+
+# Build output
+dist/
+build/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Environment variables
+.env
+.env.local
+
+# User data (contains passwords)
+backend/app/data/users.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Trae documents (internal planning)
+.trae/

@@ -1,0 +1,182 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+  background: var(--paper-bg);
+}
+
+.login-container {
+  width: 100%;
+  max-width: 420px;
+  background: var(--paper-bg);
+  border: 2px solid var(--paper-ink);
+  border-radius: 0;
+  padding: 48px 40px;
+  animation: fadeInUp 0.6s ease-out;
+  box-shadow: 6px 6px 0 var(--paper-ink);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--paper-ink);
+}
+
+.login-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--paper-ink);
+  margin-bottom: 12px;
+  letter-spacing: 0.1em;
+}
+
+.login-subtitle {
+  color: var(--paper-ink-secondary);
+  font-size: 0.95rem;
+  font-family: 'Noto Serif SC', serif;
+  font-style: italic;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  color: var(--paper-ink);
+  font-weight: 600;
+  font-family: 'Noto Serif SC', serif;
+  letter-spacing: 0.05em;
+}
+
+.form-input {
+  padding: 14px 18px;
+  background: var(--paper-bg);
+  border: 2px solid var(--paper-rule);
+  border-radius: 0;
+  color: var(--paper-ink);
+  font-size: 0.95rem;
+  font-family: 'Noto Serif SC', serif;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--paper-ink);
+  background: var(--paper-bg);
+}
+
+.form-input::placeholder {
+  color: var(--paper-ink-light);
+  font-style: italic;
+}
+
+.form-error {
+  padding: 12px 16px;
+  background: var(--paper-highlight);
+  border: 1px solid var(--paper-accent);
+  border-radius: 0;
+  color: var(--paper-accent);
+  font-size: 0.85rem;
+  font-family: 'Noto Serif SC', serif;
+}
+
+.login-btn {
+  padding: 14px;
+  background: var(--paper-ink);
+  border: 2px solid var(--paper-ink);
+  border-radius: 0;
+  color: var(--paper-bg);
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Noto Serif SC', serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+}
+
+.login-btn:hover {
+  background: var(--paper-accent);
+  border-color: var(--paper-accent);
+  color: var(--paper-bg);
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--paper-ink);
+}
+
+.login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.login-footer {
+  margin-top: 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.demo-hint {
+  font-size: 0.85rem;
+  color: var(--paper-ink-light);
+  font-family: 'Noto Serif SC', serif;
+}
+
+.demo-account {
+  color: var(--paper-accent);
+  font-weight: 600;
+}
+
+.register-link {
+  font-size: 0.9rem;
+  color: var(--paper-ink-secondary);
+  font-family: 'Noto Serif SC', serif;
+}
+
+.register-link a {
+  color: var(--paper-accent);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px solid var(--paper-accent);
+}
+
+.register-link a:hover {
+  color: var(--paper-ink);
+  border-bottom-color: var(--paper-ink);
+}
+
+@media (max-width: 768px) {
+  .login-container {
+    padding: 32px 24px;
+  }
+
+  .login-title {
+    font-size: 1.5rem;
+  }
+}

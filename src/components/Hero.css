@@ -1,0 +1,219 @@
+.hero-wrapper {
+  position: relative;
+  transition: min-height 0.4s ease-out;
+}
+
+.hero-wrapper.hidden {
+  min-height: 0;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 24px 1rem;
+  position: relative;
+  transition: all 0.4s ease-out;
+  opacity: 1;
+  background: var(--paper-bg);
+}
+
+.hero.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.hero.hidden {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.98);
+  pointer-events: none;
+  max-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.hero-content {
+  text-align: center;
+  max-width: 600px;
+  animation: heroFadeIn 0.8s ease-out 0.1s both;
+}
+
+@keyframes heroFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-masthead {
+  margin-bottom: 1.25rem;
+}
+
+.hero-issue {
+  font-size: 0.7rem;
+  font-family: 'Noto Serif SC', serif;
+  color: var(--paper-ink-light);
+  letter-spacing: 0.15em;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.hero-issue-dot {
+  margin: 0 0.5rem;
+  color: var(--paper-rule);
+}
+
+.hero-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  font-weight: 900;
+  color: var(--paper-ink);
+  letter-spacing: 0.25em;
+  margin: 0 0 0.5rem;
+  line-height: 1;
+}
+
+.hero-rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.hero-rule-line {
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: var(--paper-ink);
+}
+
+.hero-rule-star {
+  color: var(--paper-accent);
+  font-size: 0.75rem;
+}
+
+.hero-subtitle {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 0.95rem;
+  color: var(--paper-ink-secondary);
+  font-style: italic;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.hero-mission {
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--paper-ink);
+  border-bottom: 1px solid var(--paper-ink);
+}
+
+.hero-mission p {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 0.88rem;
+  color: var(--paper-ink-secondary);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.hero-attributes {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.hero-attr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.attr-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-family: 'Noto Serif SC', serif;
+  color: var(--paper-accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.attr-value {
+  font-size: 0.75rem;
+  font-family: 'Noto Serif SC', serif;
+  color: var(--paper-ink-light);
+}
+
+.hero-scroll {
+  display: none;
+}
+
+@keyframes scrollPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(-50%) translateY(5px);
+  }
+}
+
+.scroll-arrow {
+  font-size: 1.1rem;
+  animation: arrowBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 1.5rem 16px 0.75rem;
+  }
+
+  .hero-title {
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+    letter-spacing: 0.2em;
+  }
+
+  .hero-issue {
+    font-size: 0.6rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .hero-mission p {
+    font-size: 0.8rem;
+  }
+
+  .hero-attributes {
+    gap: 1.25rem;
+  }
+
+  .hero-rule {
+    gap: 0.5rem;
+  }
+
+  .hero-rule-line {
+    max-width: 40px;
+  }
+}

@@ -1,0 +1,438 @@
+.search-page {
+  min-height: 100vh;
+  padding: 32px 24px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+.search-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.search-header {
+  margin-bottom: 32px;
+  animation: fadeInDown 0.4s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: rgba(248, 248, 255, 0.6);
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: 16px;
+  transition: color 0.3s ease;
+}
+
+.back-btn:hover {
+  color: rgba(248, 248, 255, 0.9);
+}
+
+.search-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: rgba(248, 248, 255, 0.9);
+  margin-bottom: 8px;
+}
+
+.search-query {
+  background: linear-gradient(135deg, #FF6B9D, #8B5CF6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.search-count {
+  color: rgba(248, 248, 255, 0.5);
+  font-size: 0.9rem;
+}
+
+.simulated-badge {
+  color: #F59E0B;
+  font-size: 0.8rem;
+}
+
+/* 自定义视角输入区 */
+.custom-perspective-bar {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 28px;
+  animation: fadeInDown 0.4s ease-out;
+}
+
+.custom-perspective-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(248, 248, 255, 0.85);
+  margin-bottom: 12px;
+}
+
+.cp-icon {
+  font-size: 1.1rem;
+}
+
+.custom-perspective-input-wrap {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.custom-perspective-input {
+  flex: 1;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: rgba(248, 248, 255, 0.9);
+  font-size: 0.88rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.custom-perspective-input::placeholder {
+  color: rgba(248, 248, 255, 0.35);
+}
+
+.custom-perspective-input:focus {
+  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.cp-add-btn {
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #FF6B9D, #8B5CF6);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  white-space: nowrap;
+}
+
+.cp-add-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.cp-add-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.custom-perspective-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cp-tag-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.15), rgba(139, 92, 246, 0.15));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 14px;
+  font-size: 0.82rem;
+  color: rgba(248, 248, 255, 0.9);
+  animation: fadeInDown 0.3s ease-out;
+}
+
+.cp-remove {
+  background: none;
+  border: none;
+  color: rgba(248, 248, 255, 0.5);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.cp-remove:hover {
+  color: #FF6B9D;
+}
+
+.cp-suggestions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cp-suggest-label {
+  font-size: 0.78rem;
+  color: rgba(248, 248, 255, 0.4);
+}
+
+.cp-suggest-btn {
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(248, 248, 255, 0.65);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cp-suggest-btn:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: rgba(248, 248, 255, 0.9);
+}
+
+/* 自定义视角卡片样式 */
+.commentary-card-custom {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.05), rgba(139, 92, 246, 0.05));
+  border: 1px dashed rgba(139, 92, 246, 0.3);
+  position: relative;
+}
+
+.custom-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #FF6B9D, #8B5CF6);
+  border-radius: 8px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+/* Agent 视角观点板块 */
+.commentary-section {
+  margin-bottom: 40px;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.commentary-header {
+  margin-bottom: 20px;
+}
+
+.commentary-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: rgba(248, 248, 255, 0.9);
+  margin-bottom: 6px;
+}
+
+.commentary-subtitle {
+  font-size: 0.85rem;
+  color: rgba(248, 248, 255, 0.5);
+}
+
+.commentary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.commentary-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px;
+  opacity: 0;
+  animation: cardFadeIn 0.5s ease-out forwards;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.commentary-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes cardFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.commentary-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.commentary-emoji {
+  font-size: 1.3rem;
+}
+
+.commentary-role {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.commentary-headline {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(248, 248, 255, 0.9);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.commentary-viewpoint {
+  font-size: 0.82rem;
+  color: rgba(248, 248, 255, 0.6);
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+
+.commentary-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.commentary-tag {
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  font-size: 0.72rem;
+  color: rgba(248, 248, 255, 0.5);
+}
+
+.perspective-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tab-btn {
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: rgba(248, 248, 255, 0.6);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(248, 248, 255, 0.85);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.2), rgba(139, 92, 246, 0.2));
+  border-color: rgba(139, 92, 246, 0.4);
+  color: rgba(248, 248, 255, 0.95);
+}
+
+.search-results-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-loading {
+  text-align: center;
+  padding: 80px 0;
+  color: rgba(248, 248, 255, 0.5);
+  font-size: 1rem;
+}
+
+.search-empty {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 1.1rem;
+  color: rgba(248, 248, 255, 0.7);
+  margin-bottom: 8px;
+}
+
+.empty-hint {
+  font-size: 0.9rem;
+  color: rgba(248, 248, 255, 0.4);
+}
+
+@media (max-width: 768px) {
+  .search-page {
+    padding: 16px 16px 60px;
+  }
+
+  .search-title {
+    font-size: 1.4rem;
+  }
+
+  .search-results-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .commentary-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .perspective-tabs {
+    gap: 8px;
+  }
+
+  .tab-btn {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+
+  .custom-perspective-input-wrap {
+    flex-direction: column;
+  }
+
+  .cp-add-btn {
+    width: 100%;
+  }
+}

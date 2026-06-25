@@ -1,4 +1,5 @@
 import localNewsData from './local_news.json'
+import { generateOpinionTemplates, generateDeepOpinionByStyle } from '../utils/opinionGenerator'
 
 const REAL_NEWS = localNewsData.map(news => ({
   ...news,
@@ -83,6 +84,36 @@ function normalizeRealNews(news) {
 }
 
 const NORMALIZED_REAL_NEWS = REAL_NEWS.map(normalizeRealNews)
+
+function normalizeMockNews(news) {
+  return {
+    ...news,
+    publish_time: formatPublishTime(news.publish_time),
+    is_real: false,
+    hot: news.views > 50000 || news.hot
+  }
+}
+
+const SEARCH_SYNONYMS = {
+  'ai': ['ai', '人工智能', '大模型', 'AIGC'],
+  '人工智能': ['ai', '人工智能', '大模型', 'AIGC'],
+  '大模型': ['ai', '人工智能', '大模型', 'AIGC'],
+  '新能源': ['新能源', '新能源汽车', '电动车', '电车'],
+  '电动车': ['新能源', '新能源汽车', '电动车', '电车'],
+  '就业': ['就业', '找工作', '求职', '工作', '职场'],
+  '职场': ['就业', '找工作', '求职', '工作', '职场'],
+  '健康': ['健康', '医疗', '养生', '中医'],
+  '医疗': ['健康', '医疗', '养生', '中医']
+}
+
+function expandKeywords(keyword) {
+  const lower = keyword.toLowerCase().trim()
+  const synonyms = SEARCH_SYNONYMS[lower]
+  if (synonyms) {
+    return Array.from(new Set([lower, ...synonyms]))
+  }
+  return [lower]
+}
 
 export const MOCK_ROLES = [
   { 
@@ -1107,57 +1138,59 @@ const NEWS_CATEGORIES = {
 }
 
 const MOCK_NEWS_TEMPLATES = [
-  { id: 'n001', title: '多地发布高温红色预警，局部地区气温突破42℃', summary: '气象部门连续发布高温预警，多地启动应急响应，建议市民减少户外活动，做好防暑降温措施。户外工作者需注意轮换休息。', source: '中国天气网', views: 32580, hot: true, category: 'weather' },
-  { id: 'n002', title: '国产新能源汽车6月销量再创新高，市场份额突破55%', summary: '最新数据显示，国产品牌新能源汽车销量持续增长，比亚迪、理想、蔚来等品牌表现亮眼，出口量同比增长80%，技术创新成为核心竞争力。', source: '汽车之家', views: 48930, hot: true, category: 'tech' },
-  { id: 'n003', title: '2026年考研国家线公布，多专业分数线上涨', summary: '教育部公布2026年考研国家线，工学、医学等专业分数线较去年上涨5-10分，考生复试竞争更加激烈，调剂名额紧张。', source: '中国教育在线', views: 67620, hot: true, category: 'edu' },
-  { id: 'n004', title: '某知名奶茶品牌被曝使用过期原料，官方回应正在调查', summary: '有记者卧底发现某网红奶茶品牌多家门店存在使用过期原料、卫生条件差等问题，市场监管部门已介入调查，涉事门店已暂停营业。', source: '消费日报', views: 89840, hot: true, category: 'consume' },
-  { id: 'n005', title: 'AI大模型应用爆发式增长，多行业迎来效率革命', summary: '人工智能技术加速落地，在办公、医疗、教育、编程等领域展现出巨大潜力，AI相关岗位招聘需求同比增长150%，同时也带来新的就业挑战。', source: '36氪', views: 54210, hot: true, category: 'tech' },
-  { id: 'n006', title: '暑期旅游市场火爆，热门目的地机票酒店预订量翻倍', summary: '随着暑期来临，旅游消费需求集中释放，亲子游、研学游、避暑游成为主流，新疆、云南、贵州等目的地人气爆棚，部分热门航线一票难求。', source: '携程旅行', views: 39870, hot: true, category: 'culture' },
-  { id: 'n007', title: '新版人民币防伪技术升级，公众防伪知识需更新', summary: '央行发行新版人民币，采用多项新型防伪技术，包括光彩光变图案、动感光变镂空开窗安全线等，公众可通过"一看二摸三听"快速识别真伪。', source: '金融时报', views: 18750, category: 'social' },
-  { id: 'n008', title: '全民健身热潮持续，城市夜跑族成为新风景线', summary: '越来越多市民加入夜跑行列，城市绿道、公园成为热门运动场所，马拉松赛事报名人数屡创新高，健康生活理念深入人心。', source: '体育周刊', views: 25680, category: 'health' },
-  { id: 'n009', title: '河南安阳考古新发现：商代晚期大型墓葬出土精美青铜器', summary: '考古团队在殷墟遗址附近发掘出商代晚期大型贵族墓葬，出土大量珍贵青铜器、玉器，为研究商代历史提供了重要实物资料，填补了多项历史空白。', source: '国家文物局', views: 43450, hot: true, category: 'culture' },
-  { id: 'n010', title: '外卖平台推出新功能，可实时查看骑手配送轨迹和预计等待时间', summary: '为提升用户体验，外卖平台升级配送追踪系统，优化配送路径算法，用户可更精确地预估送达时间，同时增加骑手申诉通道，减少不合理处罚。', source: '澎湃新闻', views: 51240, hot: true, category: 'tech' },
-  { id: 'n011', title: '传统戏曲进校园，年轻观众直呼"太上头了"', summary: '多种形式的传统文化推广活动在各地学校开展，京剧、昆曲、豫剧等通过创新编排吸引年轻观众，越来越多90后00后开始喜欢上传统艺术。', source: '人民日报', views: 37890, category: 'culture' },
-  { id: 'n012', title: '共享充电宝价格再调整，部分场景每小时收费达6元', summary: '多个场景共享充电宝涨价引发热议，有用户计算外出一天充电费堪比一顿饭钱，消费者协会呼吁加强价格监管，明码标价。', source: '央视财经', views: 72360, hot: true, category: 'consume' },
-  { id: 'n013', title: '暴雨橙色预警：南方多地将迎强降雨天气，局地大暴雨', summary: '气象部门预报未来三天南方部分地区有大到暴雨，局部地区累计降雨量可达300毫米，提醒公众注意防范山洪、泥石流等地质灾害，避免前往山区。', source: '中央气象台', views: 29870, category: 'weather' },
-  { id: 'n014', title: '国产动画电影《长安三万里》票房破20亿，国漫崛起势头强劲', summary: '暑期档多部国产动画口碑票房双丰收，精良制作和中国故事打动观众，传统文化IP成为国漫创作富矿，行业发展前景看好。', source: '艺恩数据', views: 61230, hot: true, category: 'culture' },
-  { id: 'n015', title: '智能家居新品发布，语音控制全屋设备成现实', summary: '科技公司发布全新智能家居生态系统，实现多设备互联互通，支持AI场景自动识别，一句话控制灯光、空调、窗帘、安防等设备。', source: '中关村在线', views: 36780, category: 'tech' },
-  { id: 'n016', title: '社区食堂走红，实惠便民获居民点赞', summary: '多地社区开设便民食堂，价格实惠、菜品丰富、干净卫生，解决了老年人和上班族就餐难题，政府给予补贴支持，有望在全国推广。', source: '新华社', views: 33450, category: 'social' },
-  { id: 'n017', title: '2026届高校毕业生就业服务月启动，多举措助力求职', summary: '人社部联合高校开展系列招聘活动，提供超过1000万个就业岗位，同时推出职业指导、技能培训、创业扶持等服务，帮助毕业生顺利就业。', source: '人社部', views: 58920, category: 'edu' },
-  { id: 'n018', title: '网红打卡地被吐槽"照骗"，理性出游成共识', summary: '部分网红景点实地体验与宣传照片差距大引发吐槽，小红书等平台推出"踩坑"标签，专家建议游客理性选择，平台加强内容审核。', source: '中国旅游报', views: 49870, category: 'culture' },
-  { id: 'n019', title: '罕见天文奇观本月上演：英仙座流星雨与超级月亮同现', summary: '天文预报显示本月将有英仙座流星雨、土星冲日、超级月亮等多个精彩天象，天文爱好者可大饱眼福，建议选择光污染小的地方观测。', source: '天文在线', views: 17650, category: 'tech' },
-  { id: 'n020', title: '老字号创新发展，传统美食玩出新花样', summary: '多家百年老字号积极拥抱新零售，推出文创产品、跨界联名、低脂低糖版本，五芳斋、同仁堂、大白兔等品牌圈粉年轻消费者。', source: '商业观察', views: 41340, category: 'culture' },
-  { id: 'n021', title: '互联网大厂"反内卷"升级，多家公司宣布取消大小周', summary: '继字节跳动之后，多家互联网公司宣布取消大小周工作制，推行965、弹性办公等政策，关注员工工作生活平衡，"快乐工作"成为新趋势。', source: '虎嗅', views: 75430, hot: true, category: 'edu' },
-  { id: 'n022', title: '县城咖啡火爆：30元一杯的咖啡，正在占领小县城', summary: '曾经只在一线城市流行的咖啡，如今在县城遍地开花，95后回乡创业开咖啡馆成为新潮流，县城青年消费升级趋势明显。', source: '第一财经', views: 38560, category: 'consume' },
-  { id: 'n023', title: '中学生心理健康引关注，多地要求学校配备心理老师', summary: '教育部要求每所中小学至少配备一名专职心理健康教师，将心理健康课程纳入必修课，关注青少年抑郁、焦虑等问题，建立筛查干预机制。', source: '中国教育报', views: 46720, hot: true, category: 'edu' },
-  { id: 'n024', title: '预制菜进校园引争议，家长担忧食品安全问题', summary: '部分学校食堂使用预制菜引发家长质疑，担心食品不新鲜、添加剂过多，教育部门回应将严格把关，确保学生用餐安全。', source: '中国消费者报', views: 62180, hot: true, category: 'consume' },
-  { id: 'n025', title: 'AI医生准确率超90%，远程医疗让基层患者受益', summary: '人工智能辅助诊断系统在多种疾病诊断上准确率超过资深医生，远程会诊让偏远地区患者也能享受优质医疗资源，智慧医疗加速落地。', source: '健康时报', views: 42890, category: 'health' },
-  { id: 'n026', title: 'Citywalk城市漫步走红，年轻人换种方式认识家乡', summary: '不同于走马观花的打卡旅游，年轻人开始流行Citywalk——漫步城市老街，发现被忽略的风景和故事，城市微旅行成为新风尚。', source: '新周刊', views: 28740, category: 'culture' },
-  { id: 'n027', title: '灵活就业人数突破2亿，零工经济如何保障权益', summary: '我国灵活就业人员已达2亿，外卖骑手、网约车司机、主播、自由职业者等新就业形态劳动者权益保障问题受到关注，多地试点职业伤害保障。', source: '工人日报', views: 51370, category: 'social' },
-  { id: 'n028', title: '年轻人开始"断亲"：传统亲戚关系为何变淡了', summary: '越来越多年轻人减少与亲戚的来往，认为观念差异大、没有共同语言、攀比严重，社会学家认为这是城市化和个体化进程的必然现象。', source: '中国青年报', views: 68940, hot: true, category: 'social' },
-  { id: 'n029', title: '国货美妆崛起，完美日记、花西子等品牌市场份额增长', summary: '国货美妆品牌凭借高性价比、文化IP联名、社交媒体营销，在与国际品牌竞争中脱颖而出，市场份额持续增长，东方美学成为新潮流。', source: '化妆品财经在线', views: 35620, category: 'consume' },
-  { id: 'n030', title: '城市垃圾分类成效显著，但仍面临居民习惯难题', summary: '多地垃圾分类实施以来取得积极进展，资源回收利用率提高，但部分居民分类意识仍需加强，混投混放现象依然存在，需要长期宣传引导。', source: '中国环境报', views: 22450, category: 'social' },
-  { id: 'n031', title: '宠物经济爆发：年轻人愿意为"毛孩子"花多少钱', summary: '中国宠物市场规模突破3000亿元，宠物食品、医疗、美容、保险、殡葬等行业快速发展，年轻人将宠物视为家人，"它经济"持续升温。', source: '亿欧网', views: 45280, category: 'consume' },
-  { id: 'n032', title: '露营热降温？户外休闲走向常态化、精细化', summary: '经过前两年爆发式增长后，露营热开始降温，游客不再满足于简单搭帐篷，精致露营、房车旅行、徒步登山等细分户外项目兴起。', source: '户外探险', views: 26830, category: 'culture' },
-  { id: 'n033', title: '适老化改造加速：让老年人跟上数字时代', summary: '多地推进APP适老化改造，推出大字版、语音引导、一键呼叫等功能，同时保留传统线下服务渠道，帮助老年人跨越"数字鸿沟"。', source: '光明日报', views: 19560, category: 'tech' },
-  { id: 'n034', title: '非遗传承人年轻化：95后让老手艺焕发新生机', summary: '越来越多年轻人加入非遗传承行列，用短视频、直播、文创设计等创新方式让传统技艺被更多人看见，苏绣、漆器、皮影等老手艺潮起来。', source: '文旅部', views: 31270, category: 'culture' },
-  { id: 'n035', title: '延迟退休政策正式落地，渐进式实施方案公布', summary: '延迟退休方案正式公布，采取渐进式方式，每年延迟几个月，最终男性63岁、女性55岁或58岁退休，同时推出弹性退休、鼓励大龄人员就业等配套政策。', source: '人社部', views: 89650, hot: true, category: 'social' },
-  { id: 'n036', title: '大学生"慢就业"现象引热议，毕业生选择Gap Year增多', summary: '越来越多大学毕业生不急于找工作，选择考研二战、考公、创业、旅行、实习体验等，"慢就业"成为新现象，有人支持有人担忧。', source: '中国青年研究', views: 57430, category: 'edu' },
-  { id: 'n037', title: '即时零售爆发：30分钟送达改变消费习惯', summary: '小时购、即时配送快速发展，从外卖延伸到超市、药店、书店、3C产品等，"万物到家"成为现实，消费者对配送速度要求越来越高。', source: '晚点LatePost', views: 38920, category: 'tech' },
-  { id: 'n038', title: '城市书房、24小时图书馆走红，书香社会正在形成', summary: '各地建设更多便民阅读空间，城市书房、24小时自助图书馆、社区书屋等成为市民打卡地，全民阅读氛围日益浓厚，纸质书销量回升。', source: '新闻出版总署', views: 24150, category: 'culture' },
-  { id: 'n039', title: '996、大小周成历史？职场人开始追求Work-Life Balance', summary: '越来越多公司开始重视员工工作生活平衡，拒绝无意义加班，推行弹性工作制、四天半工作制试点，"躺平""摸鱼"背后是职场观念转变。', source: '智联招聘', views: 71240, hot: true, category: 'edu' },
-  { id: 'n040', title: '国产大飞机C919商业运营满一周年，安全运送旅客超百万人次', summary: '国产大飞机C919投入商业运营一周年，累计安全飞行超1万小时，运送旅客100多万人次，标志着中国民航工业迈入新阶段。', source: '中国民航局', views: 56890, hot: true, category: 'tech' },
-  { id: 'n041', title: '演唱会经济火爆：一场演出带火一座城', summary: '演出市场全面复苏，周杰伦、五月天、薛之谦等歌手演唱会一票难求，歌迷跨城追星带动交通、住宿、餐饮等消费，"演唱会经济"成为城市文旅新引擎。', source: '演出行业协会', views: 63720, hot: true, category: 'culture' },
-  { id: 'n042', title: '年轻人开始"反向消费"：从追求品牌到看重性价比', summary: '越来越多年轻人不再盲目追求大牌，转而选择性价比高的国产品牌、平替产品，二手交易平台、折扣店受欢迎，消费观念更趋理性。', source: 'DT财经', views: 48350, category: 'consume' },
-  { id: 'n043', title: '中医养生年轻化：艾灸、拔罐、八段锦成年轻人新宠', summary: '曾经被认为是"中老年专属"的中医养生，如今受到年轻人追捧，中医院养生门诊、八段锦教学、药膳、艾灸贴等在年轻人中流行。', source: '健康时报', views: 42160, category: 'health' },
-  { id: 'n044', title: '电竞入亚、入奥？电子竞技逐渐获得主流认可', summary: '电子竞技正式成为亚运会、奥运会比赛项目，电竞选手社会认可度提高，多所高校开设电竞相关专业，电竞产业规模持续增长。', source: '体坛周报', views: 53840, category: 'culture' },
-  { id: 'n045', title: '县域经济崛起：县城消费力正在被重新发现', summary: '随着城镇化推进和返乡就业创业增多，县城消费市场展现出巨大潜力，连锁品牌下沉、商业综合体建设，县城青年成为消费新势力。', source: '第一财经', views: 34670, category: 'social' },
-  { id: 'n046', title: '睡眠经济兴起：3亿人有睡眠障碍，助眠产品热销', summary: '中国超3亿人存在睡眠障碍，褪黑素、睡眠喷雾、助眠香薰、白噪音APP、智能睡眠监测设备等产品热销，"睡个好觉"成为刚需。', source: '中国睡眠研究会', views: 47230, category: 'health' },
-  { id: 'n047', title: '菜市场升级改造：传统菜场变身网红打卡地', summary: '多地对传统菜市场进行升级改造，干净整洁的环境、统一的摊位规划、增加餐饮休闲区，老菜场既有烟火气又有时尚感，成为年轻人打卡新去处。', source: '三联生活周刊', views: 28940, category: 'social' },
-  { id: 'n048', title: 'AI生成内容泛滥，如何应对"深度伪造"风险', summary: 'AI换脸、AI语音克隆、AI生成文章图片视频越来越逼真，深度伪造技术带来诈骗、虚假信息等风险，监管和鉴别技术亟需跟上。', source: '科技日报', views: 51680, hot: true, category: 'tech' },
-  { id: 'n049', title: '高校毕业生"摆摊"引发讨论：职业无高低贵贱', summary: '有大学毕业生摆摊卖小吃、卖水果引发热议，有人认为是人才浪费，也有人认为靠自己劳动赚钱不丢人，职业选择应该更多元。', source: '人民日报评论', views: 62570, category: 'edu' },
-  { id: 'n050', title: '城市绿道建设加快，市民家门口就能享受"诗和远方"', summary: '多地推进城市绿道、口袋公园、滨江步道建设，居民步行15分钟就能到达公园绿地，城市生态环境改善，市民休闲健身有了更多好去处。', source: '住建部', views: 21780, category: 'social' }
+  { id: 'n001', title: '多地发布高温红色预警，局部地区气温突破42℃', summary: '气象部门连续发布高温预警，多地启动应急响应，建议市民减少户外活动，做好防暑降温措施。户外工作者需注意轮换休息。', source: '中国天气网', views: 32580, hot: true, category: 'weather', publish_time: '2026-06-24', tags: ['高温', '天气', '预警'] },
+  { id: 'n002', title: '国产新能源汽车6月销量再创新高，市场份额突破55%', summary: '最新数据显示，国产品牌新能源汽车销量持续增长，比亚迪、理想、蔚来等品牌表现亮眼，出口量同比增长80%，技术创新成为核心竞争力。', source: '汽车之家', views: 48930, hot: true, category: 'tech', publish_time: '2026-06-24', tags: ['新能源汽车', '比亚迪', '汽车销量'] },
+  { id: 'n003', title: '2026年考研国家线公布，多专业分数线上涨', summary: '教育部公布2026年考研国家线，工学、医学等专业分数线较去年上涨5-10分，考生复试竞争更加激烈，调剂名额紧张。', source: '中国教育在线', views: 67620, hot: true, category: 'edu', publish_time: '2026-06-23', tags: ['考研', '国家线', '教育'] },
+  { id: 'n004', title: '某知名奶茶品牌被曝使用过期原料，官方回应正在调查', summary: '有记者卧底发现某网红奶茶品牌多家门店存在使用过期原料、卫生条件差等问题，市场监管部门已介入调查，涉事门店已暂停营业。', source: '消费日报', views: 89840, hot: true, category: 'consume', publish_time: '2026-06-23', tags: ['奶茶', '食品安全', '消费'] },
+  { id: 'n005', title: 'AI大模型应用爆发式增长，多行业迎来效率革命', summary: '人工智能技术加速落地，在办公、医疗、教育、编程等领域展现出巨大潜力，AI相关岗位招聘需求同比增长150%，同时也带来新的就业挑战。', source: '36氪', views: 54210, hot: true, category: 'tech', publish_time: '2026-06-24', tags: ['AI', '人工智能', '大模型', '科技'] },
+  { id: 'n006', title: '暑期旅游市场火爆，热门目的地机票酒店预订量翻倍', summary: '随着暑期来临，旅游消费需求集中释放，亲子游、研学游、避暑游成为主流，新疆、云南、贵州等目的地人气爆棚，部分热门航线一票难求。', source: '携程旅行', views: 39870, hot: true, category: 'culture', publish_time: '2026-06-23', tags: ['旅游', '暑期', '出行'] },
+  { id: 'n007', title: '新版人民币防伪技术升级，公众防伪知识需更新', summary: '央行发行新版人民币，采用多项新型防伪技术，包括光彩光变图案、动感光变镂空开窗安全线等，公众可通过"一看二摸三听"快速识别真伪。', source: '金融时报', views: 18750, category: 'social', publish_time: '2026-06-22', tags: ['人民币', '防伪', '金融'] },
+  { id: 'n008', title: '全民健身热潮持续，城市夜跑族成为新风景线', summary: '越来越多市民加入夜跑行列，城市绿道、公园成为热门运动场所，马拉松赛事报名人数屡创新高，健康生活理念深入人心。', source: '体育周刊', views: 25680, category: 'health', publish_time: '2026-06-22', tags: ['健身', '跑步', '运动'] },
+  { id: 'n009', title: '河南安阳考古新发现：商代晚期大型墓葬出土精美青铜器', summary: '考古团队在殷墟遗址附近发掘出商代晚期大型贵族墓葬，出土大量珍贵青铜器、玉器，为研究商代历史提供了重要实物资料，填补了多项历史空白。', source: '国家文物局', views: 43450, hot: true, category: 'culture', publish_time: '2026-06-24', tags: ['考古', '殷墟', '文物', '历史'] },
+  { id: 'n010', title: '外卖平台推出新功能，可实时查看骑手配送轨迹和预计等待时间', summary: '为提升用户体验，外卖平台升级配送追踪系统，优化配送路径算法，用户可更精确地预估送达时间，同时增加骑手申诉通道，减少不合理处罚。', source: '澎湃新闻', views: 51240, hot: true, category: 'tech', publish_time: '2026-06-23', tags: ['外卖', '配送', '平台'] },
+  { id: 'n011', title: '传统戏曲进校园，年轻观众直呼"太上头了"', summary: '多种形式的传统文化推广活动在各地学校开展，京剧、昆曲、豫剧等通过创新编排吸引年轻观众，越来越多90后00后开始喜欢上传统艺术。', source: '人民日报', views: 37890, category: 'culture', publish_time: '2026-06-22', tags: ['戏曲', '传统文化', '进校园'] },
+  { id: 'n012', title: '共享充电宝价格再调整，部分场景每小时收费达6元', summary: '多个场景共享充电宝涨价引发热议，有用户计算外出一天充电费堪比一顿饭钱，消费者协会呼吁加强价格监管，明码标价。', source: '央视财经', views: 72360, hot: true, category: 'consume', publish_time: '2026-06-24', tags: ['共享充电宝', '涨价', '消费'] },
+  { id: 'n013', title: '暴雨橙色预警：南方多地将迎强降雨天气，局地大暴雨', summary: '气象部门预报未来三天南方部分地区有大到暴雨，局部地区累计降雨量可达300毫米，提醒公众注意防范山洪、泥石流等地质灾害，避免前往山区。', source: '中央气象台', views: 29870, category: 'weather', publish_time: '2026-06-24', tags: ['暴雨', '预警', '天气'] },
+  { id: 'n014', title: '国产动画电影票房破20亿，国漫崛起势头强劲', summary: '暑期档多部国产动画口碑票房双丰收，精良制作和中国故事打动观众，传统文化IP成为国漫创作富矿，行业发展前景看好。', source: '艺恩数据', views: 61230, hot: true, category: 'culture', publish_time: '2026-06-23', tags: ['动画电影', '国漫', '票房'] },
+  { id: 'n015', title: '智能家居新品发布，语音控制全屋设备成现实', summary: '科技公司发布全新智能家居生态系统，实现多设备互联互通，支持AI场景自动识别，一句话控制灯光、空调、窗帘、安防等设备。', source: '中关村在线', views: 36780, category: 'tech', publish_time: '2026-06-22', tags: ['智能家居', 'AI', '物联网'] },
+  { id: 'n016', title: '社区食堂走红，实惠便民获居民点赞', summary: '多地社区开设便民食堂，价格实惠、菜品丰富、干净卫生，解决了老年人和上班族就餐难题，政府给予补贴支持，有望在全国推广。', source: '新华社', views: 33450, category: 'social', publish_time: '2026-06-23', tags: ['社区食堂', '民生', '便民'] },
+  { id: 'n017', title: '2026届高校毕业生就业服务月启动，多举措助力求职', summary: '人社部联合高校开展系列招聘活动，提供超过1000万个就业岗位，同时推出职业指导、技能培训、创业扶持等服务，帮助毕业生顺利就业。', source: '人社部', views: 58920, category: 'edu', publish_time: '2026-06-22', tags: ['就业', '毕业生', '招聘'] },
+  { id: 'n018', title: '网红打卡地被吐槽"照骗"，理性出游成共识', summary: '部分网红景点实地体验与宣传照片差距大引发吐槽，社交平台推出"踩坑"标签，专家建议游客理性选择，平台加强内容审核。', source: '中国旅游报', views: 49870, category: 'culture', publish_time: '2026-06-21', tags: ['旅游', '网红打卡', '出行'] },
+  { id: 'n019', title: '罕见天文奇观本月上演：英仙座流星雨与超级月亮同现', summary: '天文预报显示本月将有英仙座流星雨、土星冲日、超级月亮等多个精彩天象，天文爱好者可大饱眼福，建议选择光污染小的地方观测。', source: '天文在线', views: 17650, category: 'tech', publish_time: '2026-06-20', tags: ['天文', '流星雨', '超级月亮'] },
+  { id: 'n020', title: '老字号创新发展，传统美食玩出新花样', summary: '多家百年老字号积极拥抱新零售，推出文创产品、跨界联名、低脂低糖版本，五芳斋、同仁堂、大白兔等品牌圈粉年轻消费者。', source: '商业观察', views: 41340, category: 'culture', publish_time: '2026-06-22', tags: ['老字号', '美食', '创新'] },
+  { id: 'n021', title: '互联网大厂"反内卷"升级，多家公司宣布取消大小周', summary: '继字节跳动之后，多家互联网公司宣布取消大小周工作制，推行965、弹性办公等政策，关注员工工作生活平衡，"快乐工作"成为新趋势。', source: '虎嗅', views: 75430, hot: true, category: 'edu', publish_time: '2026-06-24', tags: ['职场', '996', '工作', '内卷'] },
+  { id: 'n022', title: '县城咖啡火爆：30元一杯的咖啡，正在占领小县城', summary: '曾经只在一线城市流行的咖啡，如今在县城遍地开花，95后回乡创业开咖啡馆成为新潮流，县城青年消费升级趋势明显。', source: '第一财经', views: 38560, category: 'consume', publish_time: '2026-06-23', tags: ['咖啡', '县城', '消费', '创业'] },
+  { id: 'n023', title: '中学生心理健康引关注，多地要求学校配备心理老师', summary: '教育部要求每所中小学至少配备一名专职心理健康教师，将心理健康课程纳入必修课，关注青少年抑郁、焦虑等问题，建立筛查干预机制。', source: '中国教育报', views: 46720, hot: true, category: 'edu', publish_time: '2026-06-24', tags: ['心理健康', '教育', '青少年'] },
+  { id: 'n024', title: '预制菜进校园引争议，家长担忧食品安全问题', summary: '部分学校食堂使用预制菜引发家长质疑，担心食品不新鲜、添加剂过多，教育部门回应将严格把关，确保学生用餐安全。', source: '中国消费者报', views: 62180, hot: true, category: 'consume', publish_time: '2026-06-23', tags: ['预制菜', '校园', '食品安全'] },
+  { id: 'n025', title: '人工智能辅助诊断准确率超90%，远程医疗让基层患者受益', summary: 'AI医生在多种疾病诊断上准确率超过资深医生，远程会诊让偏远地区患者也能享受优质医疗资源，智慧医疗加速落地。', source: '健康时报', views: 42890, category: 'health', publish_time: '2026-06-22', tags: ['AI', '人工智能', '医疗', '健康'] },
+  { id: 'n026', title: 'Citywalk城市漫步走红，年轻人换种方式认识家乡', summary: '不同于走马观花的打卡旅游，年轻人开始流行Citywalk——漫步城市老街，发现被忽略的风景和故事，城市微旅行成为新风尚。', source: '新周刊', views: 28740, category: 'culture', publish_time: '2026-06-21', tags: ['Citywalk', '城市漫步', '旅游'] },
+  { id: 'n027', title: '灵活就业人数突破2亿，零工经济如何保障权益', summary: '我国灵活就业人员已达2亿，外卖骑手、网约车司机、主播、自由职业者等新就业形态劳动者权益保障问题受到关注，多地试点职业伤害保障。', source: '工人日报', views: 51370, category: 'social', publish_time: '2026-06-22', tags: ['灵活就业', '零工经济', '权益'] },
+  { id: 'n028', title: '年轻人开始"断亲"：传统亲戚关系为何变淡了', summary: '越来越多年轻人减少与亲戚的来往，认为观念差异大、没有共同语言、攀比严重，社会学家认为这是城市化和个体化进程的必然现象。', source: '中国青年报', views: 68940, hot: true, category: 'social', publish_time: '2026-06-23', tags: ['断亲', '社会', '亲戚关系'] },
+  { id: 'n029', title: '国货美妆崛起，国产品牌市场份额持续增长', summary: '国货美妆品牌凭借高性价比、文化IP联名、社交媒体营销，在与国际品牌竞争中脱颖而出，市场份额持续增长，东方美学成为新潮流。', source: '化妆品财经在线', views: 35620, category: 'consume', publish_time: '2026-06-21', tags: ['国货', '美妆', '消费', '品牌'] },
+  { id: 'n030', title: '城市垃圾分类成效显著，但仍面临居民习惯难题', summary: '多地垃圾分类实施以来取得积极进展，资源回收利用率提高，但部分居民分类意识仍需加强，混投混放现象依然存在，需要长期宣传引导。', source: '中国环境报', views: 22450, category: 'social', publish_time: '2026-06-20', tags: ['垃圾分类', '环保', '环境'] },
+  { id: 'n031', title: '宠物经济爆发：年轻人愿意为"毛孩子"花多少钱', summary: '中国宠物市场规模突破3000亿元，宠物食品、医疗、美容、保险、殡葬等行业快速发展，年轻人将宠物视为家人，"它经济"持续升温。', source: '亿欧网', views: 45280, category: 'consume', publish_time: '2026-06-22', tags: ['宠物', '消费', '它经济'] },
+  { id: 'n032', title: '露营热降温？户外休闲走向常态化、精细化', summary: '经过前两年爆发式增长后，露营热开始降温，游客不再满足于简单搭帐篷，精致露营、房车旅行、徒步登山等细分户外项目兴起。', source: '户外探险', views: 26830, category: 'culture', publish_time: '2026-06-21', tags: ['露营', '户外', '休闲'] },
+  { id: 'n033', title: '适老化改造加速：让老年人跟上数字时代', summary: '多地推进APP适老化改造，推出大字版、语音引导、一键呼叫等功能，同时保留传统线下服务渠道，帮助老年人跨越"数字鸿沟"。', source: '光明日报', views: 19560, category: 'tech', publish_time: '2026-06-20', tags: ['适老化', '老年人', '数字鸿沟'] },
+  { id: 'n034', title: '非遗传承人年轻化：95后让老手艺焕发新生机', summary: '越来越多年轻人加入非遗传承行列，用短视频、直播、文创设计等创新方式让传统技艺被更多人看见，苏绣、漆器、皮影等老手艺潮起来。', source: '文旅部', views: 31270, category: 'culture', publish_time: '2026-06-23', tags: ['非遗', '传承', '传统文化', '年轻人'] },
+  { id: 'n035', title: '延迟退休政策正式落地，渐进式实施方案公布', summary: '延迟退休方案正式公布，采取渐进式方式，每年延迟几个月，最终男性63岁、女性55岁或58岁退休，同时推出弹性退休、鼓励大龄人员就业等配套政策。', source: '人社部', views: 89650, hot: true, category: 'social', publish_time: '2026-06-24', tags: ['延迟退休', '政策', '养老'] },
+  { id: 'n036', title: '大学生"慢就业"现象引热议，毕业生选择Gap Year增多', summary: '越来越多大学毕业生不急于找工作，选择考研二战、考公、创业、旅行、实习体验等，"慢就业"成为新现象，有人支持有人担忧。', source: '中国青年研究', views: 57430, category: 'edu', publish_time: '2026-06-22', tags: ['慢就业', '毕业生', 'Gap Year'] },
+  { id: 'n037', title: '即时零售爆发：30分钟送达改变消费习惯', summary: '小时购、即时配送快速发展，从外卖延伸到超市、药店、书店、3C产品等，"万物到家"成为现实，消费者对配送速度要求越来越高。', source: '晚点LatePost', views: 38920, category: 'tech', publish_time: '2026-06-21', tags: ['即时零售', '配送', '消费'] },
+  { id: 'n038', title: '城市书房、24小时图书馆走红，书香社会正在形成', summary: '各地建设更多便民阅读空间，城市书房、24小时自助图书馆、社区书屋等成为市民打卡地，全民阅读氛围日益浓厚，纸质书销量回升。', source: '新闻出版总署', views: 24150, category: 'culture', publish_time: '2026-06-20', tags: ['阅读', '图书馆', '书香社会'] },
+  { id: 'n039', title: '996、大小周成历史？职场人开始追求工作生活平衡', summary: '越来越多公司开始重视员工工作生活平衡，拒绝无意义加班，推行弹性工作制、四天半工作制试点，"躺平""摸鱼"背后是职场观念转变。', source: '智联招聘', views: 71240, hot: true, category: 'edu', publish_time: '2026-06-24', tags: ['职场', '工作生活平衡', '加班'] },
+  { id: 'n040', title: '国产大飞机C919商业运营满一周年，安全运送旅客超百万人次', summary: '国产大飞机C919投入商业运营一周年，累计安全飞行超1万小时，运送旅客100多万人次，标志着中国民航工业迈入新阶段。', source: '中国民航局', views: 56890, hot: true, category: 'tech', publish_time: '2026-06-23', tags: ['C919', '大飞机', '航空', '国产'] },
+  { id: 'n041', title: '演唱会经济火爆：一场演出带火一座城', summary: '演出市场全面复苏，热门歌手演唱会一票难求，歌迷跨城追星带动交通、住宿、餐饮等消费，"演唱会经济"成为城市文旅新引擎。', source: '演出行业协会', views: 63720, hot: true, category: 'culture', publish_time: '2026-06-24', tags: ['演唱会', '演出', '文旅', '消费'] },
+  { id: 'n042', title: '年轻人开始"反向消费"：从追求品牌到看重性价比', summary: '越来越多年轻人不再盲目追求大牌，转而选择性价比高的国产品牌、平替产品，二手交易平台、折扣店受欢迎，消费观念更趋理性。', source: 'DT财经', views: 48350, category: 'consume', publish_time: '2026-06-22', tags: ['消费', '性价比', '理性消费'] },
+  { id: 'n043', title: '中医养生年轻化：艾灸、拔罐、八段锦成年轻人新宠', summary: '曾经被认为是"中老年专属"的中医养生，如今受到年轻人追捧，中医院养生门诊、八段锦教学、药膳、艾灸贴等在年轻人中流行。', source: '健康时报', views: 42160, category: 'health', publish_time: '2026-06-21', tags: ['中医', '养生', '健康', '年轻人'] },
+  { id: 'n044', title: '电竞入亚、入奥？电子竞技逐渐获得主流认可', summary: '电子竞技正式成为亚运会、奥运会比赛项目，电竞选手社会认可度提高，多所高校开设电竞相关专业，电竞产业规模持续增长。', source: '体坛周报', views: 53840, category: 'culture', publish_time: '2026-06-20', tags: ['电竞', '体育', '游戏'] },
+  { id: 'n045', title: '县域经济崛起：县城消费力正在被重新发现', summary: '随着城镇化推进和返乡就业创业增多，县城消费市场展现出巨大潜力，连锁品牌下沉、商业综合体建设，县城青年成为消费新势力。', source: '第一财经', views: 34670, category: 'social', publish_time: '2026-06-22', tags: ['县域经济', '消费', '县城'] },
+  { id: 'n046', title: '睡眠经济兴起：3亿人有睡眠障碍，助眠产品热销', summary: '中国超3亿人存在睡眠障碍，褪黑素、睡眠喷雾、助眠香薰、白噪音APP、智能睡眠监测设备等产品热销，"睡个好觉"成为刚需。', source: '中国睡眠研究会', views: 47230, category: 'health', publish_time: '2026-06-21', tags: ['睡眠', '健康', '助眠'] },
+  { id: 'n047', title: '菜市场升级改造：传统菜场变身网红打卡地', summary: '多地对传统菜市场进行升级改造，干净整洁的环境、统一的摊位规划、增加餐饮休闲区，老菜场既有烟火气又有时尚感，成为年轻人打卡新去处。', source: '三联生活周刊', views: 28940, category: 'social', publish_time: '2026-06-20', tags: ['菜市场', '烟火气', '城市更新'] },
+  { id: 'n048', title: '人工智能生成内容泛滥，如何应对"深度伪造"风险', summary: 'AI换脸、AI语音克隆、AI生成文章图片视频越来越逼真，深度伪造技术带来诈骗、虚假信息等风险，监管和鉴别技术亟需跟上。', source: '科技日报', views: 51680, hot: true, category: 'tech', publish_time: '2026-06-24', tags: ['AI', '人工智能', '深度伪造', 'AIGC'] },
+  { id: 'n049', title: '高校毕业生"摆摊"引发讨论：职业无高低贵贱', summary: '有大学毕业生摆摊卖小吃、卖水果引发热议，有人认为是人才浪费，也有人认为靠自己劳动赚钱不丢人，职业选择应该更多元。', source: '人民日报评论', views: 62570, category: 'edu', publish_time: '2026-06-23', tags: ['就业', '职业', '毕业生'] },
+  { id: 'n050', title: '城市绿道建设加快，市民家门口就能享受"诗和远方"', summary: '多地推进城市绿道、口袋公园、滨江步道建设，居民步行15分钟就能到达公园绿地，城市生态环境改善，市民休闲健身有了更多好去处。', source: '住建部', views: 21780, category: 'social', publish_time: '2026-06-22', tags: ['绿道', '公园', '城市建设', '民生'] }
 ]
+
+const NORMALIZED_MOCK_NEWS = MOCK_NEWS_TEMPLATES.map(normalizeMockNews)
 
 const RARITY_CONFIG = {
   ur: { prob: 0.02, color: '#B8860B', glow: '0 0 40px rgba(184, 134, 11, 0.5)', label: '传说', name: '传说角色' },
@@ -1189,13 +1222,24 @@ function matchCategory(newsCategory, interestedCategories) {
 }
 
 function generateOpinion(role, news) {
-  if (!role || !role.opinion_templates) {
-    return `以「${role?.name || '该角色'}」的视角来看，这件事很有意思。`
+  if (!role) {
+    return '这件事值得关注。'
   }
+
+  let roleWithTemplates = role
+  if (!role.opinion_templates || role.is_custom) {
+    const generated = generateOpinionTemplates(role.name)
+    roleWithTemplates = {
+      ...role,
+      opinion_templates: generated.opinion_templates,
+      speaking_style: role.speaking_style || generated.speaking_style
+    }
+  }
+
   const category = news.category || 'general'
-  let templates = role.opinion_templates[category]
+  let templates = roleWithTemplates.opinion_templates[category]
   if (!templates || templates.length === 0) {
-    templates = role.opinion_templates.general || ['这件事值得关注。']
+    templates = roleWithTemplates.opinion_templates.general || ['这件事值得关注。']
   }
   let opinion = templates[Math.floor(Math.random() * templates.length)]
   opinion = opinion.replace(/{topic}/g, news.title.slice(0, 10))
@@ -1205,13 +1249,17 @@ function generateOpinion(role, news) {
 }
 
 function generateDeepOpinion(role, news) {
-  const shortOpinion = generateOpinion(role, news)
-  const templates = [
-    `${shortOpinion}\n\n从更深层次来看，${news.title}这件事反映了当下社会的一个缩影。作为${role.name}，我认为这背后有更复杂的原因，不能简单地一概而论。\n\n希望大家能从多个角度看待问题，不要被单一的信息来源所局限。`,
-    `${shortOpinion}\n\n我每天接触到的人和事，让我对这类新闻有特别的感触。站在我的立场上，最关心的是这件事对普通老百姓的影响。\n\n每个人所处的位置不同，看到的风景也不一样。换个视角，也许你会有完全不同的感受。`,
-    `${shortOpinion}\n\n这件事让我想起了一些经历。在我看来，比起争论对错，更重要的是思考我们能从中学到什么，以及如何让事情变得更好。\n\n棱镜折射出七彩光芒，世界也应该是多元的。`
-  ]
-  return templates[Math.floor(Math.random() * templates.length)]
+  let roleForDeep = role
+  if (!role.opinion_templates || role.is_custom) {
+    const generated = generateOpinionTemplates(role.name)
+    roleForDeep = {
+      ...role,
+      opinion_templates: generated.opinion_templates,
+      speaking_style: role.speaking_style || generated.speaking_style
+    }
+  }
+  const shortOpinion = generateOpinion(roleForDeep, news)
+  return generateDeepOpinionByStyle(roleForDeep, news, shortOpinion)
 }
 
 export function getRandomPerspective() {
@@ -1259,7 +1307,7 @@ export function getMockNews(count = 20, perspective = null) {
   const mockNewsCount = count - realNewsCount
   
   let selectedRealNews = [...NORMALIZED_REAL_NEWS]
-  let selectedMockNews = [...MOCK_NEWS_TEMPLATES]
+  let selectedMockNews = [...NORMALIZED_MOCK_NEWS]
   
   if (perspective && perspective.interested_categories) {
     selectedRealNews = selectedRealNews.map(news => ({
@@ -1290,7 +1338,7 @@ export function getMockNews(count = 20, perspective = null) {
   
   if (selectedRealNews.length < realNewsCount) {
     const extraNeeded = realNewsCount - selectedRealNews.length
-    const extraMock = MOCK_NEWS_TEMPLATES.sort(() => Math.random() - 0.5).slice(0, extraNeeded)
+    const extraMock = NORMALIZED_MOCK_NEWS.sort(() => Math.random() - 0.5).slice(0, extraNeeded)
     selectedMockNews = [...selectedMockNews, ...extraMock]
   }
   if (selectedMockNews.length < mockNewsCount) {
@@ -1342,7 +1390,7 @@ export function getMoreMockNews(existingItems, count = 10, perspective = null) {
   const existingIds = new Set(existingItems.map(i => i.id))
   
   const availableRealNews = NORMALIZED_REAL_NEWS.filter(n => !existingTitles.has(n.title) && !existingIds.has(n.id))
-  const availableMockNews = MOCK_NEWS_TEMPLATES.filter(n => !existingTitles.has(n.title))
+  const availableMockNews = NORMALIZED_MOCK_NEWS.filter(n => !existingTitles.has(n.title))
   
   const realCount = Math.floor(count * 0.6)
   const mockCount = count - realCount
@@ -1351,7 +1399,7 @@ export function getMoreMockNews(existingItems, count = 10, perspective = null) {
   let selectedMock = availableMockNews.sort(() => Math.random() - 0.5).slice(0, Math.min(mockCount, availableMockNews.length))
   
   if (selectedReal.length < realCount) {
-    const extra = MOCK_NEWS_TEMPLATES.sort(() => Math.random() - 0.5).slice(0, realCount - selectedReal.length)
+    const extra = NORMALIZED_MOCK_NEWS.sort(() => Math.random() - 0.5).slice(0, realCount - selectedReal.length)
     selectedMock = [...selectedMock, ...extra.filter(n => !existingTitles.has(n.title))]
   }
   if (selectedMock.length < mockCount) {
@@ -1393,8 +1441,8 @@ export function getMoreMockNews(existingItems, count = 10, perspective = null) {
 }
 
 export function getMultiPerspectiveNews(perspectives, count = 6) {
-  const hotNews = MOCK_NEWS_TEMPLATES.filter(n => n.hot).sort(() => Math.random() - 0.5)
-  const discussionNews = MOCK_NEWS_TEMPLATES.filter(n => !n.hot).sort(() => Math.random() - 0.5)
+  const hotNews = NORMALIZED_MOCK_NEWS.filter(n => n.hot).sort(() => Math.random() - 0.5)
+  const discussionNews = NORMALIZED_MOCK_NEWS.filter(n => !n.hot).sort(() => Math.random() - 0.5)
   const selectedNews = [...hotNews.slice(0, Math.min(3, hotNews.length)), ...discussionNews.slice(0, count - Math.min(3, hotNews.length))].slice(0, count)
 
   return selectedNews.map(news => {
@@ -1595,11 +1643,17 @@ export function getMockRelatedContent(id, perspective = null, limit = 3) {
 
 export function getSearchResults(keyword, perspective = null, limit = 20) {
   if (!keyword || !keyword.trim()) {
-    return { results: [], commentaries: [], is_simulated: false }
+    return { results: [], commentaries: [], is_simulated: false, total: 0 }
   }
   
   const keywordLower = keyword.toLowerCase().trim()
-  const keywords = keywordLower.split(/\s+/).filter(k => k.length > 0)
+  const originalKeywords = keywordLower.split(/\s+/).filter(k => k.length > 0)
+  
+  const expandedKeywords = new Set()
+  originalKeywords.forEach(k => {
+    expandKeywords(k).forEach(ek => expandedKeywords.add(ek))
+  })
+  const keywords = Array.from(expandedKeywords)
   
   function matchesNews(news) {
     const searchText = [news.title, news.summary, news.content, news.source, ...(news.tags || []), news.original_category || news.category]
@@ -1610,12 +1664,16 @@ export function getSearchResults(keyword, perspective = null, limit = 20) {
   }
   
   const matchedReal = NORMALIZED_REAL_NEWS.filter(matchesNews)
-  const matchedMock = MOCK_NEWS_TEMPLATES.filter(matchesNews)
+  const matchedMock = NORMALIZED_MOCK_NEWS.filter(matchesNews)
   
   const scoredReal = matchedReal.map(news => {
     let score = 0
     const titleLower = news.title.toLowerCase()
     const summaryLower = (news.summary || '').toLowerCase()
+    originalKeywords.forEach(k => {
+      if (titleLower.includes(k)) score += 5
+      if (summaryLower.includes(k)) score += 3
+    })
     keywords.forEach(k => {
       if (titleLower.includes(k)) score += 3
       if (summaryLower.includes(k)) score += 2
@@ -1628,6 +1686,10 @@ export function getSearchResults(keyword, perspective = null, limit = 20) {
     let score = 0
     const titleLower = news.title.toLowerCase()
     const summaryLower = (news.summary || '').toLowerCase()
+    originalKeywords.forEach(k => {
+      if (titleLower.includes(k)) score += 5
+      if (summaryLower.includes(k)) score += 3
+    })
     keywords.forEach(k => {
       if (titleLower.includes(k)) score += 3
       if (summaryLower.includes(k)) score += 2
@@ -1680,12 +1742,13 @@ export function getSearchResults(keyword, perspective = null, limit = 20) {
     results = [...results, ...extra.slice(0, limit - results.length)]
   }
   
+  const allMatchedCount = matchedReal.length + matchedMock.length
   results = results.sort(() => Math.random() - 0.5).slice(0, limit)
   
   const commentaries = []
-  if (perspective && results.length > 0) {
+  if (results.length > 0) {
     const sampleNews = results[0]
-    const roles = MOCK_ROLES.sort(() => Math.random() - 0.5).slice(0, Math.min(4, MOCK_ROLES.length))
+    const roles = MOCK_ROLES.sort(() => Math.random() - 0.5).slice(0, Math.min(4 + (perspective ? 0 : 0), MOCK_ROLES.length))
     roles.forEach(role => {
       const rarityCfg = RARITY_CONFIG[role.base_rarity || 'n']
       commentaries.push({
@@ -1705,6 +1768,6 @@ export function getSearchResults(keyword, perspective = null, limit = 20) {
     results,
     commentaries,
     is_simulated: false,
-    total: results.length
+    total: allMatchedCount
   }
 }

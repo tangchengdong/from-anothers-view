@@ -7,6 +7,7 @@ function PerspectiveSummary({ perspective, perspectiveData, compact = false }) {
   const { selectedPerspectiveData } = useAppStore()
   const [loading, setLoading] = useState(true)
   const [description, setDescription] = useState('')
+  const [avatarError, setAvatarError] = useState(false)
 
   const data = perspectiveData || selectedPerspectiveData || perspective
   const name = data?.name || perspective?.name || perspective || '当前视角'
@@ -23,6 +24,7 @@ function PerspectiveSummary({ perspective, perspectiveData, compact = false }) {
     }
 
     setLoading(true)
+    setAvatarError(false)
     setTimeout(() => {
       const builtInDesc = data?.description || perspective?.description
       setDescription(builtInDesc || `以「${name}」的视角看世界，发现不一样的精彩`)
@@ -48,11 +50,12 @@ function PerspectiveSummary({ perspective, perspectiveData, compact = false }) {
       <div className="summary-container guide-style">
         <div className="guide-header">
           <div className="guide-role">
-            {data?.local_image ? (
+            {data?.local_image && !avatarError ? (
               <img 
                 src={getLocalImagePath(data.local_image)} 
                 alt={name}
                 className="guide-avatar"
+                onError={() => setAvatarError(true)}
               />
             ) : (
               <div className="guide-emoji">{emoji}</div>

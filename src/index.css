@@ -24,6 +24,13 @@
   --dark-border: rgba(255, 220, 180, 0.1);
   --dark-border-strong: rgba(255, 220, 180, 0.18);
 
+  /* === 棱镜色系（暖金→暖珊瑚→暖酒红） === */
+  --prism-warm-gold: #FFD4A0;
+  --prism-primary: #FF8B7B;
+  --prism-secondary: #FFB347;
+  --prism-tertiary: #8B2635;
+  --prism-gradient: linear-gradient(90deg, #FFD4A0 0%, #FFB347 25%, #FF8B7B 50%, #8B2635 75%, #FF8B7B 100%);
+
   /* === 统一设计token === */
   --radius-sm: 0;
   --radius-md: 4px;
@@ -42,6 +49,11 @@
   --font-sans: 'Noto Sans SC', sans-serif;
 }
 
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -52,6 +64,7 @@ body {
   font-family: var(--font-sans);
   min-height: 100vh;
   overflow-x: hidden;
+  width: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.4s ease;
@@ -125,6 +138,8 @@ body.dark-theme ::selection {
 
 button {
   font-family: inherit;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 a {

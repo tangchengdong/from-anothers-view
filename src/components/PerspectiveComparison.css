@@ -226,6 +226,13 @@
   }
 }
 
+@media (min-width: 1280px) {
+  .opinions-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.75rem;
+  }
+}
+
 .opinion-card {
   background: linear-gradient(135deg, var(--paper-bg) 0%, var(--paper-highlight) 100%);
   border-left: 4px solid var(--paper-rule);
@@ -626,4 +633,214 @@
   .attitude-bar-item {
     min-width: 80px;
   }
+}
+
+@media (max-width: 480px) {
+  .comparison-header {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+  }
+
+  .comparison-title {
+    font-size: 1.2rem;
+    gap: 0.4rem;
+  }
+
+  .comparison-subtitle {
+    font-size: 0.78rem;
+    padding: 0 0.5rem;
+  }
+
+  .perspective-chips {
+    gap: 0.4rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding-bottom: 0.5rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .perspective-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .perspective-chip {
+    flex-shrink: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .chip-avatar {
+    width: 22px;
+    height: 22px;
+  }
+
+  .news-tabs {
+    gap: 0.4rem;
+  }
+
+  .news-tab {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.75rem;
+    min-height: 44px;
+  }
+
+  .tab-title {
+    max-width: 90px;
+  }
+
+  .comparison-content {
+    padding: 0.85rem;
+  }
+
+  .comparison-content::before {
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+  }
+
+  .comparison-news-title {
+    font-size: 1.05rem;
+  }
+
+  .comparison-news-meta {
+    font-size: 0.7rem;
+    gap: 0.5rem;
+  }
+
+  .comparison-news-summary {
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+
+  .opinion-card {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .opinion-card-header {
+    gap: 0.4rem;
+  }
+
+  .opinion-card-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .opinion-name {
+    font-size: 0.82rem;
+  }
+
+  .opinion-attitude-tag {
+    font-size: 0.65rem;
+    padding: 0.12rem 0.4rem;
+  }
+
+  .opinion-keyword {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .opinion-content {
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+
+  .read-more-btn {
+    padding: 0.85rem;
+    font-size: 0.85rem;
+    min-height: 48px;
+  }
+
+  .footer-quote {
+    font-size: 0.85rem;
+  }
+
+  .collision-label {
+    font-size: 0.75rem;
+  }
+
+  .collision-value {
+    font-size: 1rem;
+  }
+
+  .attitude-overview {
+    gap: 0.4rem;
+  }
+
+  .attitude-bar-item {
+    min-width: calc(50% - 0.2rem);
+    padding: 0.35rem 0.5rem;
+  }
+}
+
+/* 增强五连抽对比视觉效果 */
+.opinion-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.opinion-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  opacity: 0.08;
+  pointer-events: none;
+  border-radius: 0 0 0 100%;
+}
+
+.opinion-card.enhanced::after {
+  background: var(--card-accent, var(--paper-accent));
+}
+
+.opinion-card.highlighted {
+  opacity: 1;
+  transform: translateY(0) scale(1.02);
+  box-shadow: 4px 4px 0 var(--paper-rule);
+  z-index: 2;
+}
+
+.opinion-card.dimmed {
+  opacity: 0.5;
+  transform: scale(0.97);
+}
+
+.opinion-card.dimmed:hover {
+  opacity: 0.75;
+  transform: scale(0.98);
+}
+
+/* 态度颜色增强 */
+.opinion-card.attitude-positive {
+  border-left-color: #2D8B5F;
+  --card-accent: #2D8B5F;
+}
+
+.opinion-card.attitude-negative {
+  border-left-color: #C0392B;
+  --card-accent: #C0392B;
+}
+
+.opinion-card.attitude-neutral {
+  border-left-color: #8B7355;
+  --card-accent: #8B7355;
+}
+
+/* 碰撞感视觉效果 - 高碰撞度时 */
+.comparison-content.high-collision::before {
+  animation: collisionPulse 2s ease-in-out infinite;
+}
+
+@keyframes collisionPulse {
+  0%, 100% { opacity: 1; border-color: var(--paper-rule-light); }
+  50% { opacity: 1; border-color: var(--paper-accent); }
 }

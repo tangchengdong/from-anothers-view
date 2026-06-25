@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { getLocalImagePath } from '../mock/data'
 import './SharePoster.css'
 
 const RARITY_LABELS = {
@@ -10,10 +11,10 @@ const RARITY_LABELS = {
 }
 
 const RARITY_COLORS = {
-  ur: '#B8860B',
-  ssr: '#8B2635',
-  sr: '#8B5A4A',
-  r: '#6B5A4A',
+  ur: '#FFD700',
+  ssr: '#C9A0DC',
+  sr: '#7FB069',
+  r: '#8FA3B8',
   n: '#A89680'
 }
 
@@ -22,153 +23,285 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
   const [generated, setGenerated] = useState(false)
   const [dataUrl, setDataUrl] = useState(null)
 
-  const generatePoster = useCallback(() => {
+  const getCurrentDate = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    const weekday = weekdays[now.getDay()]
+    const startDate = new Date('2024-01-01')
+    const issueNum = Math.floor((now - startDate) / (1000 * 60 * 60 * 24)) + 1
+    return { dateStr: `${year}.${month}.${day} ${weekday}`, issueNum: `第 ${issueNum} 期` }
+  }
+
+  const truncateText = (text, maxLen) => {
+    if (!text) return ''
+    if (text.length <= maxLen) return text
+    return text.slice(0, maxLen) + '...'
+  }
+
+  const loadImage = (src) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => resolve(img)
+      img.onerror = reject
+      img.src = src
+    })
+  }
+
+  const generatePoster = useCallback(async () => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     const W = 750
-    const H = 1100
+    const H = 1000
     canvas.width = W
     canvas.height = H
 
-    const bgColor = '#2a1f24'
+    const bgColor = '#1A1510'
     const accentColor = perspective?.color || '#8B2635'
     const rarity = perspective?.rarity || 'n'
     const rarityColor = RARITY_COLORS[rarity] || '#A89680'
     const rarityLabel = RARITY_LABELS[rarity] || '普通'
+    const { dateStr, issueNum } = getCurrentDate()
 
     ctx.fillStyle = bgColor
     ctx.fillRect(0, 0, W, H)
 
-    const grad1 = ctx.createRadialGradient(W * 0.2, H * 0.15, 0, W * 0.2, H * 0.15, 400)
-    grad1.addColorStop(0, hexToRgba(accentColor, 0.15))
-    grad1.addColorStop(1, 'transparent')
-    ctx.fillStyle = grad1
+    const gradBg1 = ctx.createRadialGradient(W * 0.5, H * 0.35, 0, W * 0.5, H * 0.35, 500)
+    gradBg1.addColorStop(0, 'rgba(139, 38, 53, 0.12)')
+    gradBg1.addColorStop(0.5, 'rgba(255, 179, 71, 0.06)')
+    gradBg1.addColorStop(1, 'transparent')
+    ctx.fillStyle = gradBg1
     ctx.fillRect(0, 0, W, H)
 
-    const grad2 = ctx.createRadialGradient(W * 0.8, H * 0.7, 0, W * 0.8, H * 0.7, 350)
-    grad2.addColorStop(0, 'rgba(255, 179, 71, 0.08)')
-    grad2.addColorStop(1, 'transparent')
-    ctx.fillStyle = grad2
+    const gradVignette = ctx.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, 600)
+    gradVignette.addColorStop(0, 'transparent')
+    gradVignette.addColorStop(1, 'rgba(0, 0, 0, 0.4)')
+    ctx.fillStyle = gradVignette
     ctx.fillRect(0, 0, W, H)
 
-    ctx.strokeStyle = hexToRgba(accentColor, 0.3)
+    ctx.save()
+    ctx.strokeStyle = rarity === 'ur' ? '#FFD700' : (rarity === 'ssr' ? '#C9A0DC' : '#FFB347')
     ctx.lineWidth = 2
-    ctx.strokeRect(30, 30, W - 60, H - 60)
+    ctx.shadowColor = hexToRgba(ctx.strokeStyle, 0.6)
+    ctx.shadowBlur = 15
+    ctx.strokeRect(25, 25, W - 50, H - 50)
+    ctx.restore()
 
-    ctx.strokeStyle = hexToRgba(accentColor, 0.15)
+    ctx.strokeStyle = hexToRgba('#FFF5EB', 0.15)
     ctx.lineWidth = 1
-    ctx.strokeRect(40, 40, W - 80, H - 80)
+    ctx.strokeRect(35, 35, W - 70, H - 70)
 
-    ctx.fillStyle = hexToRgba(accentColor, 0.8)
-    ctx.font = '600 14px "Noto Sans SC", sans-serif'
+    const cornerSize = 20
+    const corners = [
+      [35, 35], [W - 35, 35], [35, H - 35], [W - 35, H - 35]
+    ]
+    ctx.strokeStyle = rarity === 'ur' ? '#FFD700' : '#FF8B7B'
+    ctx.lineWidth = 3
+    ctx.lineCap = 'round'
+    corners.forEach(([cx, cy], i) => {
+      ctx.beginPath()
+      const dirs = i === 0 ? [1, 1, 1, 1] : i === 1 ? [-1, 1, 1, 1] : i === 2 ? [1, -1, 1, 1] : [-1, -1, 1, 1]
+      ctx.moveTo(cx + dirs[0] * cornerSize, cy)
+      ctx.lineTo(cx, cy)
+      ctx.lineTo(cx, cy + dirs[1] * cornerSize)
+      ctx.stroke()
+    })
+
+    const gradTop = ctx.createLinearGradient(50, 0, W - 50, 0)
+    gradTop.addColorStop(0, 'transparent')
+    gradTop.addColorStop(0.15, '#FFD4A0')
+    gradTop.addColorStop(0.35, '#FFB347')
+    gradTop.addColorStop(0.5, '#FF8B7B')
+    gradTop.addColorStop(0.65, '#8B2635')
+    gradTop.addColorStop(0.85, '#FF8B7B')
+    gradTop.addColorStop(1, 'transparent')
+    ctx.fillStyle = gradTop
+    ctx.fillRect(50, 75, W - 100, 3)
+
+    ctx.fillStyle = '#FFF5EB'
+    ctx.font = '900 22px "Noto Serif SC", serif'
     ctx.textAlign = 'center'
-    ctx.fillText('◆  棱镜新闻 · PRISM NEWS  ◆', W / 2, 85)
+    ctx.fillText('棱 镜   P R I S M', W / 2, 120)
 
-    ctx.strokeStyle = hexToRgba('#ffffff', 0.1)
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    ctx.moveTo(100, 105)
-    ctx.lineTo(W - 100, 105)
-    ctx.stroke()
+    ctx.fillStyle = hexToRgba('#FFF5EB', 0.5)
+    ctx.font = '600 11px "Noto Sans SC", sans-serif'
+    ctx.fillText('NEWS · 换个视角看世界', W / 2, 145)
 
-    ctx.font = '60px serif'
-    ctx.textAlign = 'center'
-    ctx.fillText(perspective?.emoji || '🎴', W / 2, 200)
+    ctx.fillStyle = hexToRgba('#FFF5EB', 0.35)
+    ctx.font = '400 10px "Noto Sans SC", sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText(dateStr, 55, 60)
+    ctx.textAlign = 'right'
+    ctx.fillText(issueNum, W - 55, 60)
 
-    ctx.fillStyle = rarityColor
-    ctx.font = '600 16px "Noto Sans SC", sans-serif'
-    ctx.fillText(`「${rarityLabel}」`, W / 2, 240)
-
-    ctx.fillStyle = '#fff'
-    ctx.font = '900 42px "Noto Serif SC", serif'
-    const name = perspective?.name || '未知身份'
-    ctx.fillText(name, W / 2, 300)
-
-    ctx.fillStyle = hexToRgba('#ffffff', 0.5)
-    ctx.font = '400 16px "Noto Sans SC", sans-serif'
-    const desc = perspective?.description || ''
-    wrapText(ctx, desc, W / 2, 340, W - 120, 24)
-
-    if (perspective?.keywords && perspective.keywords.length > 0) {
-      const keywords = perspective.keywords.slice(0, 4)
-      const kwY = 400
-      const kwSpacing = 80
-      const kwStartX = W / 2 - ((keywords.length - 1) * kwSpacing) / 2
-      keywords.forEach((kw, i) => {
-        const x = kwStartX + i * kwSpacing
-        ctx.fillStyle = hexToRgba(accentColor, 0.15)
-        roundRect(ctx, x - 35, kwY - 18, 70, 30, 4)
-        ctx.fill()
-        ctx.strokeStyle = hexToRgba(accentColor, 0.4)
-        ctx.lineWidth = 1
-        roundRect(ctx, x - 35, kwY - 18, 70, 30, 4)
-        ctx.stroke()
-        ctx.fillStyle = hexToRgba('#ffffff', 0.7)
-        ctx.font = '500 13px "Noto Sans SC", sans-serif'
-        ctx.textAlign = 'center'
-        ctx.fillText(kw, x, kwY + 2)
-      })
+    let characterImg = null
+    const localImgPath = perspective?.local_image ? getLocalImagePath(perspective.local_image) : null
+    if (localImgPath) {
+      try {
+        characterImg = await loadImage(localImgPath)
+      } catch (e) {
+        characterImg = null
+      }
     }
 
-    ctx.strokeStyle = hexToRgba(accentColor, 0.3)
-    ctx.lineWidth = 1
-    ctx.setLineDash([5, 5])
+    const avatarCenterY = 310
+    const avatarRadius = 90
+
+    ctx.save()
     ctx.beginPath()
-    ctx.moveTo(80, 460)
-    ctx.lineTo(W - 80, 460)
+    ctx.arc(W / 2, avatarCenterY, avatarRadius + 8, 0, Math.PI * 2)
+    const avatarGlow = ctx.createRadialGradient(W / 2, avatarCenterY, avatarRadius - 10, W / 2, avatarCenterY, avatarRadius + 30)
+    avatarGlow.addColorStop(0, hexToRgba(rarityColor, 0.4))
+    avatarGlow.addColorStop(1, 'transparent')
+    ctx.fillStyle = avatarGlow
+    ctx.fill()
+    ctx.restore()
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(W / 2, avatarCenterY, avatarRadius, 0, Math.PI * 2)
+    ctx.closePath()
+    ctx.clip()
+
+    if (characterImg) {
+      const imgSize = avatarRadius * 2
+      ctx.drawImage(characterImg, W / 2 - avatarRadius, avatarCenterY - avatarRadius, imgSize, imgSize)
+    } else {
+      ctx.fillStyle = 'rgba(45, 37, 32, 0.9)'
+      ctx.fillRect(W / 2 - avatarRadius, avatarCenterY - avatarRadius, avatarRadius * 2, avatarRadius * 2)
+      ctx.font = '80px serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(perspective?.emoji || '🎴', W / 2, avatarCenterY)
+    }
+    ctx.restore()
+
+    ctx.beginPath()
+    ctx.arc(W / 2, avatarCenterY, avatarRadius, 0, Math.PI * 2)
+    ctx.strokeStyle = rarityColor
+    ctx.lineWidth = 4
+    ctx.shadowColor = hexToRgba(rarityColor, 0.5)
+    ctx.shadowBlur = 12
+    ctx.stroke()
+    ctx.shadowBlur = 0
+
+    ctx.beginPath()
+    ctx.arc(W / 2, avatarCenterY, avatarRadius + 5, 0, Math.PI * 2)
+    ctx.strokeStyle = hexToRgba(rarityColor, 0.25)
+    ctx.lineWidth = 1
+    ctx.stroke()
+
+    const badgeWidth = 90
+    const badgeHeight = 26
+    const badgeX = W / 2 - badgeWidth / 2
+    const badgeY = avatarCenterY + avatarRadius - 10
+    ctx.fillStyle = rarityColor
+    roundRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, 13)
+    ctx.fill()
+    ctx.fillStyle = rarity === 'ur' ? '#1A1510' : '#FFF5EB'
+    ctx.font = '800 13px "Noto Sans SC", sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(`✦ ${rarityLabel} ✦`, W / 2, badgeY + badgeHeight / 2)
+    ctx.textBaseline = 'alphabetic'
+
+    ctx.fillStyle = '#FFF5EB'
+    ctx.font = '900 42px "Noto Serif SC", serif'
+    ctx.textAlign = 'center'
+    const name = perspective?.name || '未知身份'
+    ctx.fillText(name, W / 2, 465)
+
+    if (perspective?.description) {
+      ctx.fillStyle = hexToRgba('#FFF5EB', 0.5)
+      ctx.font = '400 13px "Noto Sans SC", sans-serif'
+      const desc = truncateText(perspective.description, 22)
+      ctx.fillText(desc, W / 2, 495)
+    }
+
+    const dividerY = 535
+    ctx.strokeStyle = hexToRgba('#FF8B7B', 0.3)
+    ctx.lineWidth = 1
+    ctx.setLineDash([6, 4])
+    ctx.beginPath()
+    ctx.moveTo(80, dividerY)
+    ctx.lineTo(W - 80, dividerY)
     ctx.stroke()
     ctx.setLineDash([])
 
-    ctx.fillStyle = hexToRgba(accentColor, 0.7)
-    ctx.font = '600 14px "Noto Sans SC", sans-serif'
+    const quoteMark = '"'
+    ctx.fillStyle = hexToRgba(accentColor, 0.25)
+    ctx.font = '900 80px "Noto Serif SC", serif'
     ctx.textAlign = 'left'
-    ctx.fillText('◈ 今日观点', 80, 500)
+    ctx.fillText(quoteMark, 70, 580)
+
+    ctx.fillStyle = hexToRgba('#FF8B7B', 0.8)
+    ctx.font = '700 13px "Noto Sans SC", sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText('◈ 今日金句', 95, 575)
 
     if (newsTitle) {
-      ctx.fillStyle = hexToRgba('#ffffff', 0.4)
-      ctx.font = '400 13px "Noto Sans SC", sans-serif'
+      ctx.fillStyle = hexToRgba('#FFF5EB', 0.4)
+      ctx.font = '400 11px "Noto Sans SC", sans-serif'
       ctx.textAlign = 'left'
-      const truncatedTitle = newsTitle.length > 30 ? newsTitle.slice(0, 30) + '...' : newsTitle
-      ctx.fillText(`关于「${truncatedTitle}」`, 80, 530)
+      const truncatedTitle = truncateText(newsTitle, 28)
+      ctx.fillText(`关于「${truncatedTitle}」`, 95, 600)
     }
 
-    ctx.fillStyle = '#fff'
-    ctx.font = 'italic 600 22px "Noto Serif SC", serif'
+    ctx.fillStyle = '#FFF5EB'
+    ctx.font = 'italic 600 20px "Noto Serif SC", serif'
     ctx.textAlign = 'left'
     const opinionText = opinion || perspective?.description || '换个视角看世界'
-    wrapText(ctx, `"${opinionText}"`, 80, 575, W - 160, 36)
+    const truncatedOpinion = truncateText(opinionText, 50)
+    wrapText(ctx, `"${truncatedOpinion}"`, 95, 640, W - 150, 34)
 
-    ctx.strokeStyle = hexToRgba('#ffffff', 0.1)
+    const sloganY = H - 195
+    const gradSlogan = ctx.createLinearGradient(100, sloganY, W - 100, sloganY)
+    gradSlogan.addColorStop(0, 'transparent')
+    gradSlogan.addColorStop(0.5, '#FFD4A0')
+    gradSlogan.addColorStop(1, 'transparent')
+    ctx.fillStyle = hexToRgba('#FFF5EB', 0.08)
+    ctx.fillRect(70, sloganY - 20, W - 140, 55)
+    ctx.strokeStyle = hexToRgba('#FF8B7B', 0.2)
     ctx.lineWidth = 1
-    ctx.beginPath()
-    ctx.moveTo(80, H - 180)
-    ctx.lineTo(W - 80, H - 180)
+    ctx.strokeRect(70, sloganY - 20, W - 140, 55)
+
+    ctx.fillStyle = '#FFF5EB'
+    ctx.font = '700 16px "Noto Sans SC", sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('打 破 信 息 茧 房', W / 2, sloganY + 2)
+    ctx.fillStyle = hexToRgba('#FFB347', 0.9)
+    ctx.font = '600 13px "Noto Sans SC", sans-serif'
+    ctx.fillText('· 换个视角看世界 ·', W / 2, sloganY + 26)
+
+    const ctaY = H - 120
+    ctx.fillStyle = hexToRgba('#FF8B7B', 0.12)
+    roundRect(ctx, 80, ctaY - 5, W - 160, 40, 20)
+    ctx.fill()
+    ctx.strokeStyle = hexToRgba('#FF8B7B', 0.4)
+    ctx.lineWidth = 1
+    roundRect(ctx, 80, ctaY - 5, W - 160, 40, 20)
     ctx.stroke()
 
-    ctx.fillStyle = hexToRgba('#ffffff', 0.4)
-    ctx.font = '400 13px "Noto Sans SC", sans-serif'
+    ctx.fillStyle = '#FFD4A0'
+    ctx.font = '700 14px "Noto Sans SC", sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('⚡ Built with TRAE · AI-Native IDE', W / 2, H - 145)
+    ctx.fillText('即 刻 体 验  →  prism-news.app', W / 2, ctaY + 20)
 
-    ctx.fillStyle = hexToRgba('#ffffff', 0.3)
-    ctx.font = '400 12px "Noto Sans SC", sans-serif'
-    ctx.fillText('扫码体验棱镜新闻 · 打破信息茧房', W / 2, H - 120)
-
-    ctx.fillStyle = hexToRgba('#ffffff', 0.2)
-    ctx.font = '400 11px "Noto Sans SC", sans-serif'
-    ctx.fillText('© 2024 棱镜新闻 PRISM NEWS', W / 2, H - 90)
-
-    ctx.fillStyle = hexToRgba('#ffffff', 0.15)
+    ctx.fillStyle = hexToRgba('#FFF5EB', 0.2)
     ctx.font = '400 10px "Noto Sans SC", sans-serif'
-    ctx.fillText('看见不同，才能理解不同', W / 2, H - 65)
+    ctx.textAlign = 'center'
+    ctx.fillText('© 2026 棱镜新闻 PRISM NEWS · 看见不同，才能理解不同', W / 2, H - 55)
 
     setDataUrl(canvas.toDataURL('image/png'))
     setGenerated(true)
   }, [perspective, opinion, newsTitle])
 
   useEffect(() => {
-    const timer = setTimeout(() => generatePoster(), 100)
+    const timer = setTimeout(() => generatePoster(), 150)
     return () => clearTimeout(timer)
   }, [generatePoster])
 
@@ -236,6 +369,7 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
 }
 
 function hexToRgba(hex, alpha) {
+  if (!hex) return `rgba(255, 255, 255, ${alpha})`
   if (hex.startsWith('rgba') || hex.startsWith('rgb')) return hex
   const r = parseInt(hex.slice(1, 3), 16)
   const g = parseInt(hex.slice(3, 5), 16)
@@ -247,19 +381,32 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   const chars = text.split('')
   let line = ''
   let currentY = y
+  let lines = 0
+  const maxLines = 4
 
-  for (let i = 0; i < chars.length; i++) {
+  for (let i = 0; i < chars.length && lines < maxLines; i++) {
     const testLine = line + chars[i]
     const metrics = ctx.measureText(testLine)
     if (metrics.width > maxWidth && line.length > 0) {
-      ctx.fillText(line, x, currentY)
+      if (lines === maxLines - 1 && i < chars.length - 1) {
+        let lastLine = line
+        while (ctx.measureText(lastLine + '...').width > maxWidth && lastLine.length > 0) {
+          lastLine = lastLine.slice(0, -1)
+        }
+        ctx.fillText(lastLine + '...', x, currentY)
+      } else {
+        ctx.fillText(line, x, currentY)
+      }
       line = chars[i]
       currentY += lineHeight
+      lines++
     } else {
       line = testLine
     }
   }
-  ctx.fillText(line, x, currentY)
+  if (lines < maxLines && line) {
+    ctx.fillText(line, x, currentY)
+  }
 }
 
 function roundRect(ctx, x, y, w, h, r) {

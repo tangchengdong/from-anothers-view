@@ -288,6 +288,18 @@
   color: var(--paper-rule);
 }
 
+.item-time {
+  color: var(--paper-ink-light);
+  position: relative;
+}
+
+.item-time::after {
+  content: '·';
+  position: absolute;
+  right: -8px;
+  color: var(--paper-rule);
+}
+
 .item-views {
   font-style: italic;
 }
@@ -318,19 +330,46 @@
 
 @media (max-width: 767px) {
   .content-item {
-    padding: 1rem 0;
+    padding: 0.85rem 0;
   }
 
   .item-image {
-    max-height: 150px;
+    max-height: 140px;
+    aspect-ratio: 16/9;
   }
 
   .item-title {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    -webkit-line-clamp: 2;
+    line-height: 1.4;
   }
 
   .item-summary {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     -webkit-line-clamp: 2;
+    line-height: 1.6;
+  }
+
+  .item-meta {
+    font-size: 0.7rem;
+    gap: 8px;
+  }
+
+  .opinion-text {
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-item {
+    padding: 0.75rem 0;
+  }
+
+  .item-image {
+    max-height: 120px;
+  }
+
+  .item-title {
+    font-size: 0.9rem;
   }
 }

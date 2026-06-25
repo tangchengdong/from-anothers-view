@@ -112,6 +112,9 @@
   cursor: pointer;
   transition: all 0.2s ease;
   letter-spacing: 0.05em;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .redraw-header-btn:hover {

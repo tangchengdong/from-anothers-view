@@ -20,6 +20,8 @@ function SearchResults() {
   const [customPerspectives, setCustomPerspectives] = useState([])
   const [customInput, setCustomInput] = useState('')
 
+  const currentPerspective = selectedPerspectives?.length === 1 ? selectedPerspectives[0] : (selectedPerspectives?.[0] || null)
+
   useEffect(() => {
     if (query) {
       doSearch()
@@ -34,10 +36,7 @@ function SearchResults() {
     try {
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      let perspective = null
-      if (selectedPerspectives && selectedPerspectives.length === 1) {
-        perspective = selectedPerspectives[0]
-      }
+      let perspective = currentPerspective
       
       const searchResult = getSearchResults(query, perspective, 20)
       setResults(searchResult.results || [])
@@ -140,11 +139,10 @@ function SearchResults() {
 
         <SearchBox />
 
-        {query && (
+        {query && !loading && !error && (
           <div className="search-query-display">
             <p className="search-count">
-              关键词「<span className="search-query">{query}</span>」
-              {!loading && !error && <span> · 共找到 {results.length} 条相关内容</span>}
+              找到 <span className="search-query">{results.length}</span> 条与「<span className="search-query-highlight">{query}</span>」相关的资讯
             </p>
           </div>
         )}
@@ -238,13 +236,13 @@ function SearchResults() {
         ) : filteredResults.length === 0 ? (
           <div className="search-empty">
             <div className="empty-icon">📭</div>
-            <p className="empty-text">没有找到相关内容</p>
-            <p className="empty-hint">换个关键词试试？或者尝试更宽泛的词语</p>
+            <p className="empty-text">未找到与「{query}」相关的资讯</p>
+            <p className="empty-hint">换个关键词试试？</p>
           </div>
         ) : (
           <div className="search-results-grid">
             {filteredResults.map((item, index) => (
-              <ContentItem key={item.id} content={item} index={index} />
+              <ContentItem key={item.id} content={item} index={index} perspective={currentPerspective} />
             ))}
           </div>
         )}

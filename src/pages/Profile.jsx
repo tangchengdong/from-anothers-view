@@ -37,7 +37,6 @@ const genderOptions = ['男', '女', '非二元', '不愿透露']
 function Profile() {
   const user = useUserStore((state) => state.user)
   const logout = useUserStore((state) => state.logout)
-  const setPerspective = useAppStore((state) => state.setPerspective)
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('favorites')
   const [favorites, setFavorites] = useState([])
@@ -90,7 +89,6 @@ function Profile() {
     setDefaultPerspective(pid)
     try {
       await updatePreferences({ default_perspective: pid })
-      setPerspective(pid)
     } catch (e) {}
   }
 

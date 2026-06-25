@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './PerspectivePicker.css'
 import { getRandomPerspective, getSuggestedPerspectives, getLocalImagePath } from '../mock/data'
+import { generateOpinionTemplates } from '../utils/opinionGenerator'
 
 const VIEW_CLASS = {
   ur: { label: '传说', full: '传说角色', accent: '#B8860B' },
@@ -20,14 +21,72 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
   const [isFlipped, setIsFlipped] = useState(false)
   const [flippedIndices, setFlippedIndices] = useState([])
   const [imageLoadError, setImageLoadError] = useState({})
+  const [showUrEffect, setShowUrEffect] = useState(false)
+  const [showSsrEffect, setShowSsrEffect] = useState(false)
+  const [urLocalEffect, setUrLocalEffect] = useState(new Set())
+  const [ssrLocalEffect, setSsrLocalEffect] = useState(new Set())
+  const urTimerRef = useRef(null)
+  const ssrTimerRef = useRef(null)
 
   useEffect(() => {
     loadSuggestions()
+    return () => {
+      if (urTimerRef.current) clearTimeout(urTimerRef.current)
+      if (ssrTimerRef.current) clearTimeout(ssrTimerRef.current)
+    }
   }, [])
 
   const loadSuggestions = () => {
     const data = getSuggestedPerspectives(12)
     setSuggestions(data)
+  }
+
+  const triggerUrEffect = (isFullScreen = true, cardIndex = null) => {
+    if (urTimerRef.current) clearTimeout(urTimerRef.current)
+    if (isFullScreen) {
+      setShowUrEffect(true)
+      setUrLocalEffect(new Set())
+      urTimerRef.current = setTimeout(() => {
+        setShowUrEffect(false)
+      }, 3200)
+    } else {
+      setUrLocalEffect(prev => {
+        const next = new Set(prev)
+        next.add(cardIndex)
+        return next
+      })
+      urTimerRef.current = setTimeout(() => {
+        setUrLocalEffect(prev => {
+          const next = new Set(prev)
+          next.delete(cardIndex)
+          return next
+        })
+      }, 3200)
+    }
+  }
+
+  const triggerSsrEffect = (isFullScreen = true, cardIndex = null) => {
+    if (ssrTimerRef.current) clearTimeout(ssrTimerRef.current)
+    if (isFullScreen) {
+      setShowSsrEffect(true)
+      setSsrLocalEffect(new Set())
+      ssrTimerRef.current = setTimeout(() => {
+        setShowSsrEffect(false)
+      }, 3200)
+    } else {
+      setSsrLocalEffect(prev => {
+        const next = new Set(prev)
+        next.add(cardIndex)
+        return next
+      })
+      ssrTimerRef.current = setTimeout(() => {
+        setSsrLocalEffect(prev => {
+          const next = new Set(prev)
+          next.delete(cardIndex)
+          return next
+        })
+      }, 3200)
+    }
   }
 
   const resetDraw = () => {
@@ -36,6 +95,10 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
     setIsFlipped(false)
     setFlippedIndices([])
     setImageLoadError({})
+    setShowUrEffect(false)
+    setShowSsrEffect(false)
+    setUrLocalEffect(new Set())
+    setSsrLocalEffect(new Set())
   }
 
   const handleSingleDraw = async () => {
@@ -48,6 +111,11 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
     setTimeout(() => {
       setIsFlipped(true)
       setIsDrawing(false)
+      if (data.rarity === 'ur') {
+        setTimeout(() => triggerUrEffect(true), 300)
+      } else if (data.rarity === 'ssr') {
+        setTimeout(() => triggerSsrEffect(true), 300)
+      }
     }, 200)
   }
 
@@ -69,8 +137,13 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
     }
     setDrawnCards(cards)
     for (let i = 0; i < (cards.length < 5 ? cards.length : 5); i++) {
-      await new Promise(resolve => setTimeout(resolve, 180))
+      await new Promise(resolve => setTimeout(resolve, 220))
       setFlippedIndices(prev => [...prev, i])
+      if (cards[i] && cards[i].rarity === 'ur') {
+        setTimeout(() => triggerUrEffect(false, i), 250)
+      } else if (cards[i] && cards[i].rarity === 'ssr') {
+        setTimeout(() => triggerSsrEffect(false, i), 250)
+      }
     }
     setIsDrawing(false)
   }
@@ -90,15 +163,19 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
   const handleCustomSubmit = (e) => {
     e.preventDefault()
     if (!customName.trim()) return
+    const name = customName.trim()
+    const generated = generateOpinionTemplates(name)
     const data = {
-      name: customName.trim(),
-      emoji: '✎',
-      character_prompt: `custom character ${customName.trim()}, cartoon style, illustration`,
-      description: `以「${customName.trim()}」的视角看世界`,
+      name: name,
+      emoji: generated.emoji || '✎',
+      character_prompt: `custom character ${name}, cartoon style, illustration`,
+      description: generated.description,
       keywords: [],
       rarity: 'n',
       rarity_name: '自定义角色',
-      rarity_label: '自定义'
+      rarity_label: '自定义',
+      speaking_style: 'custom',
+      is_custom: true
     }
     onSelect([data], 20)
     setCustomName('')
@@ -142,6 +219,22 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
     return sources
   }
 
+  const renderUrParticles = () => (
+    <div className="ur-particles-container">
+      {Array.from({ length: 24 }).map((_, i) => (
+        <div key={i} className="ur-particle" style={{ '--i': i }}></div>
+      ))}
+    </div>
+  )
+
+  const renderSsrParticles = () => (
+    <div className="ssr-particles-container">
+      {Array.from({ length: 20 }).map((_, i) => (
+        <div key={i} className="ssr-particle" style={{ '--i': i }}></div>
+      ))}
+    </div>
+  )
+
   const renderCard = (card, index, isInGrid = false) => {
     const flipped = isInGrid ? flippedIndices.includes(index) : isFlipped
     const viewClass = card ? getViewClass(card.rarity) : null
@@ -149,13 +242,37 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
     const imageSources = card ? getCharacterImageSources(card) : []
     const hasLocalImage = card?.local_image && !imageLoadError[`local_${card.local_image}`]
     const hasAnyImage = imageSources.length > 0
+    const isUrLocal = isInGrid && urLocalEffect.has(index)
+    const isSsrLocal = isInGrid && ssrLocalEffect.has(index)
 
     return (
       <div
         key={isInGrid ? index : 'single'}
-        className={`card-container ${rarityClass} ${isDrawing && !isInGrid ? 'drawing' : ''} ${flipped ? 'flipped' : ''} ${hasLocalImage ? 'has-full-card' : ''}`}
+        className={`card-container ${rarityClass} ${isDrawing && !isInGrid ? 'drawing' : ''} ${flipped ? 'flipped' : ''} ${hasLocalImage ? 'has-full-card' : ''} ${isUrLocal ? 'ur-local-effect' : ''} ${isSsrLocal ? 'ssr-local-effect' : ''}`}
         onClick={!isDrawing && !flipped && !isInGrid ? handleSingleDraw : undefined}
       >
+        {isUrLocal && (
+          <>
+            <div className="ur-local-flash"></div>
+            <div className="ur-local-particles">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="ur-local-particle" style={{ '--i': i }}></div>
+              ))}
+            </div>
+            <div className="ur-local-text">✦ 传说降临 ✦</div>
+          </>
+        )}
+        {isSsrLocal && (
+          <>
+            <div className="ssr-local-flash"></div>
+            <div className="ssr-local-particles">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={i} className="ssr-local-particle" style={{ '--i': i }}></div>
+              ))}
+            </div>
+            <div className="ssr-local-text">✦ 史诗降临 ✦</div>
+          </>
+        )}
         <div className="card-flip">
           <div className="card-face card-back">
             <img src={new URL('../assets/characters/kabei.webp', import.meta.url).href} alt="卡背" className="kabei-image" />
@@ -225,7 +342,26 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
   }
 
   return (
-    <div className="perspective-picker">
+    <div className={`perspective-picker ${showUrEffect ? 'ur-spawn' : ''} ${showSsrEffect ? 'ssr-spawn' : ''}`}>
+      {showUrEffect && (
+        <>
+          <div className="ur-flash-overlay"></div>
+          {renderUrParticles()}
+          <div className="ur-legend-text">
+            <span className="ur-legend-inner">✦ 传说角色降临 ✦</span>
+          </div>
+        </>
+      )}
+      {showSsrEffect && (
+        <>
+          <div className="ssr-flash-overlay"></div>
+          {renderSsrParticles()}
+          <div className="ssr-legend-text">
+            <span className="ssr-legend-inner">✦ 史诗角色降临 ✦</span>
+          </div>
+        </>
+      )}
+
       <div className="picker-section suggestions-section">
         <h3 className="picker-section-title">
           <span>✦</span> 快速选择

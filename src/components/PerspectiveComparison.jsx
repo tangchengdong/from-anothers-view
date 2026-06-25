@@ -10,9 +10,11 @@ function PerspectiveComparison({ perspectives }) {
   const [loading, setLoading] = useState(true)
   const [activeNewsIndex, setActiveNewsIndex] = useState(0)
   const [highlightedPerspective, setHighlightedPerspective] = useState(null)
+  const [avatarErrors, setAvatarErrors] = useState({})
 
   useEffect(() => {
     setLoading(true)
+    setAvatarErrors({})
     setTimeout(() => {
       const multiNews = getMultiPerspectiveNews(perspectives, 6)
       setNews(multiNews)
@@ -22,12 +24,17 @@ function PerspectiveComparison({ perspectives }) {
   }, [perspectives])
 
   const handleReadMore = (newsItem) => {
+    const activePersp = highlightedPerspective || perspectives[0]
     navigate(`/content/${newsItem.id}`, {
       state: {
-        content: { ...newsItem, perspective_name: perspectives[0]?.name },
-        perspective: perspectives[0]
+        content: { ...newsItem, perspective_name: activePersp?.name },
+        perspective: activePersp
       }
     })
+  }
+
+  const handleAvatarError = (key) => {
+    setAvatarErrors(prev => ({ ...prev, [key]: true }))
   }
 
   const currentNews = news[activeNewsIndex]
@@ -58,6 +65,21 @@ function PerspectiveComparison({ perspectives }) {
     )
   }
 
+  const renderAvatar = (p, size = 'chip') => {
+    const errorKey = `${size}_${p.name}`
+    if (p.local_image && !avatarErrors[errorKey]) {
+      return (
+        <img 
+          src={getLocalImagePath(p.local_image)} 
+          alt={p.name} 
+          className={size === 'chip' ? 'chip-avatar' : 'opinion-card-avatar'}
+          onError={() => handleAvatarError(errorKey)}
+        />
+      )
+    }
+    return <span>{p.emoji}</span>
+  }
+
   return (
     <div className="perspective-comparison">
       <div className="comparison-header">
@@ -82,11 +104,7 @@ function PerspectiveComparison({ perspectives }) {
                 highlightedPerspective?.name === p.name ? null : p
               )}
             >
-              {p.local_image ? (
-                <img src={getLocalImagePath(p.local_image)} alt={p.name} className="chip-avatar" />
-              ) : (
-                <span>{p.emoji}</span>
-              )}
+              {renderAvatar(p, 'chip')}
               {' '}{p.name}
             </button>
           ))}
@@ -113,7 +131,7 @@ function PerspectiveComparison({ perspectives }) {
       </div>
 
       {currentNews && analysisData && (
-        <div className="comparison-content">
+        <div className={`comparison-content ${analysisData.collisionScore >= 60 ? 'high-collision' : ''}`}>
           <div className="collision-score-bar">
             <div className="collision-label">
               <span className="collision-icon">⚡</span>
@@ -189,25 +207,18 @@ function PerspectiveComparison({ perspectives }) {
             {analysisData.analyses.map((item, idx) => {
               const cfg = ATTITUDE_CONFIG[item.attitude.attitude]
               const isHighlighted = !highlightedPerspective || highlightedPerspective.name === item.perspective.name
+              const attitudeClass = `attitude-${item.attitude.attitude}`
               return (
                 <div
                   key={idx}
-                  className={`opinion-card enhanced ${isHighlighted ? 'highlighted' : 'dimmed'}`}
+                  className={`opinion-card enhanced ${attitudeClass} ${isHighlighted ? 'highlighted' : 'dimmed'}`}
                   style={{ borderLeftColor: item.perspective.color }}
                   onClick={() => setHighlightedPerspective(
                     highlightedPerspective?.name === item.perspective.name ? null : item.perspective
                   )}
                 >
                   <div className="opinion-card-header">
-                    {item.perspective.local_image ? (
-                      <img 
-                        src={getLocalImagePath(item.perspective.local_image)} 
-                        alt={item.perspective.name}
-                        className="opinion-card-avatar"
-                      />
-                    ) : (
-                      <span className="opinion-emoji">{item.perspective.emoji}</span>
-                    )}
+                    {renderAvatar(item.perspective, 'card')}
                     <span className="opinion-name" style={{ color: item.perspective.color }}>{item.perspective.name}</span>
                     <span
                       className="opinion-attitude-tag"

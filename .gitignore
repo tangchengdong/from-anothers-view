@@ -40,3 +40,6 @@ vite.config.js.timestamp-*.mjs
 
 # Trae documents (internal planning)
 .trae/
+
+# Card assets (large files, not committed)
+cards/

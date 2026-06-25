@@ -7,6 +7,28 @@
   z-index: 1;
 }
 
+/* Footer顶部棱镜光带 - 暖色调与Header呼应 */
+.footer::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    rgba(255, 179, 71, 0.5) 0%,
+    rgba(255, 139, 123, 0.7) 35%,
+    rgba(139, 38, 53, 0.6) 70%,
+    rgba(255, 139, 123, 0.4) 100%);
+  background-size: 200% 100%;
+  animation: footerPrismShift 8s ease-in-out infinite;
+}
+
+@keyframes footerPrismShift {
+  0%, 100% { background-position: 0% 50%; opacity: 0.7; }
+  50% { background-position: 100% 50%; opacity: 1; }
+}
+
 .footer-content {
   max-width: 1000px;
   margin: 0 auto;
@@ -25,7 +47,7 @@
 
 .footer-tagline {
   color: var(--paper-ink-secondary);
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   font-style: italic;
   font-size: 0.9rem;
   margin-bottom: 0.75rem;
@@ -35,7 +57,7 @@
 .footer-copyright {
   color: var(--paper-ink-light);
   font-size: 0.75rem;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   letter-spacing: 0.1em;
 }
 
@@ -43,4 +65,121 @@
   .footer {
     padding: 36px 16px 28px;
   }
+}
+
+/* TRAE标识 - 融入整体设计 */
+.trae-badge-block {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--paper-rule-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.trae-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, rgba(139, 38, 53, 0.06), rgba(255, 139, 123, 0.06));
+  border: 1px solid var(--paper-rule);
+  border-radius: 0;
+  transition: all 0.3s ease;
+}
+
+.trae-badge:hover {
+  border-color: var(--paper-accent);
+  box-shadow: 0 2px 12px rgba(139, 38, 53, 0.12);
+}
+
+.trae-icon {
+  font-size: 1.3rem;
+  animation: traePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes traePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.9); }
+}
+
+.trae-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 0.1rem;
+}
+
+.trae-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--paper-ink);
+  font-family: var(--font-serif);
+  letter-spacing: 0.05em;
+}
+
+.trae-desc {
+  font-size: 0.65rem;
+  color: var(--paper-ink-light);
+  letter-spacing: 0.03em;
+}
+
+.trae-story {
+  font-size: 0.7rem;
+  color: var(--paper-ink-light);
+  line-height: 1.7;
+  max-width: 500px;
+  text-align: center;
+  font-style: italic;
+  font-family: var(--font-serif);
+  margin: 0;
+  padding: 0 1rem;
+}
+
+/* 深色主题Footer适配 - 暖色调 */
+body.dark-theme .footer {
+  background: var(--dark-bg);
+  border-top-color: rgba(255, 220, 180, 0.1);
+}
+
+body.dark-theme .footer::before {
+  background: linear-gradient(90deg,
+    rgba(255, 179, 71, 0.5) 0%,
+    rgba(255, 139, 123, 0.7) 35%,
+    rgba(139, 38, 53, 0.6) 70%,
+    rgba(255, 139, 123, 0.4) 100%);
+}
+
+body.dark-theme .footer-rule-top span {
+  color: var(--prism-warm-gold);
+}
+
+body.dark-theme .footer-tagline {
+  color: var(--dark-text-secondary);
+}
+
+body.dark-theme .footer-copyright {
+  color: var(--dark-text-muted);
+}
+
+body.dark-theme .trae-badge {
+  background: linear-gradient(135deg, rgba(255, 179, 71, 0.08), rgba(139, 38, 53, 0.06));
+  border-color: rgba(255, 220, 180, 0.12);
+}
+
+body.dark-theme .trae-label {
+  color: var(--dark-text);
+}
+
+body.dark-theme .trae-desc {
+  color: var(--dark-text-muted);
+}
+
+body.dark-theme .trae-story {
+  color: var(--dark-text-muted);
+}
+
+body.dark-theme .trae-badge-block {
+  border-top-color: rgba(255, 220, 180, 0.08);
 }

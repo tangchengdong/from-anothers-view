@@ -1,45 +1,97 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { searchContent } from '../api/content'
+import { getSearchResults, getSuggestedPerspectives, generateOpinion, RARITY_CONFIG } from '../mock/data'
+import { useAppStore } from '../store/useAppStore'
+import SearchBox from '../components/SearchBox'
 import ContentItem from '../components/ContentItem'
 import '../components/Skeleton.css'
 import './SearchResults.css'
-
-const SUGGESTED_PERSPECTIVES = [
-  '投资者', '学生', '医生', '律师', '教师',
-  '企业家', '设计师', '心理学家', '历史学者', '环保人士',
-]
 
 function SearchResults() {
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q') || ''
   const navigate = useNavigate()
+  const { selectedPerspectives } = useAppStore()
   const [results, setResults] = useState([])
   const [commentaries, setCommentaries] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [activePerspective, setActivePerspective] = useState('all')
-  const [isSimulated, setIsSimulated] = useState(false)
   const [customPerspectives, setCustomPerspectives] = useState([])
   const [customInput, setCustomInput] = useState('')
 
   useEffect(() => {
     if (query) {
       doSearch()
+    } else {
+      setLoading(false)
     }
   }, [query])
 
   const doSearch = async (customList = customPerspectives) => {
     setLoading(true)
+    setError(null)
     try {
-      const res = await searchContent(query, null, 20, customList.length > 0 ? customList : null)
-      setResults(res.results || [])
-      setCommentaries(res.commentaries || [])
-      setIsSimulated(res.is_simulated || false)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      let perspective = null
+      if (selectedPerspectives && selectedPerspectives.length === 1) {
+        perspective = selectedPerspectives[0]
+      }
+      
+      const searchResult = getSearchResults(query, perspective, 20)
+      setResults(searchResult.results || [])
+      
+      const generatedCommentaries = []
+      const roles = getSuggestedPerspectives(Math.min(4 + customList.length, 8))
+      
+      roles.forEach(role => {
+        const rarityCfg = RARITY_CONFIG[role.base_rarity || 'n']
+        generatedCommentaries.push({
+          perspective_id: role.name,
+          role_name: role.name,
+          emoji: role.emoji,
+          color: rarityCfg.color,
+          headline: `${role.name}怎么看「${query}」`,
+          viewpoint: generateOpinion(role, { title: query, category: 'general' }),
+          tags: role.keywords?.slice(0, 3) || [],
+          is_custom: false
+        })
+      })
+      
+      customList.forEach(name => {
+        const customRole = {
+          name,
+          emoji: '🎭',
+          base_rarity: 'n',
+          keywords: [],
+          opinion_templates: {
+            general: [`作为${name}，我认为${query}这件事很值得关注。`, `从${name}的角度来看，这件事有不同的意义。`]
+          }
+        }
+        generatedCommentaries.push({
+          perspective_id: name,
+          role_name: name,
+          emoji: '🎭',
+          color: '#B8860B',
+          headline: `${name}怎么看「${query}」`,
+          viewpoint: generateOpinion(customRole, { title: query, category: 'general' }),
+          tags: ['自定义视角'],
+          is_custom: true
+        })
+      })
+      
+      setCommentaries(generatedCommentaries)
     } catch (err) {
       console.error('搜索失败', err)
+      setError('搜索失败，请稍后重试')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleRetry = () => {
+    doSearch()
   }
 
   const handleAddCustom = (name) => {
@@ -70,9 +122,10 @@ function SearchResults() {
 
   const perspectiveGroups = {}
   results.forEach(item => {
-    const pname = item.perspective_name || item.perspective_id || 'other'
-    if (!perspectiveGroups[pname]) perspectiveGroups[pname] = []
-    perspectiveGroups[pname].push(item)
+    const pname = item.perspective_name || item.is_real ? '真实新闻' : '棱镜推荐'
+    const groupName = item.is_real ? '📰 真实资讯' : '✨ 模拟资讯'
+    if (!perspectiveGroups[groupName]) perspectiveGroups[groupName] = []
+    perspectiveGroups[groupName].push(item)
   })
 
   return (
@@ -80,71 +133,38 @@ function SearchResults() {
       <div className="search-container">
         <div className="search-header">
           <button className="back-btn" onClick={() => navigate(-1)}>← 返回</button>
-          <h1 className="search-title">
-            搜索结果：<span className="search-query">"{query}"</span>
+          <h1 className="search-title font-serif">
+            搜索结果
           </h1>
-          <p className="search-count">
-            共找到 {results.length} 条相关内容
-            {isSimulated && <span className="simulated-badge"> · 模拟资讯</span>}
-          </p>
         </div>
 
-        {/* 自定义视角输入区 */}
-        <div className="custom-perspective-bar">
-          <div className="custom-perspective-label">
-            <span className="cp-icon">🎯</span>
-            <span>添加自定义视角</span>
-          </div>
-          <div className="custom-perspective-input-wrap">
-            <input
-              type="text"
-              className="custom-perspective-input"
-              placeholder="输入视角名称，如：投资者、学生、医生..."
-              value={customInput}
-              onChange={(e) => setCustomInput(e.target.value)}
-              onKeyDown={handleCustomKeyDown}
-            />
-            <button
-              className="cp-add-btn"
-              onClick={() => handleAddCustom(customInput)}
-              disabled={!customInput.trim()}
-            >
-              + 添加视角
-            </button>
-          </div>
-          <div className="custom-perspective-tags">
-            {customPerspectives.map(name => (
-              <span key={name} className="cp-tag-active">
-                {name}
-                <button className="cp-remove" onClick={() => handleRemoveCustom(name)}>×</button>
-              </span>
-            ))}
-          </div>
-          {customPerspectives.length === 0 && (
-            <div className="cp-suggestions">
-              <span className="cp-suggest-label">快捷添加：</span>
-              {SUGGESTED_PERSPECTIVES.slice(0, 6).map(name => (
-                <button
-                  key={name}
-                  className="cp-suggest-btn"
-                  onClick={() => handleAddCustom(name)}
-                >
-                  + {name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <SearchBox />
 
-        {/* Agent 视角观点板块 */}
-        {!loading && commentaries.length > 0 && (
+        {query && (
+          <div className="search-query-display">
+            <p className="search-count">
+              关键词「<span className="search-query">{query}</span>」
+              {!loading && !error && <span> · 共找到 {results.length} 条相关内容</span>}
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="search-error">
+            <div className="error-icon">⚠️</div>
+            <p className="error-text">{error}</p>
+            <button className="retry-btn" onClick={handleRetry}>重新搜索</button>
+          </div>
+        )}
+
+        {!error && query && !loading && commentaries.length > 0 && (
           <section className="commentary-section">
             <div className="commentary-header">
-              <h2 className="commentary-title">
+              <h2 className="commentary-title font-serif">
                 {commentaries.length}重视角解读「{query}」
               </h2>
               <p className="commentary-subtitle">
-                不同圈层的 Agent 对此话题的观点
+                不同身份的角色对此话题的观点
                 {customPerspectives.length > 0 && `（含 ${customPerspectives.length} 个自定义视角）`}
               </p>
             </div>
@@ -169,7 +189,7 @@ function SearchResults() {
                   <p className="commentary-viewpoint">{c.viewpoint}</p>
                   <div className="commentary-tags">
                     {c.tags?.map((tag, ti) => (
-                      <span className="commentary-tag" key={ti}>{tag}</span>
+                      <span className="commentary-tag" key={ti}>#{tag}</span>
                     ))}
                   </div>
                 </div>
@@ -178,26 +198,26 @@ function SearchResults() {
           </section>
         )}
 
-        {/* 视角筛选 tabs */}
-        <div className="perspective-tabs">
-          <button
-            className={`tab-btn ${activePerspective === 'all' ? 'active' : ''}`}
-            onClick={() => setActivePerspective('all')}
-          >
-            全部 ({results.length})
-          </button>
-          {Object.keys(perspectiveGroups).map(pname => (
+        {!error && query && !loading && results.length > 0 && (
+          <div className="perspective-tabs">
             <button
-              key={pname}
-              className={`tab-btn ${activePerspective === pname ? 'active' : ''}`}
-              onClick={() => setActivePerspective(pname)}
+              className={`tab-btn ${activePerspective === 'all' ? 'active' : ''}`}
+              onClick={() => setActivePerspective('all')}
             >
-              {pname} ({perspectiveGroups[pname].length})
+              全部 ({results.length})
             </button>
-          ))}
-        </div>
+            {Object.keys(perspectiveGroups).map(pname => (
+              <button
+                key={pname}
+                className={`tab-btn ${activePerspective === pname ? 'active' : ''}`}
+                onClick={() => setActivePerspective(pname)}
+              >
+                {pname} ({perspectiveGroups[pname].length})
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* 搜索结果 */}
         {loading ? (
           <div className="skeleton-search-grid">
             {[0, 1, 2, 3, 4, 5].map((i) => (
@@ -209,11 +229,17 @@ function SearchResults() {
               </div>
             ))}
           </div>
-        ) : filteredResults.length === 0 ? (
+        ) : error ? null : !query ? (
           <div className="search-empty">
             <div className="empty-icon">🔍</div>
+            <p className="empty-text">请输入关键词开始搜索</p>
+            <p className="empty-hint">在上方搜索框输入你感兴趣的话题</p>
+          </div>
+        ) : filteredResults.length === 0 ? (
+          <div className="search-empty">
+            <div className="empty-icon">📭</div>
             <p className="empty-text">没有找到相关内容</p>
-            <p className="empty-hint">换个关键词试试？</p>
+            <p className="empty-hint">换个关键词试试？或者尝试更宽泛的词语</p>
           </div>
         ) : (
           <div className="search-results-grid">

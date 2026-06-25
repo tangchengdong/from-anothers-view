@@ -1,0 +1,239 @@
+.share-poster-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3000;
+  background: rgba(15, 12, 28, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: posterFadeIn 0.3s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+@keyframes posterFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 海报弹窗 - 报纸主题 + 棱镜桥梁 */
+.share-poster-modal {
+  position: relative;
+  background: var(--paper-bg);
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border: 2px solid var(--paper-ink);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 38, 53, 0.15);
+  animation: posterSlideUp 0.4s ease;
+}
+
+/* 棱镜折射光带 - 顶部桥梁 */
+.share-poster-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--prism-gradient);
+  background-size: 200% 100%;
+  animation: posterPrismShift 5s ease-in-out infinite;
+  z-index: 5;
+}
+
+@keyframes posterPrismShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes posterSlideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.poster-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  background: var(--paper-bg);
+  border: 1px solid var(--paper-ink);
+  color: var(--paper-ink);
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+}
+
+.poster-close-btn:hover {
+  background: var(--paper-ink);
+  color: var(--paper-bg);
+  transform: rotate(90deg);
+}
+
+.poster-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-family: var(--font-serif);
+  color: var(--paper-ink);
+  text-align: center;
+  margin: 0 0 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+.poster-subtitle {
+  font-size: 0.8rem;
+  color: var(--paper-ink-light);
+  text-align: center;
+  margin: 0 0 1.25rem;
+  font-style: italic;
+  font-family: var(--font-serif);
+}
+
+/* 海报预览区 - 深色棱镜入口 */
+.poster-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 750 / 1100;
+  background: var(--dark-bg);
+  border: 1px solid var(--paper-rule);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+
+/* 预览区底部棱镜光带 - 连接深色海报与报纸弹窗 */
+.poster-preview::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--prism-gradient);
+  background-size: 200% 100%;
+  animation: posterPrismShift 5s ease-in-out infinite;
+  z-index: 2;
+}
+
+.poster-generating {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  font-family: var(--font-serif);
+}
+
+/* 棱镜色加载动画 */
+.poster-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  border-top-color: var(--prism-primary);
+  border-right-color: var(--prism-secondary);
+  border-radius: 50%;
+  animation: posterSpin 0.8s linear infinite;
+}
+
+@keyframes posterSpin {
+  to { transform: rotate(360deg); }
+}
+
+.poster-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.poster-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.poster-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  border: 2px solid var(--paper-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: var(--font-serif);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+}
+
+.poster-btn-download {
+  background: var(--paper-bg);
+  color: var(--paper-ink);
+}
+
+.poster-btn-download:hover {
+  background: var(--paper-ink);
+  color: var(--paper-bg);
+}
+
+.poster-btn-share {
+  background: var(--paper-ink);
+  color: var(--paper-bg);
+}
+
+.poster-btn-share:hover {
+  background: var(--paper-accent);
+  border-color: var(--paper-accent);
+  box-shadow: 0 4px 16px rgba(139, 38, 53, 0.35);
+}
+
+.poster-hint {
+  font-size: 0.7rem;
+  color: var(--paper-ink-light);
+  text-align: center;
+  font-style: italic;
+  font-family: var(--font-serif);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .share-poster-modal {
+    padding: 1.25rem 1rem 1rem;
+    max-width: 100%;
+  }
+
+  .poster-actions {
+    flex-direction: column;
+  }
+
+  .poster-btn {
+    width: 100%;
+  }
+}

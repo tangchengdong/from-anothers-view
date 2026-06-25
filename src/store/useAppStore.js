@@ -1,9 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+const BREAKTHROUGH_THRESHOLDS = [3, 5, 8, 12, 16, 20]
+
 export const useAppStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       selectedPerspectives: null,
       selectedPerspectiveData: null,
       itemsPerPerspective: 20,
@@ -15,6 +17,9 @@ export const useAppStore = create(
       favorites: [],
       userInterests: [],
       cocoonBreaker: false,
+      readCount: 0,
+      lastBreakthrough: 0,
+      pendingBreakthrough: null,
 
       setSelectedPerspectives: (perspectives, itemsPerPerspective = 20) => set({
         selectedPerspectives: perspectives,
@@ -67,6 +72,22 @@ export const useAppStore = create(
 
       setCocoonBreaker: (value) => set({ cocoonBreaker: value }),
 
+      incrementReadCount: () => {
+        const state = get()
+        const newCount = state.readCount + 1
+        const achieved = BREAKTHROUGH_THRESHOLDS.find(t => t === newCount && t > state.lastBreakthrough)
+        
+        set({
+          readCount: newCount,
+          pendingBreakthrough: achieved || null,
+          lastBreakthrough: achieved ? achieved : state.lastBreakthrough
+        })
+
+        return { newCount, achieved: !!achieved }
+      },
+
+      clearPendingBreakthrough: () => set({ pendingBreakthrough: null }),
+
       resetSelection: () => set({
         selectedPerspectives: null,
         selectedPerspectiveData: null,
@@ -83,3 +104,4 @@ export const useAppStore = create(
     }
   )
 )
+

@@ -56,6 +56,15 @@
   background: var(--paper-bg);
 }
 
+.guide-avatar {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--paper-ink);
+  background: var(--paper-bg);
+}
+
 .guide-info {
   flex: 1;
   min-width: 0;
@@ -72,7 +81,7 @@
 .guide-title {
   font-size: 1.8rem;
   font-weight: 900;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   color: var(--paper-ink);
   margin: 0;
   letter-spacing: 0.05em;
@@ -87,7 +96,7 @@
   color: var(--paper-bg);
   letter-spacing: 0.15em;
   flex-shrink: 0;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   text-transform: uppercase;
   border: 1px solid var(--paper-accent);
   background: var(--paper-accent);
@@ -97,7 +106,7 @@
   font-size: 0.8rem;
   color: var(--paper-ink-light);
   margin: 0;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   font-style: italic;
 }
 
@@ -110,7 +119,7 @@
 .guide-loading {
   color: var(--paper-ink-light);
   font-size: 0.95rem;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   font-style: italic;
 }
 
@@ -119,7 +128,7 @@
   font-size: 0.95rem;
   line-height: 1.8;
   margin: 0 0 0.75rem 0;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   position: relative;
   padding-left: 1rem;
   border-left: 3px solid var(--paper-accent);
@@ -141,7 +150,7 @@
   font-size: 0.75rem;
   color: var(--paper-ink-secondary);
   font-weight: 500;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   transition: all 0.2s ease;
   letter-spacing: 0.05em;
 }

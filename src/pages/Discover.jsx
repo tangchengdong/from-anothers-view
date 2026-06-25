@@ -1,9 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
+import SearchBox from '../components/SearchBox'
 import StreamFeed from '../components/StreamFeed'
 import PerspectiveSummary from '../components/PerspectiveSummary'
 import PerspectivePicker from '../components/PerspectivePicker'
+import PerspectiveComparison from '../components/PerspectiveComparison'
+import SharePoster from '../components/SharePoster'
 import './Discover.css'
 
 function formatDate() {
@@ -16,10 +19,48 @@ function formatDate() {
   return `${year}年${month}月${day}日 ${weekday}`
 }
 
+function formatLunarDate() {
+  const lunarMonths = ['正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '腊']
+  const lunarDays = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
+    '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+    '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十']
+  const now = new Date()
+  const seed = (now.getFullYear() * 366 + now.getMonth() * 31 + now.getDate()) % 360
+  const monthIdx = Math.floor(seed / 30) % 12
+  const dayIdx = seed % 30
+  return `农历${lunarMonths[monthIdx]}月${lunarDays[dayIdx]}`
+}
+
+function formatWeather() {
+  const weathers = ['晴 28℃', '多云 26℃', '阴 24℃', '小雨 22℃']
+  return weathers[Math.floor(Math.random() * weathers.length)]
+}
+
+function getIssueNumber() {
+  const startDate = new Date('2024-01-01')
+  const now = new Date()
+  const diff = Math.floor((now - startDate) / (1000 * 60 * 60 * 24))
+  return `第 ${diff + 1} 期`
+}
+
 function Discover() {
   const navigate = useNavigate()
-  const { selectedPerspectives, itemsPerPerspective, selectedSubcategory, setSelectedPerspectives, setSubcategory, resetSelection } = useAppStore()
+  const { selectedPerspectives, itemsPerPerspective, setSelectedPerspectives, setSubcategory, resetSelection } = useAppStore()
   const [showPickerModal, setShowPickerModal] = useState(false)
+  const [showSharePoster, setShowSharePoster] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const [weather] = useState(formatWeather())
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0
+      setScrollProgress(Math.min(progress, 100))
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const handleSubcategoryChange = (sub) => {
     setSubcategory(sub)
@@ -40,35 +81,61 @@ function Discover() {
   const firstPerspective = selectedPerspectives && selectedPerspectives.length === 1 ? selectedPerspectives[0] : null
 
   const hasContent = selectedPerspectives && selectedPerspectives.length > 0
+  const sharePerspective = firstPerspective || (selectedPerspectives && selectedPerspectives[0])
 
   return (
     <div className="discover-page">
+      <div className="reading-progress-bar">
+        <div className="reading-progress-fill" style={{ width: `${scrollProgress}%` }} />
+      </div>
+
       {hasContent && (
         <>
           <div className="newspaper-masthead">
             <div className="masthead-top">
-              <span>{formatDate()}</span>
-              <span>棱镜新闻 · PRISM NEWS</span>
-              <span>第 1 期</span>
+              <span className="masthead-date">{formatDate()}</span>
+              <span className="masthead-lunar">{formatLunarDate()}</span>
+              <span className="masthead-weather">{weather}</span>
             </div>
             <Link to="/" className="masthead-title-link" onClick={handleMastheadClick}>
               <h1 className="masthead-title font-serif">棱 镜</h1>
             </Link>
-            <p className="masthead-subtitle">— 换个视角看世界 —</p>
+            <p className="masthead-subtitle">— PRISM NEWS · 换个视角看世界 —</p>
+            <div className="masthead-info-row">
+              <span className="masthead-issue">{getIssueNumber()}</span>
+              <span className="masthead-separator">·</span>
+              <span className="masthead-vol">今日 {isMultiPerspective ? selectedPerspectives.length * 5 : 20} 版</span>
+              <span className="masthead-separator">·</span>
+              <span className="masthead-price">零售价：打破茧房</span>
+            </div>
             <div className="masthead-rule">
               <div className="section-divider"></div>
-              <span>打破信息茧房 · 多元观点呈现</span>
+              <span className="masthead-motto">打破信息茧房 · 多元观点呈现 · 棱镜折射真相</span>
               <div className="section-divider"></div>
             </div>
           </div>
 
-          <button
-            className="change-identity-btn"
-            onClick={() => setShowPickerModal(true)}
-          >
-            <span className="btn-icon">※</span>
-            <span className="btn-text">{isMultiPerspective ? '换身份组' : '换个身份'}</span>
-          </button>
+          <div className="discover-action-btns">
+            <button
+              className="change-identity-btn"
+              onClick={() => setShowPickerModal(true)}
+            >
+              <span className="btn-icon">※</span>
+              <span className="btn-text">{isMultiPerspective ? '换身份组' : '换个身份'}</span>
+            </button>
+
+            {sharePerspective && (
+              <button
+                className="share-poster-btn"
+                onClick={() => setShowSharePoster(true)}
+              >
+                <span className="btn-icon">⌘</span>
+                <span className="btn-text">生成海报</span>
+              </button>
+            )}
+          </div>
+
+          <SearchBox />
         </>
       )}
 
@@ -76,25 +143,28 @@ function Discover() {
         <>
           {isMultiPerspective ? (
             <div className="multi-perspective-container">
-              {selectedPerspectives.map((perspective, idx) => (
-                <div key={idx} className="perspective-section">
-                  <PerspectiveSummary perspective={perspective} compact={true} />
-                  <StreamFeed
-                    perspective={perspective}
-                    subcategory={selectedSubcategory}
-                    onSubcategoryChange={handleSubcategoryChange}
-                    limit={itemsPerPerspective}
-                    sectionTitle={`${perspective.emoji} ${perspective.name} 专栏`}
-                  />
-                </div>
-              ))}
+              <PerspectiveComparison perspectives={selectedPerspectives} />
+              <div className="perspective-columns">
+                {selectedPerspectives.map((perspective, idx) => (
+                  <div key={idx} className="perspective-section">
+                    <PerspectiveSummary perspective={perspective} compact={true} />
+                    <StreamFeed
+                      perspective={perspective}
+                      subcategory={null}
+                      onSubcategoryChange={handleSubcategoryChange}
+                      limit={itemsPerPerspective}
+                      sectionTitle={`${perspective.emoji} ${perspective.name} 专栏`}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <>
               <PerspectiveSummary perspective={firstPerspective} compact={true} />
               <StreamFeed
                 perspective={firstPerspective}
-                subcategory={selectedSubcategory}
+                subcategory={null}
                 onSubcategoryChange={handleSubcategoryChange}
                 limit={itemsPerPerspective}
               />
@@ -113,6 +183,14 @@ function Discover() {
             />
           </div>
         </div>
+      )}
+
+      {showSharePoster && sharePerspective && (
+        <SharePoster
+          perspective={sharePerspective}
+          opinion={sharePerspective.description}
+          onClose={() => setShowSharePoster(false)}
+        />
       )}
     </div>
   )

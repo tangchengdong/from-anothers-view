@@ -3,11 +3,15 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  background: var(--paper-bg);
   overflow-x: hidden;
 }
 
-.app::before {
+/* 报纸主题容器 */
+.app-paper {
+  background: var(--paper-bg);
+}
+
+.app-paper::before {
   content: '';
   position: fixed;
   top: 0;
@@ -27,7 +31,7 @@
   opacity: 0.6;
 }
 
-.app::after {
+.app-paper::after {
   content: '';
   position: fixed;
   top: 0;
@@ -39,6 +43,11 @@
   pointer-events: none;
   z-index: 0;
   mix-blend-mode: multiply;
+}
+
+/* 深色主题容器 */
+.app-dark {
+  background: var(--dark-bg);
 }
 
 .main-content {
@@ -91,7 +100,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: var(--paper-ink);
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .reset-search-btn {
@@ -124,7 +133,7 @@
   font-size: 0.875rem;
   color: var(--paper-ink-light);
   margin-bottom: 32px;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 @media (max-width: 768px) {

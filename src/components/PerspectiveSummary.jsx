@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
+import { getLocalImagePath } from '../mock/data'
 import './PerspectiveSummary.css'
 
 function PerspectiveSummary({ perspective, perspectiveData, compact = false }) {
@@ -47,7 +48,15 @@ function PerspectiveSummary({ perspective, perspectiveData, compact = false }) {
       <div className="summary-container guide-style">
         <div className="guide-header">
           <div className="guide-role">
-            <div className="guide-emoji">{emoji}</div>
+            {data?.local_image ? (
+              <img 
+                src={getLocalImagePath(data.local_image)} 
+                alt={name}
+                className="guide-avatar"
+              />
+            ) : (
+              <div className="guide-emoji">{emoji}</div>
+            )}
             <div className="guide-info">
               <div className="guide-title-row">
                 <h3 className="guide-title">{name}</h3>

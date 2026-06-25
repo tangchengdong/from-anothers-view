@@ -1,18 +1,40 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import './SearchBox.css'
 
-function SearchBox({ onSearch, value }) {
+function SearchBox({ onSearch, value: propValue }) {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
 
   useEffect(() => {
-    setQuery(value || '')
-  }, [value])
+    if (propValue !== undefined) {
+      setQuery(propValue || '')
+    } else {
+      const urlQuery = searchParams.get('q')
+      if (urlQuery) setQuery(urlQuery)
+    }
+  }, [propValue, searchParams])
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (query.trim()) {
-      onSearch(query)
+    const trimmedQuery = query.trim()
+    if (trimmedQuery) {
+      if (onSearch) {
+        onSearch(trimmedQuery)
+      } else {
+        navigate(`/search?q=${encodeURIComponent(trimmedQuery)}`)
+      }
+    }
+  }
+
+  const handleHintClick = (hint) => {
+    setQuery(hint)
+    if (onSearch) {
+      onSearch(hint)
+    } else {
+      navigate(`/search?q=${encodeURIComponent(hint)}`)
     }
   }
 
@@ -24,28 +46,31 @@ function SearchBox({ onSearch, value }) {
           <input
             type="text"
             className="search-input"
-            placeholder="告诉我你想了解什么？例如：想给20岁的女朋友买礼物..."
+            placeholder="搜索新闻，例如：AI、新能源、职场..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           />
           <button type="submit" className="search-btn" disabled={!query.trim()}>
-            探索
+            搜索
           </button>
         </form>
         {isFocused && (
           <div className="search-hints">
             <p className="hints-title">试试这些搜索：</p>
             <div className="hints-list">
-              <button className="hint-tag" onClick={() => setQuery('想给20岁的女朋友买礼物')}>
-                想给20岁的女朋友买礼物
+              <button type="button" className="hint-tag" onClick={() => handleHintClick('AI')}>
+                AI
               </button>
-              <button className="hint-tag" onClick={() => setQuery('想了解现在年轻人喜欢什么')}>
-                想了解现在年轻人喜欢什么
+              <button type="button" className="hint-tag" onClick={() => handleHintClick('新能源汽车')}>
+                新能源汽车
               </button>
-              <button className="hint-tag" onClick={() => setQuery('想给父母买健康产品')}>
-                想给父母买健康产品
+              <button type="button" className="hint-tag" onClick={() => handleHintClick('职场')}>
+                职场
+              </button>
+              <button type="button" className="hint-tag" onClick={() => handleHintClick('健康')}>
+                健康
               </button>
             </div>
           </div>

@@ -2,9 +2,44 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: all 0.3s ease;
+}
+
+/* 报纸主题Header */
+.header-paper {
   background: var(--paper-bg);
   border-bottom: 3px double var(--paper-ink);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 报纸Header底部棱镜光带 - 暖色调视觉桥梁 */
+.header-paper::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    rgba(255, 179, 71, 0.5) 0%,
+    rgba(255, 139, 123, 0.7) 35%,
+    rgba(139, 38, 53, 0.6) 70%,
+    rgba(255, 139, 123, 0.4) 100%);
+  background-size: 200% 100%;
+  animation: headerPrismShift 8s ease-in-out infinite;
+}
+
+@keyframes headerPrismShift {
+  0%, 100% { background-position: 0% 50%; opacity: 0.7; }
+  50% { background-position: 100% 50%; opacity: 1; }
+}
+
+/* 深色主题Header - 暖色调 */
+.header-dark {
+  background: linear-gradient(180deg, rgba(42, 31, 36, 0.98) 0%, rgba(58, 42, 50, 0.95) 100%);
+  border-bottom: 1px solid rgba(255, 220, 180, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .header-container {
@@ -22,122 +57,68 @@
   transition: all 0.2s ease;
 }
 
-.logo:hover .logo-serif {
-  color: var(--paper-accent);
+.logo:hover {
+  transform: scale(1.02);
 }
 
 .logo-text h1 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--paper-ink);
-  font-family: 'Noto Serif SC', serif;
   margin: 0;
 }
 
+/* 报纸主题Logo - 衬线字体 */
 .logo-serif {
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   font-weight: 900;
   color: var(--paper-ink);
-  font-size: 1.2rem;
-  letter-spacing: 0.1em;
+  font-size: 1.35rem;
+  letter-spacing: 0.15em;
   transition: color 0.2s ease;
 }
 
-.nav {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-}
-
-.nav-link {
-  color: var(--paper-ink-secondary);
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  font-family: 'Noto Serif SC', serif;
-  position: relative;
-  padding: 6px 0;
-  transition: color 0.2s ease;
-}
-
-.nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 1px;
-  background: var(--paper-ink);
-  transition: width 0.3s ease;
-}
-
-.nav-link:hover,
-.nav-link.active {
+.logo:hover .logo-serif {
   color: var(--paper-accent);
 }
 
-.nav-link:hover::after,
-.nav-link.active::after {
-  width: 100%;
-  background: var(--paper-accent);
+/* 深色主题Logo - 温暖棱镜渐变 */
+.logo-gradient {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 1.5rem;
+  letter-spacing: 0.2em;
+  background: linear-gradient(135deg, #FFD4A0 0%, #FFB347 20%, #FF8B7B 45%, #8B2635 80%, #FF8B7B 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 5s ease infinite;
 }
 
-.nav-login-paper {
-  padding: 6px 16px !important;
-  border: 1px solid var(--paper-ink);
-  border-radius: 0 !important;
-  background: transparent;
-  color: var(--paper-ink) !important;
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
-.nav-login-paper::after {
-  display: none;
-}
-
-.nav-login-paper:hover {
-  background: var(--paper-ink);
-  color: var(--paper-bg) !important;
-  border-color: var(--paper-ink);
-}
-
-.nav-user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.nav-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 0;
-  background: var(--paper-accent);
-  color: var(--paper-bg);
-  border: 2px solid var(--paper-ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.redraw-header-btn {
+  padding: 8px 20px;
   font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.nav-logout-btn {
-  padding: 4px 12px;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  color: var(--paper-ink);
   background: transparent;
-  border: 1px solid var(--paper-rule);
+  border: 2px solid var(--paper-ink);
   border-radius: 0;
-  color: var(--paper-ink-light);
-  font-size: 0.8rem;
-  font-family: 'Noto Serif SC', serif;
   cursor: pointer;
   transition: all 0.2s ease;
+  letter-spacing: 0.05em;
 }
 
-.nav-logout-btn:hover {
+.redraw-header-btn:hover {
+  background: var(--paper-accent);
+  color: var(--paper-bg);
   border-color: var(--paper-accent);
-  color: var(--paper-accent);
-  background: transparent;
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {
@@ -145,25 +126,16 @@
     padding: 12px 16px;
   }
 
-  .logo-text h1 {
-    font-size: 0.95rem;
+  .logo-serif {
+    font-size: 1.15rem;
   }
 
-  .nav {
-    gap: 16px;
+  .logo-gradient {
+    font-size: 1.3rem;
   }
 
-  .nav-link {
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .nav {
-    gap: 12px;
-  }
-
-  .nav-link {
+  .redraw-header-btn {
+    padding: 6px 14px;
     font-size: 0.8rem;
   }
 }

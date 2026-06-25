@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
-import Hero from '../components/Hero'
 import PerspectivePicker from '../components/PerspectivePicker'
+import OnboardingOverlay from '../components/OnboardingOverlay'
 import './Home.css'
 
 function Home() {
   const { setSelectedPerspectives } = useAppStore()
   const navigate = useNavigate()
-  const [showPicker, setShowPicker] = useState(true)
 
   const handlePerspectiveSelect = (perspectives, itemsCount = 20) => {
     setSelectedPerspectives(perspectives, itemsCount)
@@ -17,14 +16,11 @@ function Home() {
 
   return (
     <div className="home-page">
-      <Hero visible={true} />
-      
-      <div className="picker-wrapper">
-        <PerspectivePicker
-          onSelect={handlePerspectiveSelect}
-          selectedPerspective={null}
-        />
-      </div>
+      <OnboardingOverlay />
+      <PerspectivePicker
+        onSelect={handlePerspectiveSelect}
+        selectedPerspective={null}
+      />
     </div>
   )
 }

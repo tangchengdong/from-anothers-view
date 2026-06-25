@@ -1,8 +1,33 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import ContentItem from './ContentItem'
 import './StreamFeed.css'
 import './Skeleton.css'
 import { getMockNews, getMoreMockNews } from '../mock/data'
+
+const CATEGORY_LABELS = {
+  social: '社会',
+  tech: '科技',
+  edu: '教育',
+  consume: '消费',
+  culture: '文化',
+  general: '综合'
+}
+
+function generateRecommendationReason(perspective, count) {
+  if (!perspective) return null
+  const name = perspective.name
+  const interests = (perspective.interested_categories || []).map(c => CATEGORY_LABELS[c] || c).slice(0, 3)
+  const keywords = (perspective.keywords || []).slice(0, 3)
+
+  const reasons = [
+    `作为「${name}」，为你精选了 ${count} 条符合身份视角的资讯`,
+    `基于「${name}」的兴趣偏好（${interests.join('、')}），为你个性化推荐`,
+    `换了「${name}」的视角，看到的世界果然不一样——为你筛选了 ${count} 条相关资讯`,
+    `「${name}」关注的关键词：${keywords.join('、')}——为你匹配了这些资讯`,
+  ]
+
+  return reasons[Math.floor(Math.random() * reasons.length)]
+}
 
 function StreamFeed({ perspective, subcategory, limit = 20, sectionTitle }) {
   const [items, setItems] = useState([])
@@ -69,44 +94,53 @@ function StreamFeed({ perspective, subcategory, limit = 20, sectionTitle }) {
       return
     }
 
-    const perspectiveName = perspective.name || perspective
-    const thinkingMessages = limit <= 10 ? [
-      `正在切换到「${perspectiveName}」视角...`,
-      '正在为你筛选精选资讯...',
-    ] : [
-      `正在切换到「${perspectiveName}」视角...`,
-      '正在分析该角色的兴趣偏好...',
-      '正在筛选相关资讯...',
-      '正在为你整理多元视角内容...',
-    ]
+    try {
+      const perspectiveName = perspective.name || perspective
+      const thinkingMessages = limit <= 10 ? [
+        `正在切换到「${perspectiveName}」视角...`,
+        '正在为你筛选精选资讯...',
+      ] : [
+        `正在切换到「${perspectiveName}」视角...`,
+        '正在分析该角色的兴趣偏好...',
+        '正在筛选相关资讯...',
+        '正在为你整理多元视角内容...',
+      ]
 
-    for (let i = 0; i < thinkingMessages.length; i++) {
+      for (let i = 0; i < thinkingMessages.length; i++) {
+        if (requestIdRef.current !== myRequestId) return
+        await new Promise(resolve => setTimeout(resolve, 250))
+        if (requestIdRef.current !== myRequestId) return
+        setThinking((prev) => [...prev, thinkingMessages[i]])
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 400))
       if (requestIdRef.current !== myRequestId) return
-      await new Promise(resolve => setTimeout(resolve, 250))
+      const mockItems = getMockNews(limit, perspective)
+      
+      const collectedItems = []
+      for (let i = 0; i < mockItems.length; i++) {
+        if (requestIdRef.current !== myRequestId) return
+        await new Promise(resolve => setTimeout(resolve, limit <= 10 ? 60 : 80))
+        if (requestIdRef.current !== myRequestId) return
+        collectedItems.push(mockItems[i])
+        setItems([...collectedItems])
+        setProgress((prev) => ({
+          current: i + 1,
+          total: limit,
+        }))
+      }
+
       if (requestIdRef.current !== myRequestId) return
-      setThinking((prev) => [...prev, thinkingMessages[i]])
+      setThinking([])
+      setDone(true)
+    } catch (err) {
+      console.error('加载失败:', err)
+      if (requestIdRef.current === myRequestId) {
+        setError(true)
+        setThinking([])
+        setDone(true)
+      }
     }
-
-    await new Promise(resolve => setTimeout(resolve, 400))
-    if (requestIdRef.current !== myRequestId) return
-    const mockItems = getMockNews(limit, perspectiveName)
-    
-    const collectedItems = []
-    for (let i = 0; i < mockItems.length; i++) {
-      if (requestIdRef.current !== myRequestId) return
-      await new Promise(resolve => setTimeout(resolve, limit <= 10 ? 60 : 80))
-      if (requestIdRef.current !== myRequestId) return
-      collectedItems.push(mockItems[i])
-      setItems([...collectedItems])
-      setProgress((prev) => ({
-        current: i + 1,
-        total: limit,
-      }))
-    }
-
-    if (requestIdRef.current !== myRequestId) return
-    setThinking([])
-    setDone(true)
   }, [perspective, subcategory, limit])
 
   const loadMore = useCallback(async () => {
@@ -119,8 +153,7 @@ function StreamFeed({ perspective, subcategory, limit = 20, sectionTitle }) {
       await new Promise(resolve => setTimeout(resolve, 800))
       if (loadMoreIdRef.current !== myLoadId) return
       
-      const perspectiveName = perspective?.name || perspective || ''
-      const moreItems = getMoreMockNews(itemsRef.current, 10, perspectiveName)
+      const moreItems = getMoreMockNews(itemsRef.current, 10, perspective)
       
       if (loadMoreIdRef.current !== myLoadId) return
       setItems((prev) => [...prev, ...moreItems])
@@ -153,10 +186,22 @@ function StreamFeed({ perspective, subcategory, limit = 20, sectionTitle }) {
     }
   }, [loadInitialData])
 
+  const recommendationReason = useMemo(() => {
+    if (!perspective || !done || items.length === 0) return null
+    return generateRecommendationReason(perspective, items.length)
+  }, [perspective, done, items.length])
+
   return (
     <section className="stream-feed-section">
       {sectionTitle && (
         <h3 className="feed-section-title">{sectionTitle}</h3>
+      )}
+
+      {recommendationReason && (
+        <div className="recommendation-reason-banner">
+          <span className="reason-icon">◈</span>
+          <span className="reason-text">{recommendationReason}</span>
+        </div>
       )}
 
       {thinking.length > 0 && !done && (
@@ -187,7 +232,7 @@ function StreamFeed({ perspective, subcategory, limit = 20, sectionTitle }) {
       {items.length > 0 ? (
         <div className="stream-items-grid">
           {items.map((item, index) => (
-            <ContentItem key={item.id || index} content={item} index={index} />
+            <ContentItem key={item.id || index} content={item} index={index} perspective={perspective} />
           ))}
         </div>
       ) : (
@@ -230,6 +275,16 @@ function StreamFeed({ perspective, subcategory, limit = 20, sectionTitle }) {
         <div className="stream-empty">
           <div className="empty-icon">👁️</div>
           <p>请先选择一个视角，开始你的破茧之旅</p>
+        </div>
+      )}
+
+      {error && done && (
+        <div className="stream-error">
+          <div className="error-icon">⚠️</div>
+          <p className="error-text">加载失败，请检查网络后重试</p>
+          <button className="error-retry-btn" onClick={loadInitialData}>
+            🔄 重新加载
+          </button>
         </div>
       )}
 

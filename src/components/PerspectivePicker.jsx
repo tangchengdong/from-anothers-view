@@ -158,7 +158,7 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
       >
         <div className="card-flip">
           <div className="card-face card-back">
-            <img src={new URL('../assets/characters/kabei.png', import.meta.url).href} alt="卡背" className="kabei-image" />
+            <img src={new URL('../assets/characters/kabei.webp', import.meta.url).href} alt="卡背" className="kabei-image" />
           </div>
           {card && (
             <div className={`card-face card-front ${hasLocalImage ? 'full-card-image' : ''}`}>
@@ -226,9 +226,51 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
 
   return (
     <div className="perspective-picker">
+      <div className="picker-section suggestions-section">
+        <h3 className="picker-section-title">
+          <span>✦</span> 快速选择
+        </h3>
+        <div className="suggestions-grid">
+          {suggestions.slice(0, 6).map((item, index) => {
+            const viewClass = getViewClass(item.base_rarity)
+            const hasLocalImage = item.local_image && !imageLoadError[`local_${item.local_image}`]
+            const thumbnailUrl = hasLocalImage ? getLocalImagePath(item.local_image) : null
+            return (
+              <div
+                key={index}
+                className={`suggestion-card ${hasLocalImage ? 'has-card-thumbnail' : ''}`}
+                onClick={() => handleSuggestionClick(item)}
+              >
+                {thumbnailUrl ? (
+                  <img
+                    src={thumbnailUrl}
+                    alt={item.name}
+                    className="suggestion-card-thumbnail"
+                    loading="lazy"
+                    onError={() => handleImageError(`local_${item.local_image}`)}
+                  />
+                ) : (
+                  <>
+                    <span
+                      className="suggestion-rarity"
+                      style={{ backgroundColor: viewClass.accent }}
+                    >
+                      {viewClass.label}
+                    </span>
+                    <div className="suggestion-emoji">{item.emoji}</div>
+                    <div className="suggestion-name">{item.name}</div>
+                    <div className="suggestion-desc">{item.description}</div>
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
       <div className="picker-welcome">
-        <h2>抽个视角</h2>
-        <p>翻开一张身份卡，换个视角看新闻</p>
+        <h2>✦ 身份卡池 ✦</h2>
+        <p>点击卡牌背面，抽取你的专属视角</p>
       </div>
 
       <div className="picker-section">
@@ -305,48 +347,6 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
             </button>
           </form>
           <p className="input-hint">输入你能想到的任何角色，越有趣越好玩</p>
-        </div>
-      </div>
-
-      <div className="picker-section">
-        <h3 className="picker-section-title">
-          <span>✦</span> 角色图鉴
-        </h3>
-        <div className="suggestions-grid">
-          {suggestions.slice(0, 12).map((item, index) => {
-            const viewClass = getViewClass(item.base_rarity)
-            const hasLocalImage = item.local_image && !imageLoadError[`local_${item.local_image}`]
-            const thumbnailUrl = hasLocalImage ? getLocalImagePath(item.local_image) : null
-            return (
-              <div
-                key={index}
-                className={`suggestion-card ${hasLocalImage ? 'has-card-thumbnail' : ''}`}
-                onClick={() => handleSuggestionClick(item)}
-              >
-                {thumbnailUrl ? (
-                  <img
-                    src={thumbnailUrl}
-                    alt={item.name}
-                    className="suggestion-card-thumbnail"
-                    loading="lazy"
-                    onError={() => handleImageError(`local_${item.local_image}`)}
-                  />
-                ) : (
-                  <>
-                    <span
-                      className="suggestion-rarity"
-                      style={{ backgroundColor: viewClass.accent }}
-                    >
-                      {viewClass.label}
-                    </span>
-                    <div className="suggestion-emoji">{item.emoji}</div>
-                    <div className="suggestion-name">{item.name}</div>
-                    <div className="suggestion-desc">{item.description}</div>
-                  </>
-                )}
-              </div>
-            )
-          })}
         </div>
       </div>
     </div>

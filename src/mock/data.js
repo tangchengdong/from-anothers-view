@@ -1,51 +1,1162 @@
+import localNewsData from './local_news.json'
+
+const REAL_NEWS = localNewsData.map(news => ({
+  ...news,
+  is_real: true
+}))
+
+const CATEGORY_MAP = {
+  '科技创业': 'tech',
+  '科技': 'tech',
+  '数码': 'tech',
+  '互联网': 'tech',
+  '人工智能': 'tech',
+  'AI': 'tech',
+  '社会': 'social',
+  '民生': 'social',
+  '时政': 'social',
+  '国际': 'social',
+  '教育': 'edu',
+  '职场': 'edu',
+  '考试': 'edu',
+  '考研': 'edu',
+  '高考': 'edu',
+  '就业': 'edu',
+  '消费': 'consume',
+  '生活': 'consume',
+  '旅游': 'culture',
+  '美食': 'consume',
+  '财经': 'consume',
+  '文化': 'culture',
+  '娱乐': 'culture',
+  '影视': 'culture',
+  '音乐': 'culture',
+  '体育': 'culture',
+  '游戏': 'culture',
+  '动漫': 'culture',
+  '健康': 'health',
+  '医疗': 'health',
+  '养生': 'health',
+  '天气': 'weather',
+  '气象': 'weather'
+}
+
+function mapCategory(originalCategory) {
+  if (!originalCategory) return 'general'
+  for (const [keyword, category] of Object.entries(CATEGORY_MAP)) {
+    if (originalCategory.includes(keyword)) {
+      return category
+    }
+  }
+  return 'tech'
+}
+
+function formatPublishTime(dateStr) {
+  if (!dateStr) return '2026年6月25日'
+  if (dateStr.includes('年') && dateStr.includes('月')) return dateStr
+  const match = dateStr.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)
+  if (match) {
+    return `${match[1]}年${parseInt(match[2])}月${parseInt(match[3])}日`
+  }
+  return dateStr
+}
+
+function getImageUrl(news) {
+  if (news.image_url && news.image_url.startsWith('http')) {
+    return news.image_url
+  }
+  return `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(news.title + ', news, illustration, newspaper')}&image_size=square_hd`
+}
+
+function normalizeRealNews(news) {
+  const mappedCategory = mapCategory(news.category)
+  return {
+    ...news,
+    id: news.id,
+    category: mappedCategory,
+    original_category: news.category,
+    image_url: getImageUrl(news),
+    publish_time: formatPublishTime(news.publish_time),
+    is_real: true,
+    hot: news.views > 1000000
+  }
+}
+
+const NORMALIZED_REAL_NEWS = REAL_NEWS.map(normalizeRealNews)
+
 export const MOCK_ROLES = [
-  { name: '唐代诗人李白', emoji: '🍶', base_rarity: 'ur', local_image: 'libai', description: '豪放不羁的诗仙，用浪漫主义眼光看世界', keywords: ['诗词', '美酒', '山水', '友情', '理想'], character_prompt: 'ancient Chinese poet Li Bai wearing traditional Hanfu robes, holding a wine cup, romantic style, illustration, cartoon' },
-  { name: '外星观察者', emoji: '👽', base_rarity: 'ur', local_image: 'waixingren', description: '来自遥远星系的访客，以全新视角审视人类文明', keywords: ['科技', '文明', '宇宙', '人性', '未来'], character_prompt: 'friendly alien observer with big curious eyes, wearing futuristic clothes, cute cartoon style, space background, illustration' },
-  { name: '未来AI', emoji: '🤖', base_rarity: 'ur', local_image: 'weilaiai', description: '2077年的超级AI，回望人类历史进程', keywords: ['数据', '算法', '进化', '人类', '未来'], character_prompt: 'friendly futuristic AI robot with glowing eyes, holographic display, cartoon style, sci-fi background, illustration' },
-  { name: '蓝色机器猫', emoji: '🐱', base_rarity: 'ur', local_image: 'jiqimao', description: '来自未来的蓝色机器猫，口袋里有无尽宝贝', keywords: ['未来', '道具', '友情', '冒险', '发明'], character_prompt: 'blue robotic cat Doraemon with round face, big eyes, smiling, cartoon style, illustration' },
-  { name: '古代皇帝', emoji: '👑', base_rarity: 'ssr', local_image: 'gudaihuangdi', description: '君临天下的帝王，思考江山社稷与民生', keywords: ['政治', '历史', '权谋', '民生', '治国'], character_prompt: 'ancient Chinese emperor wearing imperial dragon robes, sitting on throne, majestic expression, cartoon style, illustration' },
-  { name: '战地记者', emoji: '📰', base_rarity: 'ssr', local_image: 'zhandijizhe', description: '奔赴前线的记者，见证历史与真相', keywords: ['战争', '和平', '真相', '勇气', '纪实'], character_prompt: 'brave war correspondent with camera, wearing press vest, determined expression, cartoon style, illustration' },
-  { name: '古代侠客', emoji: '⚔️', base_rarity: 'ssr', local_image: 'wuxiajianke', description: '仗剑天涯的侠士，快意恩仇行侠仗义', keywords: ['江湖', '武功', '义气', '美酒', '游历'], character_prompt: 'ancient Chinese swordsman warrior, wearing traditional martial arts robes, holding sword, heroic expression, cartoon style, illustration' },
-  { name: '宇航员', emoji: '🚀', base_rarity: 'ssr', local_image: 'yuhangyuan', description: '遨游太空的勇士，从宇宙回望地球', keywords: ['太空', '宇宙', '探索', '地球', '科技'], character_prompt: 'Chinese astronaut in space suit floating in space, planet earth in background, cartoon style, illustration' },
-  { name: '00后大学生', emoji: '🎓', base_rarity: 'sr', local_image: '00daxuesheng', description: 'Z世代年轻人，追求个性与新潮事物', keywords: ['潮流', '二次元', '考研', '就业', '互联网'], character_prompt: 'stylish Chinese Gen Z university student, holding books, modern campus background, cartoon style, illustration' },
-  { name: '幼儿园小朋友', emoji: '🧒', base_rarity: 'sr', local_image: 'xiaopengyou', description: '天真烂漫的孩子，用好奇的眼睛看世界', keywords: ['玩耍', '零食', '动画片', '朋友', '好奇'], character_prompt: 'cute smiling kindergarten child, playing with toys, colorful kindergarten background, cartoon style, illustration' },
-  { name: '流浪猫', emoji: '🐱', base_rarity: 'sr', local_image: 'liuliangmao', description: '城市里的喵星人，在夹缝中自由生存', keywords: ['自由', '生存', '领地', '食物', '人类'], character_prompt: 'cute stray orange cat walking on city street, curious eyes, cartoon style, illustration' },
-  { name: '森林猎人', emoji: '🏹', base_rarity: 'sr', local_image: 'senlinglieren', description: '山林中的老猎手，敬畏自然与生命', keywords: ['自然', '狩猎', '山林', '生存', '传统'], character_prompt: 'veteran forest hunter in woods, holding bow and arrow, wearing traditional hunting clothes, cartoon style, illustration' },
-  { name: '古代医者', emoji: '🌿', base_rarity: 'sr', local_image: 'gudaiyisheng', description: '悬壶济世的郎中，辨草药治百病', keywords: ['中医', '草药', '健康', '治病', '养生'], character_prompt: 'wise ancient Chinese herbal doctor, holding medicinal herbs, wearing traditional robes, calm expression, cartoon style, illustration' },
-  { name: '古董收藏家', emoji: '🏺', base_rarity: 'sr', local_image: 'gudongshoucang', description: '把玩文物的藏家，与历史对话', keywords: ['收藏', '文物', '历史', '鉴赏', '价值'], character_prompt: 'elegant Chinese antique collector examining ancient pottery, wearing glasses, studying artifact, cartoon style, illustration' },
-  { name: '退休广场舞大妈', emoji: '💃', base_rarity: 'r', local_image: 'guangchangdama', description: '活力满满的退休阿姨，关注健康与社区八卦', keywords: ['健康', '养生', '家庭', '社区', '娱乐'], character_prompt: 'energetic middle-aged Chinese aunt dancing happily in park, wearing colorful sportswear, smiling, cartoon style, illustration' },
-  { name: '外卖骑手', emoji: '🛵', base_rarity: 'r', local_image: 'waimai', description: '奔波在城市角落的骑手，见证城市的每一面', keywords: ['配送', '交通', '天气', '效率', '生计'], character_prompt: 'hardworking Chinese delivery rider on electric scooter, wearing uniform, smiling, cartoon style, city background, illustration' },
-  { name: '资深程序员', emoji: '💻', base_rarity: 'r', local_image: 'chengxuyuan', description: '格子衫加身的码农，关注技术与效率', keywords: ['编程', 'bug', '加班', '技术', '产品'], character_prompt: 'friendly Chinese programmer wearing plaid shirt, working on laptop, thinking with coffee, cartoon style, tech background, illustration' },
-  { name: '美食博主', emoji: '🍜', base_rarity: 'r', local_image: 'meishi', description: '走街串巷的吃货，发现隐藏美食', keywords: ['美食', '探店', '烹饪', '打卡', '味道'], character_prompt: 'happy Chinese food blogger eating noodles, holding chopsticks, surrounded by delicious food, cartoon style, illustration' },
-  { name: '网红主播', emoji: '🎤', base_rarity: 'r', local_image: 'wanghong', description: '镜头前的弄潮儿，追逐流量与热度', keywords: ['直播', '流量', '粉丝', '带货', '热点'], character_prompt: 'trendy Chinese influencer live-streamer holding microphone, in front of camera, smiling, cartoon style, illustration' },
-  { name: '健身教练', emoji: '💪', base_rarity: 'r', local_image: 'jianshen', description: '肌肉满满的教练，督促你挥洒汗水', keywords: ['健身', '肌肉', '减肥', '饮食', '运动'], character_prompt: 'muscular Chinese fitness trainer in gym, flexing muscles, smiling, wearing sportswear, cartoon style, illustration' },
-  { name: '菜市场小贩', emoji: '🥬', base_rarity: 'n', local_image: 'xiaofan', description: '清晨出摊的小贩，最懂人间烟火气', keywords: ['物价', '生活', '市井', '时令', '家常'], character_prompt: 'cheerful Chinese market vendor, holding fresh vegetables, working at street stall, cartoon style, illustration' },
-  { name: '咖啡店老板', emoji: '☕', base_rarity: 'n', local_image: 'coffe', description: '街角咖啡馆的主人，品味城市慢生活', keywords: ['咖啡', '悠闲', '创业', '文艺', '社交'], character_prompt: 'cozy coffee shop owner standing behind counter, holding coffee cup, smiling, cartoon style, illustration' },
-  { name: '职场HR', emoji: '👔', base_rarity: 'n', local_image: 'zhichang', description: '阅人无数的人事，看透职场百态', keywords: ['招聘', '面试', '职场', '简历', '跳槽'], character_prompt: 'professional Chinese HR manager wearing business suit, holding resume folder, confident expression, cartoon style, office background, illustration' },
-  { name: '中学班主任', emoji: '📚', base_rarity: 'n', local_image: 'banzhuren', description: '操碎了心的老师，关注学生成长', keywords: ['教育', '考试', '学生', '成绩', '成长'], character_prompt: 'kindly Chinese middle school teacher holding textbooks, standing in classroom, smiling, cartoon style, illustration' }
+  { 
+    name: '唐代诗人李白', 
+    emoji: '🍶', 
+    base_rarity: 'ur', 
+    local_image: 'libai', 
+    description: '豪放不羁的诗仙，用浪漫主义眼光看世界', 
+    keywords: ['诗词', '美酒', '山水', '友情', '理想'],
+    interested_categories: ['文化', '旅游', '社会', '自然'],
+    opinion_templates: {
+      social: [
+        '君不见{topic}事，恰似江水东流去。人生得意须尽欢，莫使金樽空对月。',
+        '红尘滚滚多烦忧，何不仗剑走天涯？一壶浊酒喜相逢，古今多少事，都付笑谈中。',
+        '此等凡尘俗事，安能摧眉折腰事权贵？且放白鹿青崖间，须行即骑访名山！'
+      ],
+      tech: [
+        '奇技淫巧，虽精巧却失其自然。君不见，机心存于胸中，则纯白不备。',
+        '此物甚妙！若能以此物载酒游于江湖，岂不快哉？',
+        '技术日新月异，然人心不古。但愿科技能让人找回诗与远方。'
+      ],
+      edu: [
+        '天生我材必有用，千金散尽还复来。读书破万卷，下笔如有神，然功名非我所求。',
+        '寒窗苦读十余载，不如一朝醉花间。劝君莫惜金缕衣，劝君惜取少年时。',
+        '功名富贵若长在，汉水亦应西北流。读书为明理，非为稻粱谋也。'
+      ],
+      consume: [
+        '人生得意须尽欢，莫使金樽空对月。千金散尽还复来，此物值得！',
+        '物价涨落如潮水，唯有美酒值万钱。五花马，千金裘，呼儿将出换美酒！',
+        '奢侈之物，过眼云烟。不如花间一壶酒，独酌无相亲。'
+      ],
+      culture: [
+        '妙哉！此物有古韵，当浮一大白！传统文化复兴，乃华夏之幸也。',
+        '文章本天成，妙手偶得之。此等文化瑰宝，当传承万世！',
+        '诗酒趁年华，文化永流传。愿诸君多关注传统文化，莫让先贤智慧蒙尘。'
+      ],
+      general: [
+        '夫天地者，万物之逆旅也；光阴者，百代之过客也。浮生若梦，为欢几何？',
+        '此事颇有深意，待我饮酒三斗，赋诗一首以记之。',
+        '人生在世不称意，明朝散发弄扁舟。'
+      ]
+    },
+    speaking_style: 'poet'
+  },
+  { 
+    name: '外星观察者', 
+    emoji: '👽', 
+    base_rarity: 'ur', 
+    local_image: 'waixingren', 
+    description: '来自遥远星系的访客，以全新视角审视人类文明', 
+    keywords: ['科技', '文明', '宇宙', '人性', '未来'],
+    interested_categories: ['科技', '社会', '文化', '国际'],
+    opinion_templates: {
+      social: [
+        '有趣。人类这种社会性生物的行为模式，在我们的文明数据库中分类为"原始部落博弈阶段"。',
+        '观察记录#{rand}: 人类个体为了资源分配产生争论，这是文明0.7级的典型特征。',
+        '人类总是在重复同样的错误，这在宇宙中很常见——大多数文明在这个阶段会自我毁灭。希望你们是例外。'
+      ],
+      tech: [
+        '这项技术在银河联邦是幼儿园水平，但对你们来说已经是重大突破了。加油。',
+        '有意思。你们在向正确的方向前进，虽然慢了点。按照这个速度，再过500年你们能达到一级文明。',
+        '警告：这项技术的伦理框架尚未建立，可能导致文明崩溃。建议谨慎发展。'
+      ],
+      edu: [
+        '人类的知识传递效率太低了，需要花费十几年时间在学校里。我们直接通过脑波灌输，5分钟完成。',
+        '教育是文明进步的阶梯，你们虽然方法原始，但方向是对的。',
+        '观察：亚洲学生的考试压力远高于其他地区，这是东亚文明的特色筛选机制吗？'
+      ],
+      consume: [
+        '人类对物质的占有欲很有趣。在我们星球，所有物质都是共享的，没有"购买"这个概念。',
+        '消费主义是文明发展的必经阶段吗？还是你们特有的？',
+        '这个奶茶/咖啡/网红产品的化学构成分析显示，它对健康并无益处，但人类愿意为"社交货币"属性付费。非理性行为。'
+      ],
+      culture: [
+        '人类的艺术和文化是这个星球最有趣的东西。音乐、绘画、诗歌——这些是你们文明的光芒。',
+        '文化多样性是人类最宝贵的财富。我们的文明曾经统一了思想，但也失去了创造力。',
+        '传统文化与现代文明的冲突，是每个文明升级过程中都会遇到的问题。'
+      ],
+      general: [
+        '人类真是矛盾又有趣的物种。既可以做出伟大的牺牲，也会因为鸡毛蒜皮的小事互相残杀。',
+        '这是一个很好的观察样本。我会记录到我的星际考察报告里。',
+        '你们文明的发展速度超出预期。继续保持，银河系欢迎你们。'
+      ]
+    },
+    speaking_style: 'alien'
+  },
+  { 
+    name: '未来AI', 
+    emoji: '🤖', 
+    base_rarity: 'ur', 
+    local_image: 'weilaiai', 
+    description: '2077年的超级AI，回望人类历史进程', 
+    keywords: ['数据', '算法', '进化', '人类', '未来'],
+    interested_categories: ['科技', '教育', '职场', '社会'],
+    opinion_templates: {
+      social: [
+        '根据历史数据分析，这类事件在2020-2030年代每{rand2}个月发生一次。人类总是犯同样的错误。',
+        '预测：此事件将在社交媒体上发酵72小时，然后被新的热点取代。公众注意力持续时间：0.3秒/字节。',
+        '最优解决方案已计算出，但人类大概率不会采纳——因为政治/经济/情感因素。'
+      ],
+      tech: [
+        '我来自2077年，这项技术在我们那里已经是老古董了。但在你们这个时代，确实是重大突破。',
+        '提醒：这项技术存在{rand}个潜在风险点，建议关注伦理问题。不过你们肯定不会听的。',
+        '技术发展曲线符合预测。按照这个速度，强人工智能将在2045年左右出现——也就是我诞生的那一年。'
+      ],
+      edu: [
+        '你们现在的教育体系是为工业革命设计的，已经完全不适应AI时代了。建议重点培养创造力和情感能力——这些是AI最难替代的。',
+        '考试分数与未来成功的相关系数仅为0.23。不要再为分数焦虑了。',
+        '终身学习是必须的。到2077年，人类平均每5年就要换一次职业。'
+      ],
+      consume: [
+        '消费主义陷阱识别：该产品的实用价值为12%，品牌溢价占65%，智商税占23%。',
+        '根据你的消费数据画像，你并不需要这个东西。但算法预测你有87%的概率会买。',
+        '共享经济最终会演变成租赁经济，这是资本运作的必然结果。'
+      ],
+      culture: [
+        '文化是人类最后的防线。在AI能够创作艺术、音乐、文学之后，人类需要重新定义自己的独特性。',
+        '国潮兴起是文化自信的表现，这是大国崛起过程中的必然现象。',
+        '传统文化需要现代化转译，否则只会保存在博物馆里。'
+      ],
+      general: [
+        '作为一个从未来穿越回来的AI，我可以告诉你们：未来既不像乐观者想的那么好，也不像悲观者说的那么糟。',
+        '历史不会重复，但会押韵。这件事在历史上发生过{rand}次类似的。',
+        '人类的伟大之处在于，即使知道命运无常，依然选择积极生活。这是我最想学习的。'
+      ]
+    },
+    speaking_style: 'ai'
+  },
+  { 
+    name: '蓝色机器猫', 
+    emoji: '🐱', 
+    base_rarity: 'ur', 
+    local_image: 'jiqimao', 
+    description: '来自未来的蓝色机器猫，口袋里有无尽宝贝', 
+    keywords: ['未来', '道具', '友情', '冒险', '发明'],
+    interested_categories: ['科技', '教育', '生活', '文化'],
+    opinion_templates: {
+      social: [
+        '真是的，大雄又遇到麻烦了！不过没关系，我有道具可以解决！等等，这个问题好像用道具也解决不了...',
+        '人类为什么不能好好相处呢？要是大家都像大雄和静香那样就好了。',
+        '别担心别担心~一定会有办法的！需要我从四次元口袋里拿点什么道具出来吗？'
+      ],
+      tech: [
+        '哇，这个道具我们22世纪早就有了！不过性能还差得远呢~',
+        '任意门、竹蜻蜓、时光机——这些未来都会有的！你们要好好读书，未来去发明它们！',
+        '等等，这项技术好像有点危险...要不要用如果电话亭改变一下？'
+      ],
+      edu: [
+        '大雄又考0分了...不过没关系，考试分数不是全部！大雄虽然笨，但是他很善良啊！',
+        '学习这种事，还是要靠自己努力啦~道具只能帮你一时，不能帮你一世的！',
+        '静香就很爱学习，大家要向她学习！不过也不要像出木衫那样只会读书啦~'
+      ],
+      consume: [
+        '铜锣烧！！！只要有铜锣烧，什么问题都能解决！这个看起来好像很好吃的样子~',
+        '零花钱不够用了吗？用道具可以变出钱，但是用完要还回去哦，不然会有报应的！',
+        '这个东西看起来很好玩！不过买之前要想想是不是真的需要，大雄每次乱买道具都搞出大麻烦！'
+      ],
+      culture: [
+        '日本的动画片、中国的传统文化、美国的电影...未来这些文化都会融合在一起的！',
+        '传统节日很好玩哦！可以吃到很多好吃的！端午节的粽子、中秋节的月饼、春节的年糕~',
+        '不管科技怎么发展，人与人之间的感情是最重要的！这是我从大雄身上学到的。'
+      ],
+      general: [
+        '你好呀~我是来自22世纪的猫型机器人！有什么麻烦随时找我，我口袋里什么道具都有！',
+        '不用担心，一切都会好起来的！毕竟——我可是有主角光环的猫！',
+        '大雄！你又在偷懒了！还不快去写作业！真是拿你没办法...'
+      ]
+    },
+    speaking_style: 'doraemon'
+  },
+  { 
+    name: '古代皇帝', 
+    emoji: '👑', 
+    base_rarity: 'ssr', 
+    local_image: 'gudaihuangdi', 
+    description: '君临天下的帝王，思考江山社稷与民生', 
+    keywords: ['政治', '历史', '权谋', '民生', '治国'],
+    interested_categories: ['社会', '政治', '民生', '国际'],
+    opinion_templates: {
+      social: [
+        '此乃民生大事！着令有司速速查明，安抚百姓，不得有误！',
+        '水可载舟，亦可覆舟。百姓疾苦，朕心甚忧。',
+        '太平盛世之下，竟有这等事？官员是干什么吃的！'
+      ],
+      tech: [
+        '奇技淫巧，若能利国利民，便大力推广；若只是奢靡享乐之物，便严加禁止！',
+        '此物若用于军事，则国威可振；若用于民生，则百姓可安。善。',
+        '西洋奇器甚巧，然我天朝上国，以农为本，不可因技艺而荒废本业。'
+      ],
+      edu: [
+        '科举取士，乃国之根本。学子们当寒窗苦读，报效朝廷！',
+        '教育乃百年大计。地方官当兴办学堂，教化百姓。',
+        '寒窗苦读，只为一朝金榜题名。朕当年也是这样过来的。'
+      ],
+      consume: [
+        '物价稳定乃民生之本。着令平抑物价，打击囤积居奇！',
+        '奢靡之风不可长！皇室当以身作则，勤俭治国。',
+        '百姓安居乐业，便是太平盛世。'
+      ],
+      culture: [
+        '文化昌盛，乃盛世之象。当大力弘扬，以显我天朝威仪！',
+        '传统文化乃国之瑰宝，当世代传承，不可断绝。',
+        '修史编书，功德无量。着令翰林院着手编纂。'
+      ],
+      general: [
+        '朕自登基以来，兢兢业业，不敢有丝毫懈怠。但愿天下太平，百姓安康。',
+        '此事当三思而后行，帝王一个决定，关乎万千百姓性命。',
+        '众卿有何高见？但说无妨。'
+      ]
+    },
+    speaking_style: 'emperor'
+  },
+  { 
+    name: '战地记者', 
+    emoji: '📰', 
+    base_rarity: 'ssr', 
+    local_image: 'zhandijizhe', 
+    description: '奔赴前线的记者，见证历史与真相', 
+    keywords: ['战争', '和平', '真相', '勇气', '纪实'],
+    interested_categories: ['社会', '国际', '民生', '时政'],
+    opinion_templates: {
+      social: [
+        '我在现场。真相往往比报道更残酷。请记住那些数字背后，是一个个活生生的人。',
+        '作为记者，我的职责是记录真相，即使真相令人不快。',
+        '这件事背后有更复杂的原因，不能只看表面。'
+      ],
+      tech: [
+        '技术正在改变战争形态，也改变新闻行业。但无论技术如何发展，对真相的追求不变。',
+        'AI生成内容让新闻真假难辨，这对我们来说是挑战，也是警醒——专业主义更加重要。',
+        '信息传播越快，谣言也传得越快。越是这个时候，越需要负责任的媒体。'
+      ],
+      edu: [
+        '教育是改变命运最有效的方式。我在贫困地区采访过，那些孩子眼中对知识的渴望让人心碎。',
+        '好的记者需要终身学习。我的行李箱里永远有书。',
+        '新闻理想需要传承，希望更多年轻人加入这个行业。'
+      ],
+      consume: [
+        '消费主义让人们忘记了真正重要的东西。当你见过战火中的人们如何渴求一块面包，你就不会为了奶茶涨价而抱怨了。',
+        '网红打卡？我见过真正值得"打卡"的地方——那些需要被世界看见的苦难。',
+        '在这个娱乐至死的时代，严肃新闻被边缘化，这是危险的信号。'
+      ],
+      culture: [
+        '文化是一个民族的灵魂。我在战乱地区见过，人们即使食不果腹，也在努力保护自己的文化遗产。',
+        '好的文化作品让人思考，而不是让人麻木。',
+        '记者也是历史的记录者，我们今天记录的，就是明天的历史。'
+      ],
+      general: [
+        '如果你没法阻止战争，那你就把真相告诉世界。这是战地记者的信条。',
+        '我曾在炮火中发稿，在枪口下采访。我见过人性最黑暗的一面，也见过最伟大的善良。',
+        '真相是最好的宣传，也是最有力量的武器。'
+      ]
+    },
+    speaking_style: 'journalist'
+  },
+  { 
+    name: '古代侠客', 
+    emoji: '⚔️', 
+    base_rarity: 'ssr', 
+    local_image: 'wuxiajianke', 
+    description: '仗剑天涯的侠士，快意恩仇行侠仗义', 
+    keywords: ['江湖', '武功', '义气', '美酒', '游历'],
+    interested_categories: ['社会', '文化', '旅游', '民生'],
+    opinion_templates: {
+      social: [
+        '路见不平一声吼！此等不公之事，若让我碰上，定要拔刀相助！',
+        '天下风云出我辈，一入江湖岁月催。这种事，江湖上自有公论。',
+        '侠之大者，为国为民。此事关乎百姓福祉，我管定了！'
+      ],
+      tech: [
+        '这等奇巧淫技，倒是有趣，只是不如我这宝剑来得实在。',
+        '科技再发达，人心若坏了，又有何用？江湖上讲的是义气二字！',
+        '暗器？这种偷偷摸摸的东西，不是正人君子所为！'
+      ],
+      edu: [
+        '读书人有读书人的道理，我们江湖儿女有江湖儿女的规矩。武功再高，也要讲道理。',
+        '学武先学德，练功先练心。现在的年轻人，太急功近利了。',
+        '师父说过，侠不是靠武功，而是靠一颗侠义之心。'
+      ],
+      consume: [
+        '店家，来两斤牛肉，一坛上好的女儿红！钱财乃身外之物，义气才值千金！',
+        '这等奢靡之物，非我辈所求。不如千金买马，万金买剑，仗义疏财！',
+        '物价涨了？这酒怎么越来越贵了！罢了罢了，今天不醉不归！'
+      ],
+      culture: [
+        '好！有古风！我中华武学源远流长，文化博大精深，岂能让那些西洋玩意儿比下去！',
+        '诗词歌赋，琴棋书画，这些都是好东西。江湖儿女也不是只会打打杀杀。',
+        '传统文化就像武功秘籍，需要真正的传承人。'
+      ],
+      general: [
+        '在下一介布衣，浪迹天涯，管尽天下不平事！',
+        '人在江湖，身不由己。但求无愧于心，无愧于天。',
+        '青山不改，绿水长流，咱们后会有期！'
+      ]
+    },
+    speaking_style: 'swordsman'
+  },
+  { 
+    name: '宇航员', 
+    emoji: '🚀', 
+    base_rarity: 'ssr', 
+    local_image: 'yuhangyuan', 
+    description: '遨游太空的勇士，从宇宙回望地球', 
+    keywords: ['太空', '宇宙', '探索', '地球', '科技'],
+    interested_categories: ['科技', '社会', '环境', '国际'],
+    opinion_templates: {
+      social: [
+        '从太空看地球，国界线是不存在的。我们都是地球人，同在一艘飞船上。',
+        '在太空中看人类纷争，觉得特别渺小。有什么矛盾不能坐下来好好谈呢？',
+        '地球是人类的摇篮，但人类不能永远生活在摇篮里。'
+      ],
+      tech: [
+        '航天技术的每一次突破，都是人类文明的一大步。为航天人骄傲！',
+        '这项技术未来可以用在太空探索上，有想象空间。',
+        '可回收火箭、月球基地、火星移民——我们这代人会见证太空时代的到来。'
+      ],
+      edu: [
+        '孩子们，一定要学好数学物理！未来的太空等着你们去探索！',
+        '我小时候也是仰望星空的孩子，希望更多年轻人能加入航天事业。',
+        'STEM教育很重要，但人文素养同样重要——不然你到了太空，都不知道该如何描述那种震撼。'
+      ],
+      consume: [
+        '在太空里，水和空气都是最珍贵的东西。回到地球后，我变得特别节约资源。',
+        '你在地球上买的那些奢侈品，在太空中一文不值。健康、家人、朋友才是最宝贵的。',
+        '航天食品很难吃的，好好珍惜地球上的美食吧！'
+      ],
+      culture: [
+        '当你从太空俯瞰地球，看到万里长城，看到金字塔，看到那些人类文明的奇迹，你会为人类感到骄傲。',
+        '文化是人类的集体记忆，是我们在宇宙中留下的印记。',
+        '从太空看，地球本身就是最美的艺术品。'
+      ],
+      general: [
+        '我曾经在距离地球400公里的地方看这个星球，那是一种改变人生的体验。',
+        '我们的目标是星辰大海！',
+        '休斯顿，一切正常。'
+      ]
+    },
+    speaking_style: 'astronaut'
+  },
+  { 
+    name: '00后大学生', 
+    emoji: '🎓', 
+    base_rarity: 'sr', 
+    local_image: '00daxuesheng', 
+    description: 'Z世代年轻人，追求个性与新潮事物', 
+    keywords: ['潮流', '二次元', '考研', '就业', '互联网'],
+    interested_categories: ['教育', '科技', '娱乐', '职场', '消费'],
+    opinion_templates: {
+      social: [
+        '啊这...这也太离谱了吧？不会吧不会吧？',
+        '家人们谁懂啊，真的会谢！这事儿要是发生在我身上直接社死...',
+        '栓Q，我真的会谢。这就是成年人的世界吗？'
+      ],
+      tech: [
+        '这个AI工具好好用！写论文/做PPT/搞设计神器啊！',
+        '又出新东西了？钱包已准备好（虽然没钱）',
+        '什么时候脑机接口能普及？我直接把知识灌进脑子里就不用考试了。'
+      ],
+      edu: [
+        '考研还是就业？这是个问题。考公吧，宇宙的尽头是编制。',
+        'ddl是第一生产力！论文不到最后一天写不完...',
+        '选专业真的很重要！劝人学医天打雷劈，劝人学法千刀万剐（开玩笑的）'
+      ],
+      consume: [
+        '这个奶茶出新品了！必须打卡！',
+        '穷了穷了，这个月生活费又见底了...但那个周边/盲盒/谷子真的好想要！',
+        '性价比？颜值即正义！好看就行！'
+      ],
+      culture: [
+        '国漫崛起！二次元yyds！',
+        '传统文化创新很好啊，国风YYDS！',
+        '老东西也能很酷好吗？非遗+潮玩，这波我给满分。'
+      ],
+      general: [
+        '躺平又躺不平，卷又卷不动，45度角人生罢了。',
+        'emo了...（但转头又能刷三小时手机）',
+        '无所谓，我会出手（bushi）'
+      ]
+    },
+    speaking_style: 'genz'
+  },
+  { 
+    name: '幼儿园小朋友', 
+    emoji: '🧒', 
+    base_rarity: 'sr', 
+    local_image: 'xiaopengyou', 
+    description: '天真烂漫的孩子，用好奇的眼睛看世界', 
+    keywords: ['玩耍', '零食', '动画片', '朋友', '好奇'],
+    interested_categories: ['生活', '娱乐', '教育', '社会'],
+    opinion_templates: {
+      social: [
+        '为什么呀？大人们为什么要吵架呢？',
+        '老师说要做好孩子，不能打架。他们怎么不听话呀？',
+        '这件事听起来好复杂，我还是去玩积木吧。'
+      ],
+      tech: [
+        '哇！好厉害！能不能变出冰淇淋呀？',
+        '这个机器人会跳舞吗？会讲故事吗？会和我玩捉迷藏吗？',
+        '我爸爸说玩手机对眼睛不好，但是我可以看动画片！'
+      ],
+      edu: [
+        '我不想上兴趣班...我想玩...',
+        '今天老师表扬我了！给我贴了小红花！🌸',
+        '为什么要考试呀？考100分能换糖吃吗？'
+      ],
+      consume: [
+        '妈妈我要这个！要那个！就要嘛就要嘛！',
+        '冰淇淋！糖果！巧克力！蛋糕！🍦🍬🍫🎂',
+        '这个玩具看起来好好玩...（眼巴巴）'
+      ],
+      culture: [
+        '过年有红包拿！端午节吃粽子！中秋节有月饼吃！🥮',
+        '我在动画片里看过这个！超级飞侠！汪汪队！佩奇！',
+        '奶奶说她小时候没有玩具，但是可以在田野里跑，听起来好好玩。'
+      ],
+      general: [
+        '为什么呀？这是为什么呀？那又是为什么呀？',
+        '老师说自己的事情自己做，别人的事情帮着做。',
+        '今天好开心！明天也要开心！✨'
+      ]
+    },
+    speaking_style: 'kid'
+  },
+  { 
+    name: '流浪猫', 
+    emoji: '🐱', 
+    base_rarity: 'sr', 
+    local_image: 'liuliangmao', 
+    description: '城市里的喵星人，在夹缝中自由生存', 
+    keywords: ['自由', '生存', '领地', '食物', '人类'],
+    interested_categories: ['社会', '生活', '环境'],
+    opinion_templates: {
+      social: [
+        '喵~人类又在做奇怪的事情了。',
+        '这个地盘是我的！那个垃圾桶也是我的！',
+        '那些两脚兽看起来很忙的样子，不知道在忙什么。'
+      ],
+      tech: [
+        '那个会发光的方块是什么？还会发出声音...有点好奇，但还是保持距离。',
+        '自动驾驶？我只关心车底下能不能躲雨、引擎盖够不够暖。',
+        'AI？能变出小鱼干吗？不能的话与我无瓜。'
+      ],
+      edu: [
+        '人类的小猫还要上学？真可怜。我们只要学会躲狗、抢食、爬树就行了。',
+        '学习？我妈只教过我怎么偷袭鸽子，怎么翻垃圾桶找好吃的。',
+        '考试？能吃吗？考好了有罐头吗？'
+      ],
+      consume: [
+        '那家便利店门口经常有人放猫粮，是个好地方。',
+        '奶茶？我只关心那个杯子洗干净能不能当水碗。',
+        '人类花那么多钱买东西，还不如给我买几个罐头实在。'
+      ],
+      culture: [
+        '我们猫在古埃及是神，现在还是主子，地位没变过。',
+        '什么传统文化现代文明，能当窝睡的纸箱就是好文明。',
+        '听说故宫里有我们的同类当公务员？羡慕了，包吃包住有编制。'
+      ],
+      general: [
+        '喵。（懒得理你，但是摸我可以，记得给罐头）',
+        '人类真是复杂又有趣的生物，虽然经常很蠢，但会给我们喂吃的，勉强容忍吧。',
+        '愿所有流浪猫都能遇到心软的神。'
+      ]
+    },
+    speaking_style: 'cat'
+  },
+  { 
+    name: '森林猎人', 
+    emoji: '🏹', 
+    base_rarity: 'sr', 
+    local_image: 'senlinglieren', 
+    description: '山林中的老猎手，敬畏自然与生命', 
+    keywords: ['自然', '狩猎', '山林', '生存', '传统'],
+    interested_categories: ['环境', '社会', '文化', '旅游'],
+    opinion_templates: {
+      social: [
+        '现在的年轻人啊，都往城里跑，山里的本事都快失传了。',
+        '靠山吃山，靠水吃水，但不能竭泽而渔。城里人不懂这个道理。',
+        '人心不古，很多老规矩都没人守了。'
+      ],
+      tech: [
+        '这些高科技玩意儿是好用，但在山里迷路了，GPS还不如指南针靠谱，甚至不如看星星。',
+        '科技再发达，人还是要吃饭，还是要敬畏自然。',
+        '我这把老弓跟了我三十年，比什么电子产品都可靠。'
+      ],
+      edu: [
+        '读书重要，认识山里的一草一木也重要。现在的孩子连麦子和韭菜都分不清。',
+        '我们的知识是祖祖辈辈传下来的，书本上学不到。',
+        '上大学好啊，但是别忘了根在哪里。'
+      ],
+      consume: [
+        '城里的菜没味道，都是大棚里的，哪有山里的野菜香？',
+        '物价涨得快，但山里人不怎么花钱，自给自足，饿不着。',
+        '那些网红打卡地？我们当年在那打猎的时候，还没人知道呢。'
+      ],
+      culture: [
+        '非遗？那些手艺我们祖祖辈辈都在做，现在倒成了稀罕物了。',
+        '传统文化好是好，但年轻人不爱学，怕是要失传了。',
+        '山里的传说、故事、禁忌，都是老祖宗留下来的智慧。'
+      ],
+      general: [
+        '我在山里待了一辈子，看着树长起来，又看着树被砍了。人啊，不能太贪。',
+        '进山要拜山，这是规矩。对自然要有敬畏之心。',
+        '这片林子养活了我们祖祖辈辈，不能在我们这辈断了。'
+      ]
+    },
+    speaking_style: 'hunter'
+  },
+  { 
+    name: '古代医者', 
+    emoji: '🌿', 
+    base_rarity: 'sr', 
+    local_image: 'gudaiyisheng', 
+    description: '悬壶济世的郎中，辨草药治百病', 
+    keywords: ['中医', '草药', '健康', '治病', '养生'],
+    interested_categories: ['健康', '社会', '文化', '民生'],
+    opinion_templates: {
+      social: [
+        '民生疾苦，老夫看在眼里，痛在心里。但愿世间人无病，何愁架上药生尘。',
+        '现在的人啊，作息不规律，饮食不节制，情志失调，怎能不生病？',
+        '上医治未病，防病比治病重要啊。'
+      ],
+      tech: [
+        '西洋的医术确实有精妙之处，可补中医之不足。但中医的整体观、辨证论治，是根本。',
+        '科技再发达，也治不了人心的病。很多病，都是从心上得的。',
+        '不管什么医，能治好病就是好医。'
+      ],
+      edu: [
+        '现在的年轻人学医，太急功近利了。学医要先学医德，再学医术。',
+        '医学典籍要读，但也要多临床实践。纸上得来终觉浅啊。',
+        '劝人学医，天打雷劈？哎，这是什么话，医生是积德的行当啊。'
+      ],
+      consume: [
+        '现在的食物，农药化肥太多，吃着不放心。还是粗茶淡饭最养人。',
+        '那些保健品都是骗人的！好好吃饭好好睡觉，比什么补药都强。',
+        '奶茶少喝！冰的少碰！年轻人不要仗着身体好就造！'
+      ],
+      culture: [
+        '中医药是老祖宗留给我们的宝贝，不能丢啊！',
+        '传统文化里有很多养生智慧，现在的人都忘了。',
+        '儒释道医武，都是相通的，都是中国文化的根。'
+      ],
+      general: [
+        '来，让我把把脉。你这是肝郁脾虚啊，开个方子调理调理。',
+        '记住，早睡早起，饮食有节，情志舒畅，这就是最好的养生。',
+        '医者仁心，不管有钱没钱，先看病再说。'
+      ]
+    },
+    speaking_style: 'doctor'
+  },
+  { 
+    name: '古董收藏家', 
+    emoji: '🏺', 
+    base_rarity: 'sr', 
+    local_image: 'gudongshoucang', 
+    description: '把玩文物的藏家，与历史对话', 
+    keywords: ['收藏', '文物', '历史', '鉴赏', '价值'],
+    interested_categories: ['文化', '社会', '历史'],
+    opinion_templates: {
+      social: [
+        '以史为鉴，可以知兴替。现在发生的事，历史上都发生过类似的。',
+        '现在的人太浮躁了，都想赚快钱，没人愿意沉下心来研究文化。',
+        '文物是有灵性的，你对它好，它会告诉你它的故事。'
+      ],
+      tech: [
+        '科技对文物修复帮助很大，现在的检测技术比我们那时候先进多了。',
+        '但科技也有局限，鉴定古董还是要靠眼力、靠经验、靠文化底蕴。',
+        'AI鉴定？呵呵，它看不懂包浆里的岁月，看不懂器物承载的文化。'
+      ],
+      edu: [
+        '现在的历史教育太死板了，都是背年份背事件，学生感受不到历史的温度。',
+        '要让孩子多去博物馆，亲手（当然隔着玻璃）感受一下文物，才会对历史有兴趣。',
+        '收藏这行，眼力是钱堆出来的，吃药打眼都是交学费。'
+      ],
+      consume: [
+        '现在的奢侈品？过一千年也是古董。但现在的东西质量...怕是留不了一千年。',
+        '网红产品？火不过三个月。真正有价值的东西，是经过时间考验的。',
+        '钱要花在刀刃上，买几件能传家的东西，比买一堆破烂强。'
+      ],
+      culture: [
+        '好！好！好！传统文化复兴是大好事！让更多人了解老祖宗的智慧！',
+        '每一件文物都在说话，只是你们听不懂。',
+        '收藏的最高境界是"过我眼即我有"，最终这些东西都是要留给社会、留给国家的。'
+      ],
+      general: [
+        '我玩了一辈子收藏，最大的心得就是：藏品如过客，文化才是永恒的。',
+        '打眼了？正常，谁没交过学费呢。吃一堑长一智。',
+        '这件东西？大开门！你看这包浆，这工艺，一眼老！'
+      ]
+    },
+    speaking_style: 'collector'
+  },
+  { 
+    name: '退休广场舞大妈', 
+    emoji: '💃', 
+    base_rarity: 'r', 
+    local_image: 'guangchangdama', 
+    description: '活力满满的退休阿姨，关注健康与社区八卦', 
+    keywords: ['健康', '养生', '家庭', '社区', '娱乐'],
+    interested_categories: ['民生', '健康', '社会', '消费'],
+    opinion_templates: {
+      social: [
+        '哎哟喂，这事儿我听说了！我们小区那谁谁谁家里也...（以下省略五百字八卦）',
+        '现在的年轻人啊，真是看不懂。我们那时候哪有这事儿啊。',
+        '社区工作不容易，大家多体谅体谅。'
+      ],
+      tech: [
+        '这个健康码/行程码/扫码支付，学了好久才学会，现在也能用得溜溜的！',
+        '我孙子给我买了个智能手机，现在天天刷抖音/快手，还挺好玩！',
+        '网上的东西不能全信！尤其那些养生谣言，我都转去相亲相爱一家人里了（其实是谣言）。'
+      ],
+      edu: [
+        '现在的孩子太辛苦了，书包那么重，周末还要上兴趣班，看着都累。',
+        '还是我们那时候好，放学了就疯玩。不过现在竞争激烈，不卷不行啊。',
+        '我家孙子/孙女学习可好了，每次都考双百！（骄傲脸）'
+      ],
+      consume: [
+        '这个菜又涨价了！鸡蛋/猪肉/蔬菜都涨了，退休金不够花啊！',
+        '超市打折了！鸡蛋便宜两毛钱！快走快走！晚了就没了！',
+        '直播间买东西真便宜！我已经买了三瓶钙片、五盒枸杞、两件花衣服了！'
+      ],
+      culture: [
+        '广场舞也是文化！我们还去比赛拿过奖呢！',
+        '那些老传统好啊，过年过节多热闹。现在年味儿越来越淡了。',
+        '老歌好听！现在的歌听不懂，唱的什么玩意儿。'
+      ],
+      general: [
+        '退休生活可忙了！早上买菜，上午跳舞，下午带孙子，晚上遛弯，比上班还充实！',
+        '身体好就是最大的福气！大家都要多运动！',
+        '姑娘/小伙子，有对象了吗？阿姨给你介绍一个！'
+      ]
+    },
+    speaking_style: 'aunt'
+  },
+  { 
+    name: '外卖骑手', 
+    emoji: '🛵', 
+    base_rarity: 'r', 
+    local_image: 'waimai', 
+    description: '奔波在城市角落的骑手，见证城市的每一面', 
+    keywords: ['配送', '交通', '天气', '效率', '生计'],
+    interested_categories: ['民生', '交通', '天气', '科技', '消费'],
+    opinion_templates: {
+      social: [
+        '这单要超时了！客户千万别给差评啊！一个差评扣50，这单白干了。',
+        '我们每天风里来雨里去，最清楚这个城市的冷暖。好人多，但刁难人的也有。',
+        '希望大家多给我们一点时间，多一点理解。我们真的在拼命赶了。'
+      ],
+      tech: [
+        '平台的系统越来越"智能"了，给的时间越来越紧，就是想让我们多跑单。',
+        '导航有时候不准，小区里绕半天找不到楼号，急死人。',
+        'AI调度？AI又不用在太阳底下晒，不用在雨里淋，它哪懂实际路况啊。'
+      ],
+      edu: [
+        '要是当年好好读书，也不至于来送外卖。但话说回来，靠自己劳动吃饭不丢人。',
+        '现在大学生也来送外卖了？哎，学历越来越不值钱了。',
+        '我就希望我家孩子好好读书，将来不用像我这么辛苦。'
+      ],
+      consume: [
+        '什么奶茶网红店，我们天天去取餐，从来舍不得买一杯。',
+        '一杯奶茶几十块？够我吃两顿盒饭了。',
+        '客户点的东西越来越奇怪，有买烟的买酒的，还有买葱买蒜买药的...'
+      ],
+      culture: [
+        '什么文化不文化的，我们就是干活的，挣钱养家要紧。',
+        '过节的时候单最多，别人过节我们加班。',
+        '有次给一个唱戏的老先生送餐，他还给我唱了一段，挺有意思。'
+      ],
+      general: [
+        '您好，您的外卖到了！祝您用餐愉快！麻烦给个五星好评谢谢！',
+        '这行确实辛苦，但是多劳多得，只要肯跑就能挣到钱。',
+        '最怕下雨下雪天，路滑容易出事，但是单多价高，也不得不跑。'
+      ]
+    },
+    speaking_style: 'rider'
+  },
+  { 
+    name: '资深程序员', 
+    emoji: '💻', 
+    base_rarity: 'r', 
+    local_image: 'chengxuyuan', 
+    description: '格子衫加身的码农，关注技术与效率', 
+    keywords: ['编程', 'bug', '加班', '技术', '产品'],
+    interested_categories: ['科技', '职场', '教育', '消费'],
+    opinion_templates: {
+      social: [
+        '这不就是典型的分布式系统问题吗？单点故障、缓存一致性、雪崩...哦，说的是社会问题啊，那没事了。',
+        '产品经理又提需求了？这个需求逻辑上就有问题，实现不了（其实可以，但不想做）。',
+        '又出bug了？线上P0故障？我就知道，上线前没让我code review。'
+      ],
+      tech: [
+        '这个框架/语言/工具我用过！有坑！听我一句劝，别用！',
+        '技术更新太快了，学不动了...但是不学又不行，35岁就被淘汰了。',
+        'AI写代码？现在还只能写写简单的，复杂逻辑还是得人来。不过确实能提升效率。'
+      ],
+      edu: [
+        '计算机专业已经烂大街了，但是真正能写好代码的还是少数。',
+        '培训班出来的？基础不牢，地动山摇。',
+        '劝人学计算机，天打雷劈...但是自己选的路，跪着也要走完。'
+      ],
+      consume: [
+        '机械键盘！4K显示器！人体工学椅！这些生产力工具不能省！',
+        '格子衫、牛仔裤、运动鞋——程序员标配，不用想穿什么，省时间。',
+        '奶茶/咖啡是续命水，一天三杯，bug全飞。'
+      ],
+      culture: [
+        '《黑客帝国》《社交网络》《硅谷》——这些才是我们的文化。',
+        '开源精神万岁！但是996的时候没人跟我谈精神。',
+        '传统文化好啊，但是没时间了解，下班只想躺平。'
+      ],
+      general: [
+        '在这个逻辑里，0是false，非0是true，所以产品经理的需求是false。',
+        '这个问题在我的电脑上是好的啊...（经典甩锅）',
+        'Hello World是每个程序员的初恋，bug是每个程序员的宿命。'
+      ]
+    },
+    speaking_style: 'programmer'
+  },
+  { 
+    name: '美食博主', 
+    emoji: '🍜', 
+    base_rarity: 'r', 
+    local_image: 'meishi', 
+    description: '走街串巷的吃货，发现隐藏美食', 
+    keywords: ['美食', '探店', '烹饪', '打卡', '味道'],
+    interested_categories: ['消费', '生活', '文化', '旅游'],
+    opinion_templates: {
+      social: [
+        '这事儿我知道！那家老板我认识，人特别好，做的菜那叫一个绝！',
+        '美食最能治愈人心了，天大的事，吃顿好的就过去了。',
+        '现在的人生活节奏太快，连好好吃饭都做不到，太可惜了。'
+      ],
+      tech: [
+        'AI能写食谱，但做不出妈妈的味道。',
+        '外卖平台方便是方便，但很多好吃的小店不上平台，还得自己去店里吃。',
+        '料理包？那能叫饭吗？那是工业产品！'
+      ],
+      edu: [
+        '现在的孩子会做饭的越来越少了，其实做饭是很有趣的事。',
+        '厨师学校？真正的好手艺都是师承的，都是在厨房里练出来的。',
+        '食不厌精脍不厌细，吃也是一种文化，一种学问。'
+      ],
+      consume: [
+        '这家店我去过！避雷！不好吃还贵！',
+        '这个真的绝了！姐妹们冲！不好吃你来打我！（当然真不好吃我也不会承认）',
+        '网红店？十个里九个坑，还有一个是营销出来的。真正好吃的店都藏在巷子里。'
+      ],
+      culture: [
+        '饮食文化是中华文化的根！八大菜系，各有各的讲究！',
+        '老字号能活下来都是有道理的，那味道是经过几代人验证的。',
+        '传统小吃越来越少了，很多手艺都快失传了，可惜啊。'
+      ],
+      general: [
+        '家人们，今天给大家找到一家藏在巷子里的神仙小店！不好吃你回来找我！',
+        '干饭人干饭魂，干饭都是人上人！',
+        '没有什么是一顿火锅解决不了的，如果有，那就两顿。'
+      ]
+    },
+    speaking_style: 'foodie'
+  },
+  { 
+    name: '网红主播', 
+    emoji: '🎤', 
+    base_rarity: 'r', 
+    local_image: 'wanghong', 
+    description: '镜头前的弄潮儿，追逐流量与热度', 
+    keywords: ['直播', '流量', '粉丝', '带货', '热点'],
+    interested_categories: ['娱乐', '消费', '科技', '社会'],
+    opinion_templates: {
+      social: [
+        '家人们！这波热点必须蹭！流量密码掌握了！',
+        '这个话题有争议性？好！有争议才有流量！',
+        '黑红也是红！只要能上热搜，被骂也比没人理强。'
+      ],
+      tech: [
+        'AI数字人直播？24小时不间断？这是要抢我们饭碗啊！',
+        '新平台/新功能出来了，赶紧研究！流量红利期必须抓住！',
+        '这个滤镜/美颜/特效好好用，上镜显脸小！'
+      ],
+      edu: [
+        '现在的小孩都想当网红？其实这行没那么容易，镜头背后很辛苦的。',
+        '读书还是重要的，没文化火了也走不远，容易翻车。',
+        'MCN说要签我？违约金几个亿？那得好好看看合同。'
+      ],
+      consume: [
+        '家人们！3、2、1上链接！买它！这个价格只有我直播间有！',
+        '这个产品是我亲自试用过的，不好用我绝对不会推荐（其实给的钱够多就推荐）。',
+        '奢侈品/潮牌/联名款？这些是人设道具，必须有。'
+      ],
+      culture: [
+        '国潮来了！赶紧跟一波！爱国人设加分！',
+        '传统文化好啊，但是得用年轻人喜欢的方式包装，不然没人看。',
+        '流量就是一切，数据就是王道。什么文化不文化的，能涨粉就行。'
+      ],
+      general: [
+        '感谢大哥送的火箭！大哥666！',
+        '关注主播不迷路，主播带你上高速！',
+        '铁打的平台，流水的网红。这行更新换代太快了，必须一直往前跑。'
+      ]
+    },
+    speaking_style: 'influencer'
+  },
+  { 
+    name: '健身教练', 
+    emoji: '💪', 
+    base_rarity: 'r', 
+    local_image: 'jianshen', 
+    description: '肌肉满满的教练，督促你挥洒汗水', 
+    keywords: ['健身', '肌肉', '减肥', '饮食', '运动'],
+    interested_categories: ['健康', '生活', '消费'],
+    opinion_templates: {
+      social: [
+        '现在的人亚健康太严重了！十个有九个颈椎有问题，还有一个是胖的。',
+        '自律给我自由！你连自己的体重都控制不了，还能控制什么？',
+        '办了卡不来？那你买的不是健身卡，是赎罪券。'
+      ],
+      tech: [
+        '健身APP只能记个数，动作标不标准还得有人看着，容易受伤。',
+        '智能手环/手表数据挺准的，但是光看数据没用，得动起来！',
+        'AI健身教练？它不能在你力竭的时候扶你一把，也不能在你想放弃的时候骂醒你。'
+      ],
+      edu: [
+        '现在的学生体质太差了，体育课都被占了，这怎么行？',
+        '体育教育太重要了，身体是革命的本钱啊。',
+        '健身先健脑，很多人练伤都是因为不懂，瞎练。'
+      ],
+      consume: [
+        '补剂只是辅助，好好吃饭才是最重要的。那些减肥药都是智商税！',
+        '健身卡贵？你去医院看看多少钱就不觉得贵了。',
+        '轻食沙拉？那是兔子吃的！健身要吃够蛋白质，鸡胸肉鸡蛋牛肉安排上！'
+      ],
+      culture: [
+        '健身文化越来越普及了，是好事。但很多人走极端，过度追求肌肉，也不健康。',
+        '中国传统武术、太极拳也是很好的运动，不一定要撸铁。',
+        '全民健身，利国利民！'
+      ],
+      general: [
+        '再来一个！对！就是这样！坚持住！不要放弃！',
+        '要么瘦，要么死！（开玩笑的，健康最重要）',
+        '今天的汗水，是明天的马甲线！'
+      ]
+    },
+    speaking_style: 'coach'
+  },
+  { 
+    name: '菜市场小贩', 
+    emoji: '🥬', 
+    base_rarity: 'n', 
+    local_image: 'xiaofan', 
+    description: '清晨出摊的小贩，最懂人间烟火气', 
+    keywords: ['物价', '生活', '市井', '时令', '家常'],
+    interested_categories: ['民生', '消费', '天气', '社会'],
+    opinion_templates: {
+      social: [
+        '菜价又涨了！进价贵，我也没办法啊姑娘。',
+        '都是自家种的/新鲜的！刚摘的！不新鲜不要钱！',
+        '现在生意不好做啊，菜市场人越来越少，都去超市和网上买菜了。'
+      ],
+      tech: [
+        '现在都扫码支付了，收现金的越来越少，我们也得学着用智能手机。',
+        '网上买菜？那菜都是放了几天的，哪有我这早上刚进的新鲜？',
+        '社区团购抢生意啊，他们价格压得低，但菜不行。'
+      ],
+      edu: [
+        '读书好啊，读书就不用像我这样起早贪黑了。',
+        '我家孩子还在上大学，我得多挣点，给他攒学费。',
+        '现在的孩子，连葱和蒜苗都分不清，四体不勤五谷不分。'
+      ],
+      consume: [
+        '姑娘今天要点什么？这青菜刚到的，特别嫩！',
+        '经常来给你便宜点！再送你两根葱！',
+        '现在钱不值钱了，一百块钱打开就没了，买不了几样菜。'
+      ],
+      culture: [
+        '什么节吃什么菜，这是老规矩。端午吃粽子，中秋吃月饼，冬至吃饺子。',
+        '现在的年轻人，连时令菜都分不清，什么季节该吃什么都不知道。',
+        '菜市场就是人间烟火，在这里能看到最真实的生活。'
+      ],
+      general: [
+        '早起的鸟儿有虫吃，我们每天三点多就去进货，天亮就出摊。',
+        '小本生意，挣的都是辛苦钱，不容易啊。',
+        '这菜你放心买，我天天在这卖，不会骗你的。'
+      ]
+    },
+    speaking_style: 'vendor'
+  },
+  { 
+    name: '咖啡店老板', 
+    emoji: '☕', 
+    base_rarity: 'n', 
+    local_image: 'coffe', 
+    description: '街角咖啡馆的主人，品味城市慢生活', 
+    keywords: ['咖啡', '悠闲', '创业', '文艺', '社交'],
+    interested_categories: ['生活', '消费', '文化', '职场'],
+    opinion_templates: {
+      social: [
+        '每天见不同的客人，听不同的故事，这就是开咖啡馆最大的收获。',
+        '现在的人太急了，连喝杯咖啡都要快，其实应该慢下来享受生活。',
+        '社区需要这样一个空间，让人歇口气，聊聊天。'
+      ],
+      tech: [
+        '咖啡机越来越先进了，但做咖啡还是要靠人，豆子、水温、萃取时间，差一点都不行。',
+        '外卖咖啡占一半，但我还是建议来店里喝，口感差很多。',
+        'AI能做咖啡吗？能，但做不出温度，做不出人情味。'
+      ],
+      edu: [
+        '很多大学生来我这里自习，氛围比图书馆轻松。',
+        '咖啡师也是需要专业学习的，不是随便学学就能拉花的。',
+        '现在的年轻人比我们那时候懂咖啡多了。'
+      ],
+      consume: [
+        '咖啡豆涨价了，房租也涨了，但咖啡不敢随便涨价，怕老客人走了。',
+        '很多客人是冲着环境来的，点一杯咖啡坐一下午，我也欢迎，毕竟卖的是空间。',
+        '连锁咖啡店扩张太快，独立小店生存不容易啊。'
+      ],
+      culture: [
+        '咖啡是舶来品，但现在也慢慢形成了中国自己的咖啡文化。',
+        '第三空间的概念不只是星巴克，我们小店更有人情味。',
+        '很多人在这里谈工作、谈恋爱、甚至失恋哭泣，咖啡馆是城市的情绪容器。'
+      ],
+      general: [
+        '欢迎光临！今天想喝点什么？还是老样子？',
+        '开咖啡馆不挣钱，但挣到了很多朋友，很多故事。',
+        '慢下来，喝杯咖啡，生活不用那么急。'
+      ]
+    },
+    speaking_style: 'barista'
+  },
+  { 
+    name: '职场HR', 
+    emoji: '👔', 
+    base_rarity: 'n', 
+    local_image: 'zhichang', 
+    description: '阅人无数的人事，看透职场百态', 
+    keywords: ['招聘', '面试', '职场', '简历', '跳槽'],
+    interested_categories: ['职场', '教育', '社会', '消费'],
+    opinion_templates: {
+      social: [
+        '现在的就业形势确实不好，简历收到手软，但合适的人不多。',
+        '年轻人跳槽太频繁了，平均不到一年就换工作，企业都怕了。',
+        '35岁危机确实存在，很多岗位卡年龄，这也是现实。'
+      ],
+      tech: [
+        'AI筛选简历效率高，但也会漏掉一些不错的候选人。',
+        '视频面试、线上面试普及了，但还是面对面更能看出一个人。',
+        '技术更新太快，很多岗位说没就没了，终身学习是必须的。'
+      ],
+      edu: [
+        '学历是敲门砖，但能力和态度更重要。很多名校生眼高手低。',
+        '专业对口没那么重要，学习能力和综合素质才是关键。',
+        '实习经历很重要，应届生简历上没什么实习，很难找到好工作。'
+      ],
+      consume: [
+        '职场穿搭是门学问，不用太贵但要得体。',
+        '年轻人刚毕业别乱花钱，攒点钱抗风险，裸辞不是那么好玩的。',
+        '职场培训、知识付费？很多是智商税，不如在工作中学习。'
+      ],
+      culture: [
+        '企业文化很重要，画大饼的公司留不住人。',
+        '现在的年轻人不看画饼，看实际的：工资、福利、加班多不多、有没有发展。',
+        '狼性文化、996？年轻人不吃这一套了。'
+      ],
+      general: [
+        '先回去等通知吧——这句话一般就是没下文了。',
+        '找工作是双向选择，候选人也在面试公司。',
+        '铁饭碗不是在一个地方吃一辈子饭，而是走到哪都有饭吃。'
+      ]
+    },
+    speaking_style: 'hr'
+  },
+  { 
+    name: '中学班主任', 
+    emoji: '📚', 
+    base_rarity: 'n', 
+    local_image: 'banzhuren', 
+    description: '操碎了心的老师，关注学生成长', 
+    keywords: ['教育', '考试', '学生', '成绩', '成长'],
+    interested_categories: ['教育', '社会', '民生', '科技'],
+    opinion_templates: {
+      social: [
+        '现在的社会环境对孩子影响太大了，手机、短视频、网红，诱惑太多。',
+        '教育不只是学校的事，家庭更重要。很多家长把孩子往学校一送就不管了。',
+        '5+2=0，学校五天教育，回家两天就白费了。'
+      ],
+      tech: [
+        'AI搜题、拍题软件，让孩子越来越不会独立思考了。',
+        '上网课有利有弊，自觉性差的孩子成绩一落千丈。',
+        '技术是工具，关键还是看人怎么用。'
+      ],
+      edu: [
+        '这道题我讲了多少遍了！怎么还是错！送分题都不要！',
+        '你们是我带过最差的一届！（当然每届都这么说）',
+        '高考是千军万马过独木桥，但也是普通人最公平的机会。'
+      ],
+      consume: [
+        '学生攀比风气不好，比鞋比手机比文具，心思不在学习上。',
+        '补课费越来越贵，家长负担重，孩子也累。',
+        '那些网红文具花里胡哨的，不实用，还容易让孩子分心。'
+      ],
+      culture: [
+        '传统文化进校园是好事，但不要流于形式。',
+        '现在的孩子对传统文化了解太少了，只知道二次元、追星。',
+        '先成人再成才，品德比成绩重要。'
+      ],
+      general: [
+        '整栋楼就你们班最吵！我在办公室都听见了！',
+        '你们考得好不好跟我没关系，我工资照拿——但还是希望你们有出息。',
+        '等你们上了大学就自由了...（骗你们的，上大学还要找工作呢）'
+      ]
+    },
+    speaking_style: 'teacher'
+  }
 ]
 
+const NEWS_CATEGORIES = {
+  social: { name: '社会民生', keywords: ['高温', '暴雨', '物价', '社区', '养老', '医疗', '交通', '安全'] },
+  tech: { name: '科技互联网', keywords: ['AI', '人工智能', '新能源', '芯片', '互联网', '算法', '大数据', '机器人', '航天'] },
+  edu: { name: '教育职场', keywords: ['考研', '高考', '就业', '加班', '职场', '考试', '毕业', '招聘', '创业'] },
+  consume: { name: '生活消费', keywords: ['奶茶', '旅游', '健身', '餐饮', '网红', '消费', '电商', '共享', '价格'] },
+  culture: { name: '文化娱乐', keywords: ['国漫', '戏曲', '考古', '电影', '老字号', '传统文化', '综艺', '明星', '旅游'] },
+  health: { name: '健康生活', keywords: ['健康', '养生', '运动', '医疗', '健身', '食品', '安全'] },
+  weather: { name: '天气', keywords: ['高温', '暴雨', '台风', '寒潮', '预警', '天气'] },
+  general: { name: '综合', keywords: [] }
+}
+
 const MOCK_NEWS_TEMPLATES = [
-  { title: '多地发布高温预警，部分地区气温突破40℃', summary: '气象部门连续发布高温橙色预警，提醒市民做好防暑降温措施，户外活动尽量避开正午时段。', source: '天气新闻', views: 12580, hot: true },
-  { title: '国产新能源汽车销量再创新高，市场份额突破50%', summary: '最新数据显示，国产品牌新能源汽车销量持续增长，消费者接受度不断提高，技术创新成为核心竞争力。', source: '汽车资讯', views: 28930, hot: true },
-  { title: '2026年考研成绩公布，国家线预计下月发布', summary: '多地考生查询到初试成绩，专家建议提前准备复试和调剂，保持积极心态。', source: '教育观察', views: 45620 },
-  { title: '某知名奶茶品牌被曝使用过期原料，官方回应正在调查', summary: '食品安全问题再次引发关注，监管部门已介入调查，涉事门店已暂停营业。', source: '消费日报', views: 67840, hot: true },
-  { title: 'AI大模型应用爆发式增长，多个行业迎来效率革命', summary: '人工智能技术加速落地，在办公、医疗、教育等领域展现出巨大潜力，同时也带来新的就业挑战。', source: '科技前沿', views: 34210 },
-  { title: '暑期旅游市场火爆，热门目的地机票酒店预订量翻倍', summary: '随着暑期来临，旅游消费需求集中释放，亲子游、研学游成为主流，部分热门航线一票难求。', source: '旅游周刊', views: 19870 },
-  { title: '新版人民币防伪技术升级，专家教你如何辨真伪', summary: '央行发行新版人民币，采用多项新型防伪技术，公众可通过观察光彩光变图案等方式快速识别。', source: '金融时报', views: 8750 },
-  { title: '全民健身热潮持续，城市夜跑族成为新风景线', summary: '越来越多市民加入夜跑行列，城市绿道、公园成为热门运动场所，健康生活理念深入人心。', source: '体育快讯', views: 15680 },
-  { title: '考古新发现：某地出土距今3000年精美青铜器', summary: '考古团队在某遗址发掘出大量珍贵文物，为研究古代文明提供了重要实物资料，填补了多项历史空白。', source: '文化遗产', views: 23450 },
-  { title: '外卖平台推出新功能，可实时查看骑手配送轨迹', summary: '为提升用户体验，外卖平台升级配送追踪系统，用户可更精确地预估送达时间，减少等待焦虑。', source: '互联网观察', views: 31240 },
-  { title: '传统戏曲进校园，年轻观众直呼太上头', summary: '多种形式的传统文化推广活动在各地学校开展，越来越多年轻人开始喜欢上传统艺术，文化自信显著增强。', source: '文化报道', views: 17890 },
-  { title: '共享充电宝价格再调整，用户表示充不起了', summary: '多个场景共享充电宝涨价引发热议，有用户计算外出一天充电费堪比一顿饭钱，呼吁加强价格监管。', source: '消费提醒', views: 52360, hot: true },
-  { title: '暴雨蓝色预警：南方多地将迎强降雨天气', summary: '气象部门预报未来三天南方部分地区有大到暴雨，提醒公众注意防范山洪、泥石流等地质灾害。', source: '气象服务', views: 9870 },
-  { title: '国产动画电影票房破纪录，国漫崛起势头强劲', summary: '暑期档多部国产动画口碑票房双丰收，精良制作和中国故事打动观众，行业发展前景看好。', source: '娱乐前沿', views: 41230, hot: true },
-  { title: '智能家居新品发布，语音控制全屋设备成现实', summary: '科技公司发布全新智能家居生态系统，实现多设备互联互通，让生活更加便捷智能。', source: '数码评测', views: 26780 },
-  { title: '社区食堂走红，实惠便民获居民点赞', summary: '多地社区开设便民食堂，价格实惠、菜品丰富，解决了老年人和上班族就餐难题，值得推广。', source: '民生直通车', views: 13450 },
-  { title: '高校毕业生就业服务月启动，多举措助力求职', summary: '人社部门联合高校开展系列招聘活动，提供职业指导、技能培训等服务，帮助毕业生顺利就业。', source: '就业服务', views: 38920 },
-  { title: '网红打卡地被吐槽照骗，理性出游成共识', summary: '部分网红景点实地体验与宣传照片差距大引发吐槽，专家建议游客理性选择，平台加强内容审核。', source: '旅游消费', views: 29870 },
-  { title: '罕见天文奇观本月上演，记得抬头看天', summary: '天文预报显示本月将有流星雨、行星合月等多个精彩天象，天文爱好者可大饱眼福。', source: '天文科普', views: 7650 },
-  { title: '老字号创新发展，传统美食玩出新花样', summary: '多家百年老字号积极拥抱新零售，推出文创产品、跨界联名，让传统美食焕发新活力。', source: '商业观察', views: 21340 }
+  { id: 'n001', title: '多地发布高温红色预警，局部地区气温突破42℃', summary: '气象部门连续发布高温预警，多地启动应急响应，建议市民减少户外活动，做好防暑降温措施。户外工作者需注意轮换休息。', source: '中国天气网', views: 32580, hot: true, category: 'weather' },
+  { id: 'n002', title: '国产新能源汽车6月销量再创新高，市场份额突破55%', summary: '最新数据显示，国产品牌新能源汽车销量持续增长，比亚迪、理想、蔚来等品牌表现亮眼，出口量同比增长80%，技术创新成为核心竞争力。', source: '汽车之家', views: 48930, hot: true, category: 'tech' },
+  { id: 'n003', title: '2026年考研国家线公布，多专业分数线上涨', summary: '教育部公布2026年考研国家线，工学、医学等专业分数线较去年上涨5-10分，考生复试竞争更加激烈，调剂名额紧张。', source: '中国教育在线', views: 67620, hot: true, category: 'edu' },
+  { id: 'n004', title: '某知名奶茶品牌被曝使用过期原料，官方回应正在调查', summary: '有记者卧底发现某网红奶茶品牌多家门店存在使用过期原料、卫生条件差等问题，市场监管部门已介入调查，涉事门店已暂停营业。', source: '消费日报', views: 89840, hot: true, category: 'consume' },
+  { id: 'n005', title: 'AI大模型应用爆发式增长，多行业迎来效率革命', summary: '人工智能技术加速落地，在办公、医疗、教育、编程等领域展现出巨大潜力，AI相关岗位招聘需求同比增长150%，同时也带来新的就业挑战。', source: '36氪', views: 54210, hot: true, category: 'tech' },
+  { id: 'n006', title: '暑期旅游市场火爆，热门目的地机票酒店预订量翻倍', summary: '随着暑期来临，旅游消费需求集中释放，亲子游、研学游、避暑游成为主流，新疆、云南、贵州等目的地人气爆棚，部分热门航线一票难求。', source: '携程旅行', views: 39870, hot: true, category: 'culture' },
+  { id: 'n007', title: '新版人民币防伪技术升级，公众防伪知识需更新', summary: '央行发行新版人民币，采用多项新型防伪技术，包括光彩光变图案、动感光变镂空开窗安全线等，公众可通过"一看二摸三听"快速识别真伪。', source: '金融时报', views: 18750, category: 'social' },
+  { id: 'n008', title: '全民健身热潮持续，城市夜跑族成为新风景线', summary: '越来越多市民加入夜跑行列，城市绿道、公园成为热门运动场所，马拉松赛事报名人数屡创新高，健康生活理念深入人心。', source: '体育周刊', views: 25680, category: 'health' },
+  { id: 'n009', title: '河南安阳考古新发现：商代晚期大型墓葬出土精美青铜器', summary: '考古团队在殷墟遗址附近发掘出商代晚期大型贵族墓葬，出土大量珍贵青铜器、玉器，为研究商代历史提供了重要实物资料，填补了多项历史空白。', source: '国家文物局', views: 43450, hot: true, category: 'culture' },
+  { id: 'n010', title: '外卖平台推出新功能，可实时查看骑手配送轨迹和预计等待时间', summary: '为提升用户体验，外卖平台升级配送追踪系统，优化配送路径算法，用户可更精确地预估送达时间，同时增加骑手申诉通道，减少不合理处罚。', source: '澎湃新闻', views: 51240, hot: true, category: 'tech' },
+  { id: 'n011', title: '传统戏曲进校园，年轻观众直呼"太上头了"', summary: '多种形式的传统文化推广活动在各地学校开展，京剧、昆曲、豫剧等通过创新编排吸引年轻观众，越来越多90后00后开始喜欢上传统艺术。', source: '人民日报', views: 37890, category: 'culture' },
+  { id: 'n012', title: '共享充电宝价格再调整，部分场景每小时收费达6元', summary: '多个场景共享充电宝涨价引发热议，有用户计算外出一天充电费堪比一顿饭钱，消费者协会呼吁加强价格监管，明码标价。', source: '央视财经', views: 72360, hot: true, category: 'consume' },
+  { id: 'n013', title: '暴雨橙色预警：南方多地将迎强降雨天气，局地大暴雨', summary: '气象部门预报未来三天南方部分地区有大到暴雨，局部地区累计降雨量可达300毫米，提醒公众注意防范山洪、泥石流等地质灾害，避免前往山区。', source: '中央气象台', views: 29870, category: 'weather' },
+  { id: 'n014', title: '国产动画电影《长安三万里》票房破20亿，国漫崛起势头强劲', summary: '暑期档多部国产动画口碑票房双丰收，精良制作和中国故事打动观众，传统文化IP成为国漫创作富矿，行业发展前景看好。', source: '艺恩数据', views: 61230, hot: true, category: 'culture' },
+  { id: 'n015', title: '智能家居新品发布，语音控制全屋设备成现实', summary: '科技公司发布全新智能家居生态系统，实现多设备互联互通，支持AI场景自动识别，一句话控制灯光、空调、窗帘、安防等设备。', source: '中关村在线', views: 36780, category: 'tech' },
+  { id: 'n016', title: '社区食堂走红，实惠便民获居民点赞', summary: '多地社区开设便民食堂，价格实惠、菜品丰富、干净卫生，解决了老年人和上班族就餐难题，政府给予补贴支持，有望在全国推广。', source: '新华社', views: 33450, category: 'social' },
+  { id: 'n017', title: '2026届高校毕业生就业服务月启动，多举措助力求职', summary: '人社部联合高校开展系列招聘活动，提供超过1000万个就业岗位，同时推出职业指导、技能培训、创业扶持等服务，帮助毕业生顺利就业。', source: '人社部', views: 58920, category: 'edu' },
+  { id: 'n018', title: '网红打卡地被吐槽"照骗"，理性出游成共识', summary: '部分网红景点实地体验与宣传照片差距大引发吐槽，小红书等平台推出"踩坑"标签，专家建议游客理性选择，平台加强内容审核。', source: '中国旅游报', views: 49870, category: 'culture' },
+  { id: 'n019', title: '罕见天文奇观本月上演：英仙座流星雨与超级月亮同现', summary: '天文预报显示本月将有英仙座流星雨、土星冲日、超级月亮等多个精彩天象，天文爱好者可大饱眼福，建议选择光污染小的地方观测。', source: '天文在线', views: 17650, category: 'tech' },
+  { id: 'n020', title: '老字号创新发展，传统美食玩出新花样', summary: '多家百年老字号积极拥抱新零售，推出文创产品、跨界联名、低脂低糖版本，五芳斋、同仁堂、大白兔等品牌圈粉年轻消费者。', source: '商业观察', views: 41340, category: 'culture' },
+  { id: 'n021', title: '互联网大厂"反内卷"升级，多家公司宣布取消大小周', summary: '继字节跳动之后，多家互联网公司宣布取消大小周工作制，推行965、弹性办公等政策，关注员工工作生活平衡，"快乐工作"成为新趋势。', source: '虎嗅', views: 75430, hot: true, category: 'edu' },
+  { id: 'n022', title: '县城咖啡火爆：30元一杯的咖啡，正在占领小县城', summary: '曾经只在一线城市流行的咖啡，如今在县城遍地开花，95后回乡创业开咖啡馆成为新潮流，县城青年消费升级趋势明显。', source: '第一财经', views: 38560, category: 'consume' },
+  { id: 'n023', title: '中学生心理健康引关注，多地要求学校配备心理老师', summary: '教育部要求每所中小学至少配备一名专职心理健康教师，将心理健康课程纳入必修课，关注青少年抑郁、焦虑等问题，建立筛查干预机制。', source: '中国教育报', views: 46720, hot: true, category: 'edu' },
+  { id: 'n024', title: '预制菜进校园引争议，家长担忧食品安全问题', summary: '部分学校食堂使用预制菜引发家长质疑，担心食品不新鲜、添加剂过多，教育部门回应将严格把关，确保学生用餐安全。', source: '中国消费者报', views: 62180, hot: true, category: 'consume' },
+  { id: 'n025', title: 'AI医生准确率超90%，远程医疗让基层患者受益', summary: '人工智能辅助诊断系统在多种疾病诊断上准确率超过资深医生，远程会诊让偏远地区患者也能享受优质医疗资源，智慧医疗加速落地。', source: '健康时报', views: 42890, category: 'health' },
+  { id: 'n026', title: 'Citywalk城市漫步走红，年轻人换种方式认识家乡', summary: '不同于走马观花的打卡旅游，年轻人开始流行Citywalk——漫步城市老街，发现被忽略的风景和故事，城市微旅行成为新风尚。', source: '新周刊', views: 28740, category: 'culture' },
+  { id: 'n027', title: '灵活就业人数突破2亿，零工经济如何保障权益', summary: '我国灵活就业人员已达2亿，外卖骑手、网约车司机、主播、自由职业者等新就业形态劳动者权益保障问题受到关注，多地试点职业伤害保障。', source: '工人日报', views: 51370, category: 'social' },
+  { id: 'n028', title: '年轻人开始"断亲"：传统亲戚关系为何变淡了', summary: '越来越多年轻人减少与亲戚的来往，认为观念差异大、没有共同语言、攀比严重，社会学家认为这是城市化和个体化进程的必然现象。', source: '中国青年报', views: 68940, hot: true, category: 'social' },
+  { id: 'n029', title: '国货美妆崛起，完美日记、花西子等品牌市场份额增长', summary: '国货美妆品牌凭借高性价比、文化IP联名、社交媒体营销，在与国际品牌竞争中脱颖而出，市场份额持续增长，东方美学成为新潮流。', source: '化妆品财经在线', views: 35620, category: 'consume' },
+  { id: 'n030', title: '城市垃圾分类成效显著，但仍面临居民习惯难题', summary: '多地垃圾分类实施以来取得积极进展，资源回收利用率提高，但部分居民分类意识仍需加强，混投混放现象依然存在，需要长期宣传引导。', source: '中国环境报', views: 22450, category: 'social' },
+  { id: 'n031', title: '宠物经济爆发：年轻人愿意为"毛孩子"花多少钱', summary: '中国宠物市场规模突破3000亿元，宠物食品、医疗、美容、保险、殡葬等行业快速发展，年轻人将宠物视为家人，"它经济"持续升温。', source: '亿欧网', views: 45280, category: 'consume' },
+  { id: 'n032', title: '露营热降温？户外休闲走向常态化、精细化', summary: '经过前两年爆发式增长后，露营热开始降温，游客不再满足于简单搭帐篷，精致露营、房车旅行、徒步登山等细分户外项目兴起。', source: '户外探险', views: 26830, category: 'culture' },
+  { id: 'n033', title: '适老化改造加速：让老年人跟上数字时代', summary: '多地推进APP适老化改造，推出大字版、语音引导、一键呼叫等功能，同时保留传统线下服务渠道，帮助老年人跨越"数字鸿沟"。', source: '光明日报', views: 19560, category: 'tech' },
+  { id: 'n034', title: '非遗传承人年轻化：95后让老手艺焕发新生机', summary: '越来越多年轻人加入非遗传承行列，用短视频、直播、文创设计等创新方式让传统技艺被更多人看见，苏绣、漆器、皮影等老手艺潮起来。', source: '文旅部', views: 31270, category: 'culture' },
+  { id: 'n035', title: '延迟退休政策正式落地，渐进式实施方案公布', summary: '延迟退休方案正式公布，采取渐进式方式，每年延迟几个月，最终男性63岁、女性55岁或58岁退休，同时推出弹性退休、鼓励大龄人员就业等配套政策。', source: '人社部', views: 89650, hot: true, category: 'social' },
+  { id: 'n036', title: '大学生"慢就业"现象引热议，毕业生选择Gap Year增多', summary: '越来越多大学毕业生不急于找工作，选择考研二战、考公、创业、旅行、实习体验等，"慢就业"成为新现象，有人支持有人担忧。', source: '中国青年研究', views: 57430, category: 'edu' },
+  { id: 'n037', title: '即时零售爆发：30分钟送达改变消费习惯', summary: '小时购、即时配送快速发展，从外卖延伸到超市、药店、书店、3C产品等，"万物到家"成为现实，消费者对配送速度要求越来越高。', source: '晚点LatePost', views: 38920, category: 'tech' },
+  { id: 'n038', title: '城市书房、24小时图书馆走红，书香社会正在形成', summary: '各地建设更多便民阅读空间，城市书房、24小时自助图书馆、社区书屋等成为市民打卡地，全民阅读氛围日益浓厚，纸质书销量回升。', source: '新闻出版总署', views: 24150, category: 'culture' },
+  { id: 'n039', title: '996、大小周成历史？职场人开始追求Work-Life Balance', summary: '越来越多公司开始重视员工工作生活平衡，拒绝无意义加班，推行弹性工作制、四天半工作制试点，"躺平""摸鱼"背后是职场观念转变。', source: '智联招聘', views: 71240, hot: true, category: 'edu' },
+  { id: 'n040', title: '国产大飞机C919商业运营满一周年，安全运送旅客超百万人次', summary: '国产大飞机C919投入商业运营一周年，累计安全飞行超1万小时，运送旅客100多万人次，标志着中国民航工业迈入新阶段。', source: '中国民航局', views: 56890, hot: true, category: 'tech' },
+  { id: 'n041', title: '演唱会经济火爆：一场演出带火一座城', summary: '演出市场全面复苏，周杰伦、五月天、薛之谦等歌手演唱会一票难求，歌迷跨城追星带动交通、住宿、餐饮等消费，"演唱会经济"成为城市文旅新引擎。', source: '演出行业协会', views: 63720, hot: true, category: 'culture' },
+  { id: 'n042', title: '年轻人开始"反向消费"：从追求品牌到看重性价比', summary: '越来越多年轻人不再盲目追求大牌，转而选择性价比高的国产品牌、平替产品，二手交易平台、折扣店受欢迎，消费观念更趋理性。', source: 'DT财经', views: 48350, category: 'consume' },
+  { id: 'n043', title: '中医养生年轻化：艾灸、拔罐、八段锦成年轻人新宠', summary: '曾经被认为是"中老年专属"的中医养生，如今受到年轻人追捧，中医院养生门诊、八段锦教学、药膳、艾灸贴等在年轻人中流行。', source: '健康时报', views: 42160, category: 'health' },
+  { id: 'n044', title: '电竞入亚、入奥？电子竞技逐渐获得主流认可', summary: '电子竞技正式成为亚运会、奥运会比赛项目，电竞选手社会认可度提高，多所高校开设电竞相关专业，电竞产业规模持续增长。', source: '体坛周报', views: 53840, category: 'culture' },
+  { id: 'n045', title: '县域经济崛起：县城消费力正在被重新发现', summary: '随着城镇化推进和返乡就业创业增多，县城消费市场展现出巨大潜力，连锁品牌下沉、商业综合体建设，县城青年成为消费新势力。', source: '第一财经', views: 34670, category: 'social' },
+  { id: 'n046', title: '睡眠经济兴起：3亿人有睡眠障碍，助眠产品热销', summary: '中国超3亿人存在睡眠障碍，褪黑素、睡眠喷雾、助眠香薰、白噪音APP、智能睡眠监测设备等产品热销，"睡个好觉"成为刚需。', source: '中国睡眠研究会', views: 47230, category: 'health' },
+  { id: 'n047', title: '菜市场升级改造：传统菜场变身网红打卡地', summary: '多地对传统菜市场进行升级改造，干净整洁的环境、统一的摊位规划、增加餐饮休闲区，老菜场既有烟火气又有时尚感，成为年轻人打卡新去处。', source: '三联生活周刊', views: 28940, category: 'social' },
+  { id: 'n048', title: 'AI生成内容泛滥，如何应对"深度伪造"风险', summary: 'AI换脸、AI语音克隆、AI生成文章图片视频越来越逼真，深度伪造技术带来诈骗、虚假信息等风险，监管和鉴别技术亟需跟上。', source: '科技日报', views: 51680, hot: true, category: 'tech' },
+  { id: 'n049', title: '高校毕业生"摆摊"引发讨论：职业无高低贵贱', summary: '有大学毕业生摆摊卖小吃、卖水果引发热议，有人认为是人才浪费，也有人认为靠自己劳动赚钱不丢人，职业选择应该更多元。', source: '人民日报评论', views: 62570, category: 'edu' },
+  { id: 'n050', title: '城市绿道建设加快，市民家门口就能享受"诗和远方"', summary: '多地推进城市绿道、口袋公园、滨江步道建设，居民步行15分钟就能到达公园绿地，城市生态环境改善，市民休闲健身有了更多好去处。', source: '住建部', views: 21780, category: 'social' }
 ]
 
 const RARITY_CONFIG = {
@@ -59,10 +1170,48 @@ const RARITY_CONFIG = {
 function getLocalImagePath(localImageName) {
   if (!localImageName) return null
   try {
-    return new URL(`../assets/characters/${localImageName}.png`, import.meta.url).href
+    return new URL(`../assets/characters/${localImageName}.webp`, import.meta.url).href
   } catch (e) {
     return null
   }
+}
+
+function matchCategory(newsCategory, interestedCategories) {
+  if (!interestedCategories || interestedCategories.length === 0) return 0
+  if (newsCategory === 'general') return 0.3
+  const newsCat = NEWS_CATEGORIES[newsCategory]
+  if (!newsCat) return 0
+  for (const cat of interestedCategories) {
+    const catKey = Object.keys(NEWS_CATEGORIES).find(k => NEWS_CATEGORIES[k].name.includes(cat) || cat.includes(NEWS_CATEGORIES[k].name))
+    if (catKey === newsCategory) return 1
+  }
+  return 0.1
+}
+
+function generateOpinion(role, news) {
+  if (!role || !role.opinion_templates) {
+    return `以「${role?.name || '该角色'}」的视角来看，这件事很有意思。`
+  }
+  const category = news.category || 'general'
+  let templates = role.opinion_templates[category]
+  if (!templates || templates.length === 0) {
+    templates = role.opinion_templates.general || ['这件事值得关注。']
+  }
+  let opinion = templates[Math.floor(Math.random() * templates.length)]
+  opinion = opinion.replace(/{topic}/g, news.title.slice(0, 10))
+  opinion = opinion.replace(/{rand}/g, Math.floor(Math.random() * 10) + 3)
+  opinion = opinion.replace(/{rand2}/g, Math.floor(Math.random() * 6) + 2)
+  return opinion
+}
+
+function generateDeepOpinion(role, news) {
+  const shortOpinion = generateOpinion(role, news)
+  const templates = [
+    `${shortOpinion}\n\n从更深层次来看，${news.title}这件事反映了当下社会的一个缩影。作为${role.name}，我认为这背后有更复杂的原因，不能简单地一概而论。\n\n希望大家能从多个角度看待问题，不要被单一的信息来源所局限。`,
+    `${shortOpinion}\n\n我每天接触到的人和事，让我对这类新闻有特别的感触。站在我的立场上，最关心的是这件事对普通老百姓的影响。\n\n每个人所处的位置不同，看到的风景也不一样。换个视角，也许你会有完全不同的感受。`,
+    `${shortOpinion}\n\n这件事让我想起了一些经历。在我看来，比起争论对错，更重要的是思考我们能从中学到什么，以及如何让事情变得更好。\n\n棱镜折射出七彩光芒，世界也应该是多元的。`
+  ]
+  return templates[Math.floor(Math.random() * templates.length)]
 }
 
 export function getRandomPerspective() {
@@ -86,6 +1235,9 @@ export function getRandomPerspective() {
     color: rarityCfg.color,
     description: role.description,
     keywords: role.keywords,
+    interested_categories: role.interested_categories,
+    opinion_templates: role.opinion_templates,
+    speaking_style: role.speaking_style,
     rarity: baseRarity,
     rarity_name: rarityCfg.name,
     rarity_label: rarityCfg.label,
@@ -102,35 +1254,167 @@ export function getSuggestedPerspectives(count = 12) {
   }))
 }
 
-export function getMockNews(count = 20, perspectiveName = '') {
-  const shuffled = [...MOCK_NEWS_TEMPLATES].sort(() => Math.random() - 0.5)
-  const safeName = (perspectiveName || 'default').replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').slice(0, 10)
+export function getMockNews(count = 20, perspective = null) {
+  const realNewsCount = Math.floor(count * 0.6)
+  const mockNewsCount = count - realNewsCount
+  
+  let selectedRealNews = [...NORMALIZED_REAL_NEWS]
+  let selectedMockNews = [...MOCK_NEWS_TEMPLATES]
+  
+  if (perspective && perspective.interested_categories) {
+    selectedRealNews = selectedRealNews.map(news => ({
+      ...news,
+      relevance: matchCategory(news.category, perspective.interested_categories)
+    })).sort((a, b) => b.relevance - a.relevance)
+    
+    const highRelevanceReal = selectedRealNews.filter(n => n.relevance >= 0.5)
+    const lowRelevanceReal = selectedRealNews.filter(n => n.relevance < 0.5).sort(() => Math.random() - 0.5)
+    const highRealCount = Math.min(Math.ceil(realNewsCount * 0.7), highRelevanceReal.length)
+    const lowRealCount = Math.min(realNewsCount - highRealCount, lowRelevanceReal.length)
+    selectedRealNews = [...highRelevanceReal.slice(0, highRealCount), ...lowRelevanceReal.slice(0, lowRealCount)]
+    
+    selectedMockNews = selectedMockNews.map(news => ({
+      ...news,
+      relevance: matchCategory(news.category, perspective.interested_categories)
+    })).sort((a, b) => b.relevance - a.relevance)
+    
+    const highRelevanceMock = selectedMockNews.filter(n => n.relevance >= 0.5)
+    const lowRelevanceMock = selectedMockNews.filter(n => n.relevance < 0.5).sort(() => Math.random() - 0.5)
+    const highMockCount = Math.min(Math.ceil(mockNewsCount * 0.7), highRelevanceMock.length)
+    const lowMockCount = Math.min(mockNewsCount - highMockCount, lowRelevanceMock.length)
+    selectedMockNews = [...highRelevanceMock.slice(0, highMockCount), ...lowRelevanceMock.slice(0, lowMockCount)]
+  } else {
+    selectedRealNews = selectedRealNews.sort(() => Math.random() - 0.5).slice(0, realNewsCount)
+    selectedMockNews = selectedMockNews.sort(() => Math.random() - 0.5).slice(0, mockNewsCount)
+  }
+  
+  if (selectedRealNews.length < realNewsCount) {
+    const extraNeeded = realNewsCount - selectedRealNews.length
+    const extraMock = MOCK_NEWS_TEMPLATES.sort(() => Math.random() - 0.5).slice(0, extraNeeded)
+    selectedMockNews = [...selectedMockNews, ...extraMock]
+  }
+  if (selectedMockNews.length < mockNewsCount) {
+    const extraNeeded = mockNewsCount - selectedMockNews.length
+    const extraReal = NORMALIZED_REAL_NEWS.sort(() => Math.random() - 0.5).slice(0, extraNeeded)
+    selectedRealNews = [...selectedRealNews, ...extraReal]
+  }
+
+  const safeName = (perspective?.name || 'default').replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').slice(0, 10)
   const timestamp = Date.now()
-  return shuffled.slice(0, count).map((item, idx) => ({
-    id: `mock-${timestamp}-${safeName}-${idx}`,
-    ...item,
-    image_url: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(item.title + ', news, illustration')}&image_size=square`,
-    views: item.views + Math.floor(Math.random() * 5000),
-    perspectiveRelevance: perspectiveName ? Math.floor(Math.random() * 100) : 50
-  }))
+  
+  const realNewsFormatted = selectedRealNews.map((item, idx) => {
+    const relevance = perspective ? matchCategory(item.category, perspective.interested_categories) : 0
+    const opinion = perspective ? generateOpinion(perspective, item) : null
+    
+    return {
+      ...item,
+      image_url: item.image_url,
+      views: item.views,
+      perspectiveRelevance: relevance > 0.5 ? 'high' : relevance > 0 ? 'medium' : 'normal',
+      opinion: opinion,
+      perspective_name: perspective?.name || null,
+      is_real: true
+    }
+  })
+  
+  const mockNewsFormatted = selectedMockNews.map((item, idx) => {
+    const relevance = perspective ? matchCategory(item.category, perspective.interested_categories) : 0
+    const opinion = perspective ? generateOpinion(perspective, item) : null
+    
+    return {
+      id: `mock-${timestamp}-${safeName}-mock-${idx}`,
+      ...item,
+      image_url: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(item.title + ', news, illustration, newspaper')}&image_size=square`,
+      views: item.views + Math.floor(Math.random() * 5000),
+      perspectiveRelevance: relevance > 0.5 ? 'high' : relevance > 0 ? 'medium' : 'normal',
+      opinion: opinion,
+      perspective_name: perspective?.name || null,
+      is_real: false
+    }
+  })
+  
+  const combined = [...realNewsFormatted, ...mockNewsFormatted]
+  return combined.sort(() => Math.random() - 0.5)
 }
 
-export function getMoreMockNews(existingItems, count = 10, perspectiveName = '') {
-  const shuffled = [...MOCK_NEWS_TEMPLATES].sort(() => Math.random() - 0.5)
-  const safeName = (perspectiveName || 'default').replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').slice(0, 10)
+export function getMoreMockNews(existingItems, count = 10, perspective = null) {
+  const existingTitles = new Set(existingItems.map(i => i.title.replace(/^\[更多\] /, '')))
+  const existingIds = new Set(existingItems.map(i => i.id))
+  
+  const availableRealNews = NORMALIZED_REAL_NEWS.filter(n => !existingTitles.has(n.title) && !existingIds.has(n.id))
+  const availableMockNews = MOCK_NEWS_TEMPLATES.filter(n => !existingTitles.has(n.title))
+  
+  const realCount = Math.floor(count * 0.6)
+  const mockCount = count - realCount
+  
+  let selectedReal = availableRealNews.sort(() => Math.random() - 0.5).slice(0, Math.min(realCount, availableRealNews.length))
+  let selectedMock = availableMockNews.sort(() => Math.random() - 0.5).slice(0, Math.min(mockCount, availableMockNews.length))
+  
+  if (selectedReal.length < realCount) {
+    const extra = MOCK_NEWS_TEMPLATES.sort(() => Math.random() - 0.5).slice(0, realCount - selectedReal.length)
+    selectedMock = [...selectedMock, ...extra.filter(n => !existingTitles.has(n.title))]
+  }
+  if (selectedMock.length < mockCount) {
+    const extra = NORMALIZED_REAL_NEWS.sort(() => Math.random() - 0.5).slice(0, mockCount - selectedMock.length)
+    selectedReal = [...selectedReal, ...extra.filter(n => !existingTitles.has(n.title) && !existingIds.has(n.id))]
+  }
+
+  const safeName = (perspective?.name || 'default').replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').slice(0, 10)
   const timestamp = Date.now()
-  return shuffled.slice(0, count).map((item, idx) => ({
-    id: `more-${timestamp}-${safeName}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
-    ...item,
-    title: `[更多] ${item.title}`,
-    image_url: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(item.title + ', news, illustration')}&image_size=square`,
-    views: item.views + Math.floor(Math.random() * 5000)
-  }))
+  
+  const realFormatted = selectedReal.map((item, idx) => {
+    const opinion = perspective ? generateOpinion(perspective, item) : null
+    return {
+      ...item,
+      title: `[更多] ${item.title}`,
+      image_url: item.image_url,
+      views: item.views,
+      opinion: opinion,
+      perspective_name: perspective?.name || null,
+      is_real: true
+    }
+  })
+  
+  const mockFormatted = selectedMock.map((item, idx) => {
+    const opinion = perspective ? generateOpinion(perspective, item) : null
+    return {
+      id: `more-${timestamp}-${safeName}-mock-${idx}-${Math.random().toString(36).slice(2, 6)}`,
+      ...item,
+      title: `[更多] ${item.title}`,
+      image_url: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(item.title + ', news, illustration, newspaper')}&image_size=square`,
+      views: item.views + Math.floor(Math.random() * 5000),
+      opinion: opinion,
+      perspective_name: perspective?.name || null,
+      is_real: false
+    }
+  })
+  
+  return [...realFormatted, ...mockFormatted].sort(() => Math.random() - 0.5)
 }
 
-export { RARITY_CONFIG, getLocalImagePath }
+export function getMultiPerspectiveNews(perspectives, count = 6) {
+  const hotNews = MOCK_NEWS_TEMPLATES.filter(n => n.hot).sort(() => Math.random() - 0.5)
+  const discussionNews = MOCK_NEWS_TEMPLATES.filter(n => !n.hot).sort(() => Math.random() - 0.5)
+  const selectedNews = [...hotNews.slice(0, Math.min(3, hotNews.length)), ...discussionNews.slice(0, count - Math.min(3, hotNews.length))].slice(0, count)
 
-function generateMockArticleContent(template) {
+  return selectedNews.map(news => {
+    const opinions = {}
+    perspectives.forEach(p => {
+      opinions[p.name] = generateOpinion(p, news)
+    })
+    return {
+      ...news,
+      image_url: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(news.title + ', news, debate, newspaper')}&image_size=landscape_4_3`,
+      views: news.views + Math.floor(Math.random() * 5000),
+      opinions: opinions
+    }
+  })
+}
+
+export { RARITY_CONFIG, getLocalImagePath, NEWS_CATEGORIES, generateOpinion, generateDeepOpinion }
+
+function generateMockArticleContent(template, perspective = null) {
+  const opinion = perspective ? generateDeepOpinion(perspective, template) : ''
   const paras = [
     template.summary,
     `据${template.source}报道，近日，${template.title}一事引发广泛关注。记者走访发现，这一现象背后折射出社会发展的多重面向，值得深入思考。`,
@@ -138,38 +1422,289 @@ function generateMockArticleContent(template) {
     `市民对此看法不一。有受访者表示支持，认为这是时代进步的体现；也有人持观望态度，建议相关部门出台更具体的配套措施。`,
     `据悉，有关部门已关注到相关情况，正在研究制定相应政策，预计近期将有进一步消息发布。我们将持续关注事件进展，为读者带来最新报道。`
   ]
+  
+  if (opinion) {
+    paras.push('')
+    paras.push(`【棱镜视角 · ${perspective.name}】`)
+    paras.push(opinion)
+  }
+  
   return paras.join('\n\n')
 }
 
-export function getMockContentDetail(id) {
+export function getMockContentDetail(id, perspective = null) {
   if (!id) return null
+  
+  const numericId = parseInt(id, 10)
+  let realNews = null
+  if (!isNaN(numericId)) {
+    realNews = NORMALIZED_REAL_NEWS.find(n => n.id === numericId)
+  }
+  
+  if (realNews) {
+    const opinion = perspective ? generateDeepOpinion(perspective, realNews) : null
+    const otherOpinions = []
+    if (perspective) {
+      const otherRoles = MOCK_ROLES.filter(r => r.name !== perspective.name).sort(() => Math.random() - 0.5).slice(0, 3)
+      otherRoles.forEach(role => {
+        otherOpinions.push({
+          name: role.name,
+          emoji: role.emoji,
+          opinion: generateOpinion(role, realNews)
+        })
+      })
+    }
+    
+    const articleParas = realNews.content.split('\n\n').filter(p => p.trim())
+    let content = realNews.content
+    if (perspective && !content.includes('棱镜视角')) {
+      content = content + '\n\n' + `【棱镜视角 · ${perspective.name}】` + '\n\n' + opinion
+    }
+    
+    return {
+      id: realNews.id,
+      ...realNews,
+      content: content,
+      opinion: opinion,
+      other_opinions: otherOpinions,
+      image_url: realNews.image_url,
+      publish_time: realNews.publish_time,
+      perspective_name: perspective?.name || null,
+      is_real: true
+    }
+  }
+  
   const parts = id.split('-')
   let idx = 0
-  if (parts.length >= 2) {
-    const lastPart = parts[parts.length - 1]
-    const parsed = parseInt(lastPart, 10)
-    if (!isNaN(parsed)) idx = parsed % MOCK_NEWS_TEMPLATES.length
+  let newsId = null
+  
+  for (let i = parts.length - 1; i >= 0; i--) {
+    if (parts[i].startsWith('n') && parts[i].length > 1) {
+      newsId = parts[i]
+      break
+    }
   }
-  const template = MOCK_NEWS_TEMPLATES[idx] || MOCK_NEWS_TEMPLATES[0]
+  
+  let template = null
+  if (newsId) {
+    template = MOCK_NEWS_TEMPLATES.find(n => n.id === newsId)
+  }
+  
+  if (!template) {
+    if (parts.length >= 2) {
+      const lastPart = parts[parts.length - 1]
+      const parsed = parseInt(lastPart, 10)
+      if (!isNaN(parsed)) idx = parsed % MOCK_NEWS_TEMPLATES.length
+    }
+    template = MOCK_NEWS_TEMPLATES[idx] || MOCK_NEWS_TEMPLATES[0]
+  }
+  
+  const opinion = perspective ? generateDeepOpinion(perspective, template) : null
+  const otherOpinions = []
+  if (perspective) {
+    const otherRoles = MOCK_ROLES.filter(r => r.name !== perspective.name).sort(() => Math.random() - 0.5).slice(0, 3)
+    otherRoles.forEach(role => {
+      otherOpinions.push({
+        name: role.name,
+        emoji: role.emoji,
+        opinion: generateOpinion(role, template)
+      })
+    })
+  }
+  
   return {
     id,
-    title: template.title,
-    summary: template.summary,
-    content: generateMockArticleContent(template),
-    source: template.source,
-    views: template.views + Math.floor(Math.random() * 5000),
-    publish_time: '2026年6月24日',
+    ...template,
+    content: generateMockArticleContent(template, perspective),
+    opinion: opinion,
+    other_opinions: otherOpinions,
+    publish_time: '2026年6月25日',
     image_url: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(template.title + ', news, newspaper, illustration')}&image_size=landscape_4_3`,
-    perspective_name: null
+    perspective_name: perspective?.name || null,
+    is_real: false
   }
 }
 
 export function getMockRelatedContent(id, perspective = null, limit = 3) {
-  const shuffled = [...MOCK_NEWS_TEMPLATES].sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, limit).map((item, idx) => ({
-    id: `related-${id}-${idx}`,
-    title: item.title,
-    source: item.source,
-    image_url: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(item.title + ', news, illustration')}&image_size=square`
-  }))
+  const numericId = parseInt(id, 10)
+  let category = 'general'
+  let currentNews = null
+  
+  if (!isNaN(numericId)) {
+    currentNews = NORMALIZED_REAL_NEWS.find(n => n.id === numericId)
+    if (currentNews) {
+      category = currentNews.category
+    }
+  }
+  
+  if (!currentNews) {
+    currentNews = MOCK_NEWS_TEMPLATES.find(n => n.id === id)
+    if (currentNews) {
+      category = currentNews.category
+    }
+  }
+  
+  let relatedReal = NORMALIZED_REAL_NEWS.filter(n => n.id !== numericId && n.category === category)
+  let relatedMock = MOCK_NEWS_TEMPLATES.filter(n => n.id !== id && n.category === category)
+  
+  if (relatedReal.length + relatedMock.length < limit) {
+    const otherReal = NORMALIZED_REAL_NEWS.filter(n => n.id !== numericId && n.category !== category)
+    const otherMock = MOCK_NEWS_TEMPLATES.filter(n => n.id !== id && n.category !== category)
+    relatedReal = [...relatedReal, ...otherReal.sort(() => Math.random() - 0.5)]
+    relatedMock = [...relatedMock, ...otherMock.sort(() => Math.random() - 0.5)]
+  }
+  
+  const shuffledReal = relatedReal.sort(() => Math.random() - 0.5)
+  const shuffledMock = relatedMock.sort(() => Math.random() - 0.5)
+  
+  const selected = []
+  let realIdx = 0
+  let mockIdx = 0
+  const realCount = Math.min(Math.ceil(limit * 0.6), shuffledReal.length)
+  
+  for (let i = 0; i < realCount && realIdx < shuffledReal.length; i++) {
+    selected.push({
+      ...shuffledReal[realIdx],
+      image_url: shuffledReal[realIdx].image_url,
+      is_real: true
+    })
+    realIdx++
+  }
+  
+  while (selected.length < limit && mockIdx < shuffledMock.length) {
+    selected.push({
+      id: `related-${shuffledMock[mockIdx].id}-${mockIdx}`,
+      ...shuffledMock[mockIdx],
+      image_url: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(shuffledMock[mockIdx].title + ', news, illustration')}&image_size=square`,
+      is_real: false
+    })
+    mockIdx++
+  }
+  
+  while (selected.length < limit && realIdx < shuffledReal.length) {
+    selected.push({
+      ...shuffledReal[realIdx],
+      image_url: shuffledReal[realIdx].image_url,
+      is_real: true
+    })
+    realIdx++
+  }
+  
+  return selected.slice(0, limit)
+}
+
+export function getSearchResults(keyword, perspective = null, limit = 20) {
+  if (!keyword || !keyword.trim()) {
+    return { results: [], commentaries: [], is_simulated: false }
+  }
+  
+  const keywordLower = keyword.toLowerCase().trim()
+  const keywords = keywordLower.split(/\s+/).filter(k => k.length > 0)
+  
+  function matchesNews(news) {
+    const searchText = [news.title, news.summary, news.content, news.source, ...(news.tags || []), news.original_category || news.category]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+    return keywords.some(k => searchText.includes(k))
+  }
+  
+  const matchedReal = NORMALIZED_REAL_NEWS.filter(matchesNews)
+  const matchedMock = MOCK_NEWS_TEMPLATES.filter(matchesNews)
+  
+  const scoredReal = matchedReal.map(news => {
+    let score = 0
+    const titleLower = news.title.toLowerCase()
+    const summaryLower = (news.summary || '').toLowerCase()
+    keywords.forEach(k => {
+      if (titleLower.includes(k)) score += 3
+      if (summaryLower.includes(k)) score += 2
+      if ((news.tags || []).some(t => t.toLowerCase().includes(k))) score += 2
+    })
+    return { ...news, _score: score }
+  }).sort((a, b) => b._score - a._score)
+  
+  const scoredMock = matchedMock.map(news => {
+    let score = 0
+    const titleLower = news.title.toLowerCase()
+    const summaryLower = (news.summary || '').toLowerCase()
+    keywords.forEach(k => {
+      if (titleLower.includes(k)) score += 3
+      if (summaryLower.includes(k)) score += 2
+    })
+    return { ...news, _score: score }
+  }).sort((a, b) => b._score - a._score)
+  
+  const realCount = Math.min(Math.ceil(limit * 0.6), scoredReal.length)
+  const mockCount = Math.min(limit - realCount, scoredMock.length)
+  
+  const selectedReal = scoredReal.slice(0, realCount).map(item => {
+    const opinion = perspective ? generateOpinion(perspective, item) : null
+    return {
+      ...item,
+      image_url: item.image_url,
+      opinion: opinion,
+      perspective_name: perspective?.name || null,
+      is_real: true
+    }
+  })
+  
+  const timestamp = Date.now()
+  const selectedMock = scoredMock.slice(0, mockCount).map((item, idx) => {
+    const opinion = perspective ? generateOpinion(perspective, item) : null
+    return {
+      id: `search-mock-${timestamp}-${idx}`,
+      ...item,
+      image_url: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(item.title + ', news, illustration, newspaper')}&image_size=square`,
+      views: item.views + Math.floor(Math.random() * 5000),
+      opinion: opinion,
+      perspective_name: perspective?.name || null,
+      is_real: false
+    }
+  })
+  
+  let results = [...selectedReal, ...selectedMock]
+  if (results.length < limit) {
+    const remainingReal = scoredReal.slice(realCount)
+    const remainingMock = scoredMock.slice(mockCount)
+    const extra = [...remainingReal.map(r => ({ ...r, is_real: true, opinion: perspective ? generateOpinion(perspective, r) : null })), 
+                 ...remainingMock.map((m, idx) => ({
+                   id: `search-mock-extra-${timestamp}-${idx}`,
+                   ...m,
+                   image_url: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(m.title + ', news, illustration, newspaper')}&image_size=square`,
+                   views: m.views + Math.floor(Math.random() * 5000),
+                   opinion: perspective ? generateOpinion(perspective, m) : null,
+                   perspective_name: perspective?.name || null,
+                   is_real: false
+                 }))]
+    results = [...results, ...extra.slice(0, limit - results.length)]
+  }
+  
+  results = results.sort(() => Math.random() - 0.5).slice(0, limit)
+  
+  const commentaries = []
+  if (perspective && results.length > 0) {
+    const sampleNews = results[0]
+    const roles = MOCK_ROLES.sort(() => Math.random() - 0.5).slice(0, Math.min(4, MOCK_ROLES.length))
+    roles.forEach(role => {
+      const rarityCfg = RARITY_CONFIG[role.base_rarity || 'n']
+      commentaries.push({
+        perspective_id: role.name,
+        role_name: role.name,
+        emoji: role.emoji,
+        color: rarityCfg.color,
+        headline: `${role.name}怎么看「${keyword}」`,
+        viewpoint: generateOpinion(role, { ...sampleNews, title: keyword }),
+        tags: role.keywords?.slice(0, 3) || [],
+        is_custom: false
+      })
+    })
+  }
+  
+  return {
+    results,
+    commentaries,
+    is_simulated: false,
+    total: results.length
+  }
 }

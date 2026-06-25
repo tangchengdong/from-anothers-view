@@ -1,6 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;600;700;900&display=swap');
 
 :root {
+  /* === 报纸主题（资讯 / 详情）=== */
   --paper-bg: #F2EADF;
   --paper-bg-dark: #E8DFC8;
   --paper-bg-aged: #E0D4BE;
@@ -12,6 +13,33 @@
   --paper-rule: #A89680;
   --paper-rule-light: #C5B89F;
   --paper-highlight: rgba(139, 38, 53, 0.08);
+
+  /* === 深色主题（首页 / 引导 / 抽卡）=== */
+  --dark-bg: #1A1510;
+  --dark-surface: #2D2520;
+  --dark-surface-2: #3D352A;
+  --dark-text: #FFF5EB;
+  --dark-text-secondary: rgba(255, 245, 235, 0.72);
+  --dark-text-muted: rgba(255, 245, 235, 0.5);
+  --dark-border: rgba(255, 220, 180, 0.1);
+  --dark-border-strong: rgba(255, 220, 180, 0.18);
+
+  /* === 统一设计token === */
+  --radius-sm: 0;
+  --radius-md: 4px;
+  --radius-lg: 16px;
+  --radius-pill: 100px;
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-paper: 0 2px 8px rgba(26, 21, 16, 0.08);
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+
+  /* === 字体系统（仅两种） === */
+  --font-serif: 'Noto Serif SC', serif;
+  --font-sans: 'Noto Sans SC', sans-serif;
 }
 
 * {
@@ -21,16 +49,26 @@
 }
 
 body {
-  font-family: 'Noto Sans SC', sans-serif;
-  background: #D4C9B2;
-  color: var(--paper-ink);
+  font-family: var(--font-sans);
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s ease;
 }
 
-body::before {
+body.paper-theme {
+  background: #D4C9B2;
+  color: var(--paper-ink);
+}
+
+body.dark-theme {
+  background: var(--dark-bg);
+  color: var(--dark-text);
+}
+
+/* 报纸纹理 */
+body.paper-theme::before {
   content: '';
   position: fixed;
   top: 0;
@@ -45,6 +83,29 @@ body::before {
   mix-blend-mode: multiply;
 }
 
+/* 深色主题黄昏暖光背景 - 像窗边阅读灯的温暖暮色 */
+body.dark-theme::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(ellipse at 25% 15%, rgba(255, 179, 71, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 25%, rgba(255, 139, 123, 0.14) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 85%, rgba(139, 38, 53, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 15% 70%, rgba(255, 200, 140, 0.08) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+  animation: darkPrismBreath 12s ease-in-out infinite;
+}
+
+@keyframes darkPrismBreath {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
 #root {
   min-height: 100vh;
   display: flex;
@@ -53,8 +114,13 @@ body::before {
 }
 
 ::selection {
-  background: var(--paper-accent);
-  color: var(--paper-bg);
+  background: var(--prism-primary);
+  color: #fff;
+}
+
+body.dark-theme ::selection {
+  background: var(--prism-gradient);
+  color: #fff;
 }
 
 button {
@@ -67,5 +133,108 @@ a {
 }
 
 .font-serif {
-  font-family: 'Noto Serif SC', 'Playfair Display', serif;
+  font-family: var(--font-serif);
+}
+
+/* === 全局微交互动画 === */
+.main-content {
+  animation: pageEnter 0.5s ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 按钮通用hover/active效果 */
+button {
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* 链接hover效果 */
+a {
+  transition: all 0.2s ease;
+}
+
+/* 图片加载淡入 */
+img {
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* 卡片hover上浮效果 - 仅对opinion-card生效，content-item有自己的样式 */
+.opinion-card,
+.related-item {
+  transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 0.25s ease,
+              border-color 0.2s ease;
+}
+
+.related-item:hover {
+  transform: translateX(4px);
+}
+
+/* 滚动条美化（报纸风格） */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--paper-bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--paper-rule);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--paper-ink-light);
+}
+
+body.dark-theme ::-webkit-scrollbar-track {
+  background: var(--dark-surface);
+}
+
+body.dark-theme ::-webkit-scrollbar-thumb {
+  background: rgba(255, 200, 150, 0.2);
+  border-radius: 4px;
+}
+
+body.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 200, 150, 0.35);
+}
+
+/* 文字选中动效 */
+::selection {
+  background: var(--prism-tertiary);
+  color: var(--paper-ink);
+}
+
+/* 焦点可见性 */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--prism-secondary);
+  outline-offset: 2px;
+}
+
+/* 减少动画偏好支持 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

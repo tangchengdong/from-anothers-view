@@ -1275,13 +1275,9 @@ const RARITY_CONFIG = {
   n: { prob: 0.35, color: '#A89680', glow: 'none', label: '普通', name: '普通角色' }
 }
 
-function getLocalImagePath(localImageName, cardImage) {
-  if (!localImageName && !cardImage) return null
+function getLocalImagePath(localImageName) {
+  if (!localImageName) return null
   try {
-    if (cardImage || CARD_IMAGES[localImageName]) {
-      const imgFile = cardImage || CARD_IMAGES[localImageName]
-      return `/cards/${imgFile}`
-    }
     return new URL(`../assets/characters/${localImageName}.webp`, import.meta.url).href
   } catch (e) {
     return null

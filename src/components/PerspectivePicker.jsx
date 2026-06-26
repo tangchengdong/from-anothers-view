@@ -204,7 +204,7 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
     const sources = []
     if (card.local_image && !imageLoadError[`local_${card.local_image}`]) {
       sources.push({
-        url: getLocalImagePath(card.local_image, card.card_image),
+        url: getLocalImagePath(card.local_image),
         isLocal: true,
         key: `local_${card.local_image}`
       })
@@ -414,7 +414,7 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
           {suggestions.slice(0, 6).map((item, index) => {
             const viewClass = getViewClass(item.base_rarity)
             const hasLocalImage = item.local_image && !imageLoadError[`local_${item.local_image}`]
-            const thumbnailUrl = hasLocalImage ? getLocalImagePath(item.local_image, item.card_image) : null
+            const thumbnailUrl = hasLocalImage ? getLocalImagePath(item.local_image) : null
             return (
               <div
                 key={index}

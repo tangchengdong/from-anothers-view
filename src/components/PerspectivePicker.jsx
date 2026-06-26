@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './PerspectivePicker.css'
-import { getRandomPerspective, getSuggestedPerspectives, getLocalImagePath } from '../mock/data'
+import { getRandomPerspective, getSuggestedPerspectives, getLocalImagePath, getCardImagePath } from '../mock/data'
 import { generateOpinionTemplates } from '../utils/opinionGenerator'
 
 const VIEW_CLASS = {
@@ -202,6 +202,13 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
 
   const getCharacterImageSources = (card) => {
     const sources = []
+    if (card.card_image && !imageLoadError[`card_${card.local_image}`]) {
+      sources.push({
+        url: getCardImagePath(card.card_image),
+        isCard: true,
+        key: `card_${card.local_image}`
+      })
+    }
     if (card.local_image && !imageLoadError[`local_${card.local_image}`]) {
       sources.push({
         url: getLocalImagePath(card.local_image),
@@ -240,6 +247,7 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
     const viewClass = card ? getViewClass(card.rarity) : null
     const rarityClass = card ? `rarity-${card.rarity}` : ''
     const imageSources = card ? getCharacterImageSources(card) : []
+    const hasFullCard = card?.card_image && !imageLoadError[`card_${card.local_image}`]
     const hasLocalImage = card?.local_image && !imageLoadError[`local_${card.local_image}`]
     const hasAnyImage = imageSources.length > 0
     const isUrLocal = isInGrid && urLocalEffect.has(index)
@@ -248,7 +256,7 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
     return (
       <div
         key={isInGrid ? index : 'single'}
-        className={`card-container ${rarityClass} ${isDrawing && !isInGrid ? 'drawing' : ''} ${flipped ? 'flipped' : ''} ${hasLocalImage ? 'has-full-card' : ''} ${isUrLocal ? 'ur-local-effect' : ''} ${isSsrLocal ? 'ssr-local-effect' : ''}`}
+        className={`card-container ${rarityClass} ${isDrawing && !isInGrid ? 'drawing' : ''} ${flipped ? 'flipped' : ''} ${hasFullCard || hasLocalImage ? 'has-full-card' : ''} ${isUrLocal ? 'ur-local-effect' : ''} ${isSsrLocal ? 'ssr-local-effect' : ''}`}
         onClick={!isDrawing && !flipped && !isInGrid ? handleSingleDraw : undefined}
       >
         {isUrLocal && (
@@ -278,8 +286,8 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
             <img src={new URL('../assets/characters/kabei.webp', import.meta.url).href} alt="卡背" className="kabei-image" />
           </div>
           {card && (
-            <div className={`card-face card-front ${hasLocalImage ? 'full-card-image' : ''}`}>
-              {hasLocalImage ? (
+            <div className={`card-face card-front ${hasFullCard || hasLocalImage ? 'full-card-image' : ''}`}>
+              {hasFullCard || hasLocalImage ? (
                 <img
                   key={imageSources[0].key}
                   src={imageSources[0].url}
@@ -413,12 +421,13 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
         <div className="suggestions-grid">
           {suggestions.slice(0, 6).map((item, index) => {
             const viewClass = getViewClass(item.base_rarity)
+            const hasCardImage = item.card_image && !imageLoadError[`card_${item.local_image}`]
             const hasLocalImage = item.local_image && !imageLoadError[`local_${item.local_image}`]
-            const thumbnailUrl = hasLocalImage ? getLocalImagePath(item.local_image) : null
+            const thumbnailUrl = hasCardImage ? getCardImagePath(item.card_image) : (hasLocalImage ? getLocalImagePath(item.local_image) : null)
             return (
               <div
                 key={index}
-                className={`suggestion-card ${hasLocalImage ? 'has-card-thumbnail' : ''}`}
+                className={`suggestion-card ${hasCardImage || hasLocalImage ? 'has-card-thumbnail' : ''}`}
                 onClick={() => handleSuggestionClick(item)}
               >
                 {thumbnailUrl ? (
@@ -427,7 +436,7 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
                     alt={item.name}
                     className="suggestion-card-thumbnail"
                     loading="lazy"
-                    onError={() => handleImageError(`local_${item.local_image}`)}
+                    onError={() => handleImageError(hasCardImage ? `card_${item.local_image}` : `local_${item.local_image}`)}
                   />
                 ) : (
                   <>

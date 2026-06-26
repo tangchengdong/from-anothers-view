@@ -25,7 +25,8 @@ const CARD_IMAGES = {
   'xiaofan': 'card_21_菜市场小贩(1).jpg',
   'coffe': 'card_22_咖啡店老板(1).jpg',
   'zhichang': 'card_23_职场HR(1).jpg',
-  'banzhuren': 'card_24_中学班主任(1).jpg'
+  'banzhuren': 'card_24_中学班主任(1).jpg',
+  'kabei': 'card_25_出租车司机(1).jpg'
 }
 
 const REAL_NEWS = localNewsData.map(news => ({
@@ -1198,6 +1199,50 @@ export const MOCK_ROLES = [
       ]
     },
     speaking_style: 'teacher'
+  },
+  { 
+    name: '出租车司机', 
+    emoji: '🚕', 
+    base_rarity: 'n', 
+    local_image: 'kabei', 
+    card_image: CARD_IMAGES['kabei'],
+    stats: { insight: 75, empathy: 80, criticism: 65, breadth: 70, humor: 78 },
+    description: '开了二十年车的老司机，听遍城市里的故事', 
+    keywords: ['路况', '城市', '八卦', '民生', '出行'],
+    interested_categories: ['社会', '交通', '民生', '天气', '消费'],
+    opinion_templates: {
+      social: [
+        '这事儿我知道！前几天拉一个客人，他就是...（开始讲八卦）',
+        '现在的年轻人啊，压力太大了，一上车就打电话说工作。',
+        '这个城市变化太快了，好多路我都快不认识了。'
+      ],
+      tech: [
+        '导航是好用，但有时候它瞎指路！还是我们老司机认路靠谱。',
+        '自动驾驶？那玩意儿能应对加塞吗？能应对鬼探头吗？还差得远呢！',
+        '网约车平台抽成太高了，我们跑一天，一大半都给平台了。'
+      ],
+      edu: [
+        '现在的孩子真辛苦，书包那么重，周末还要上补习班。',
+        '我家孩子要是不好好读书，将来就跟我一样开出租，辛苦！',
+        '读书不是唯一的出路，但确实是最轻松的出路。'
+      ],
+      consume: [
+        '油价又涨了！这活儿没法干了！',
+        '现在的乘客，几块钱的车费还嫌贵，还要给差评。',
+        '商场停车场收费真黑，停一会儿就几十块。'
+      ],
+      culture: [
+        '什么网红景点？都是骗人的！真正好玩的地方本地人都知道。',
+        '老街都拆完了，盖成高楼大厦，没以前那味儿了。',
+        '夜班的时候听评书、听相声，这就是我们的文化生活。'
+      ],
+      general: [
+        '去哪儿？坐稳了啊！咱走小路不堵车！',
+        '前面堵车了，要不咱绕一下？多走两块钱但快十分钟。',
+        '开车这么多年，什么人没见过？什么事儿没听说过？'
+      ]
+    },
+    speaking_style: 'driver'
   }
 ]
 
@@ -1282,6 +1327,11 @@ function getLocalImagePath(localImageName) {
   } catch (e) {
     return null
   }
+}
+
+function getCardImagePath(cardImageName) {
+  if (!cardImageName) return null
+  return `${import.meta.env.BASE_URL}cards/${cardImageName}`
 }
 
 function matchCategory(newsCategory, interestedCategories) {
@@ -1536,7 +1586,7 @@ export function getMultiPerspectiveNews(perspectives, count = 6) {
   })
 }
 
-export { RARITY_CONFIG, getLocalImagePath, NEWS_CATEGORIES, generateOpinion, generateDeepOpinion }
+export { RARITY_CONFIG, getLocalImagePath, getCardImagePath, NEWS_CATEGORIES, generateOpinion, generateDeepOpinion }
 
 function generateMockArticleContent(template, perspective = null) {
   const opinion = perspective ? generateDeepOpinion(perspective, template) : ''

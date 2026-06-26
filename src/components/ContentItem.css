@@ -373,3 +373,29 @@
     font-size: 0.9rem;
   }
 }
+
+@media (min-width: 1600px) {
+  .content-item {
+    display: block !important;
+    padding: 1rem 0;
+  }
+
+  .content-item:hover {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .item-image {
+    display: none !important;
+  }
+
+  .item-title {
+    font-size: 1.1rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .item-summary {
+    font-size: 0.875rem;
+    -webkit-line-clamp: 2;
+  }
+}

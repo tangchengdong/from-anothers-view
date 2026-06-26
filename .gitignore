@@ -43,3 +43,10 @@ vite.config.js.timestamp-*.mjs
 
 # Card assets (large files, not committed)
 cards/
+
+# Temporary design files
+cocoon-onboarding-design/
+dev-explorer-design/
+todo-app-design/
+gacha.html
+--brand-css-path

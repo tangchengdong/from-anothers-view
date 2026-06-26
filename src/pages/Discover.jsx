@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import SearchBox from '../components/SearchBox'
@@ -7,6 +7,8 @@ import PerspectiveSummary from '../components/PerspectiveSummary'
 import PerspectivePicker from '../components/PerspectivePicker'
 import PerspectiveComparison from '../components/PerspectiveComparison'
 import SharePoster from '../components/SharePoster'
+import BreakthroughToast from '../components/BreakthroughToast'
+import { MOCK_ROLES } from '../mock/data'
 import './Discover.css'
 
 function formatDate() {
@@ -45,11 +47,20 @@ function getIssueNumber() {
 
 function Discover() {
   const navigate = useNavigate()
-  const { selectedPerspectives, itemsPerPerspective, setSelectedPerspectives, setSubcategory, resetSelection } = useAppStore()
+  const { selectedPerspectives, itemsPerPerspective, setSelectedPerspectives, setSubcategory, resetSelection, readCount } = useAppStore()
   const [showPickerModal, setShowPickerModal] = useState(false)
   const [showSharePoster, setShowSharePoster] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
+  const [showBackToTop, setShowBackToTop] = useState(false)
   const [weather] = useState(formatWeather())
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  const [highlightedPerspective, setHighlightedPerspective] = useState(null)
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,10 +68,15 @@ function Discover() {
       const docHeight = document.documentElement.scrollHeight - window.innerHeight
       const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0
       setScrollProgress(Math.min(progress, 100))
+      setShowBackToTop(scrollTop > 400)
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const handleBackToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const handleSubcategoryChange = (sub) => {
     setSubcategory(sub)
@@ -83,6 +99,21 @@ function Discover() {
   const hasContent = selectedPerspectives && selectedPerspectives.length > 0
   const sharePerspective = firstPerspective || (selectedPerspectives && selectedPerspectives[0])
 
+  const isLargeScreen = windowWidth >= 1600
+
+  const additionalPerspectives = useMemo(() => {
+    if (!isLargeScreen || !selectedPerspectives || selectedPerspectives.length === 0 || selectedPerspectives.length === 1 || highlightedPerspective) return []
+    const selectedNames = new Set(selectedPerspectives.map(p => p.name))
+    const availableRoles = MOCK_ROLES.filter(r => !selectedNames.has(r.name))
+    return availableRoles.sort(() => Math.random() - 0.5).slice(0, 3)
+  }, [isLargeScreen, selectedPerspectives, highlightedPerspective])
+
+  const displayPerspectives = useMemo(() => {
+    if (!selectedPerspectives) return []
+    if (highlightedPerspective) return [highlightedPerspective]
+    return [...selectedPerspectives, ...additionalPerspectives]
+  }, [selectedPerspectives, additionalPerspectives, highlightedPerspective])
+
   return (
     <div className="discover-page">
       <div className="reading-progress-bar">
@@ -104,7 +135,7 @@ function Discover() {
             <div className="masthead-info-row">
               <span className="masthead-issue">{getIssueNumber()}</span>
               <span className="masthead-separator">·</span>
-              <span className="masthead-vol">今日 {isMultiPerspective ? selectedPerspectives.length * 5 : 20} 版</span>
+              <span className="masthead-vol">今日 {displayPerspectives.length * 5} 版</span>
               <span className="masthead-separator">·</span>
               <span className="masthead-price">零售价：打破茧房</span>
             </div>
@@ -141,22 +172,59 @@ function Discover() {
 
       {hasContent && (
         <>
-          {isMultiPerspective ? (
+          {isLargeScreen ? (
             <div className="multi-perspective-container">
-              <PerspectiveComparison perspectives={selectedPerspectives} />
+              {isMultiPerspective && (
+                <PerspectiveComparison 
+                  perspectives={selectedPerspectives} 
+                  onHighlightedPerspectiveChange={setHighlightedPerspective} 
+                />
+              )}
               <div className="perspective-columns">
-                {selectedPerspectives.map((perspective, idx) => (
-                  <div key={idx} className="perspective-section">
-                    <PerspectiveSummary perspective={perspective} compact={true} />
-                    <StreamFeed
-                      perspective={perspective}
-                      subcategory={null}
-                      onSubcategoryChange={handleSubcategoryChange}
-                      limit={itemsPerPerspective}
-                      sectionTitle={`${perspective.emoji} ${perspective.name} 专栏`}
-                    />
-                  </div>
-                ))}
+                {displayPerspectives.map((perspective, idx) => {
+                  const isAdditional = !highlightedPerspective && idx >= selectedPerspectives.length
+                  return (
+                    <div key={`${perspective.name}-${idx}`} className={`perspective-section ${isAdditional ? 'perspective-section-additional' : ''}`}>
+                      <PerspectiveSummary perspective={perspective} compact={true} />
+                      <StreamFeed
+                        perspective={perspective}
+                        subcategory={null}
+                        onSubcategoryChange={handleSubcategoryChange}
+                        limit={itemsPerPerspective}
+                        sectionTitle={`${perspective.emoji} ${perspective.name} 专栏`}
+                      />
+                      {isAdditional && (
+                        <div className="perspective-additional-badge">
+                          随机推荐
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : isMultiPerspective ? (
+            <div className="multi-perspective-container">
+              <PerspectiveComparison 
+                perspectives={selectedPerspectives} 
+                onHighlightedPerspectiveChange={setHighlightedPerspective} 
+              />
+              <div className="perspective-columns">
+                {displayPerspectives.map((perspective, idx) => {
+                  const isAdditional = !highlightedPerspective && idx >= selectedPerspectives.length
+                  return (
+                    <div key={idx} className="perspective-section">
+                      <PerspectiveSummary perspective={perspective} compact={true} />
+                      <StreamFeed
+                        perspective={perspective}
+                        subcategory={null}
+                        onSubcategoryChange={handleSubcategoryChange}
+                        limit={itemsPerPerspective}
+                        sectionTitle={`${perspective.emoji} ${perspective.name} 专栏`}
+                      />
+                    </div>
+                  )
+                })}
               </div>
             </div>
           ) : (
@@ -191,6 +259,21 @@ function Discover() {
           opinion={sharePerspective.description}
           onClose={() => setShowSharePoster(false)}
         />
+      )}
+
+      <BreakthroughToast
+        readCount={readCount}
+        perspectives={selectedPerspectives}
+      />
+
+      {showBackToTop && (
+        <button
+          className="back-to-top-btn"
+          onClick={handleBackToTop}
+          aria-label="回到顶部"
+        >
+          ↑
+        </button>
       )}
     </div>
   )

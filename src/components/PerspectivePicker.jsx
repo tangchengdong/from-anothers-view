@@ -204,7 +204,7 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
     const sources = []
     if (card.local_image && !imageLoadError[`local_${card.local_image}`]) {
       sources.push({
-        url: getLocalImagePath(card.local_image),
+        url: getLocalImagePath(card.local_image, card.card_image),
         isLocal: true,
         key: `local_${card.local_image}`
       })
@@ -329,6 +329,50 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
             </div>
           )}
         </div>
+        {card && hasLocalImage && card.stats && (
+          <div className="card-stats-tooltip">
+            <div className="card-stats-name">{card.name}</div>
+            <span className={`card-stats-rarity rarity-${card.rarity}`}>{card.rarity_label}</span>
+            <div className="card-stats-list">
+              <div className="stat-row">
+                <span className="stat-label">🔍 洞察力</span>
+                <span className="stat-value">{card.stats.insight}</span>
+              </div>
+              <div className="stat-bar">
+                <div className="stat-bar-fill" style={{ width: `${card.stats.insight}%` }}></div>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">💛 共情力</span>
+                <span className="stat-value">{card.stats.empathy}</span>
+              </div>
+              <div className="stat-bar">
+                <div className="stat-bar-fill" style={{ width: `${card.stats.empathy}%` }}></div>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">⚔️ 批判力</span>
+                <span className="stat-value">{card.stats.criticism}</span>
+              </div>
+              <div className="stat-bar">
+                <div className="stat-bar-fill" style={{ width: `${card.stats.criticism}%` }}></div>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">🌐 信息广度</span>
+                <span className="stat-value">{card.stats.breadth}</span>
+              </div>
+              <div className="stat-bar">
+                <div className="stat-bar-fill" style={{ width: `${card.stats.breadth}%` }}></div>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">😄 趣味性</span>
+                <span className="stat-value">{card.stats.humor}</span>
+              </div>
+              <div className="stat-bar">
+                <div className="stat-bar-fill" style={{ width: `${card.stats.humor}%` }}></div>
+              </div>
+            </div>
+            <div className="card-stats-desc">{card.description}</div>
+          </div>
+        )}
         {isInGrid && flipped && (
           <button
             className="select-card-mini"
@@ -370,7 +414,7 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
           {suggestions.slice(0, 6).map((item, index) => {
             const viewClass = getViewClass(item.base_rarity)
             const hasLocalImage = item.local_image && !imageLoadError[`local_${item.local_image}`]
-            const thumbnailUrl = hasLocalImage ? getLocalImagePath(item.local_image) : null
+            const thumbnailUrl = hasLocalImage ? getLocalImagePath(item.local_image, item.card_image) : null
             return (
               <div
                 key={index}
@@ -397,6 +441,50 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
                     <div className="suggestion-name">{item.name}</div>
                     <div className="suggestion-desc">{item.description}</div>
                   </>
+                )}
+                {item.stats && (
+                  <div className="suggestion-stats-tooltip">
+                    <div className="card-stats-name">{item.name}</div>
+                    <span className={`card-stats-rarity rarity-${item.base_rarity}`}>{viewClass.label}</span>
+                    <div className="card-stats-list">
+                      <div className="stat-row">
+                        <span className="stat-label">🔍 洞察力</span>
+                        <span className="stat-value">{item.stats.insight}</span>
+                      </div>
+                      <div className="stat-bar">
+                        <div className="stat-bar-fill" style={{ width: `${item.stats.insight}%` }}></div>
+                      </div>
+                      <div className="stat-row">
+                        <span className="stat-label">💛 共情力</span>
+                        <span className="stat-value">{item.stats.empathy}</span>
+                      </div>
+                      <div className="stat-bar">
+                        <div className="stat-bar-fill" style={{ width: `${item.stats.empathy}%` }}></div>
+                      </div>
+                      <div className="stat-row">
+                        <span className="stat-label">⚔️ 批判力</span>
+                        <span className="stat-value">{item.stats.criticism}</span>
+                      </div>
+                      <div className="stat-bar">
+                        <div className="stat-bar-fill" style={{ width: `${item.stats.criticism}%` }}></div>
+                      </div>
+                      <div className="stat-row">
+                        <span className="stat-label">🌐 信息广度</span>
+                        <span className="stat-value">{item.stats.breadth}</span>
+                      </div>
+                      <div className="stat-bar">
+                        <div className="stat-bar-fill" style={{ width: `${item.stats.breadth}%` }}></div>
+                      </div>
+                      <div className="stat-row">
+                        <span className="stat-label">😄 趣味性</span>
+                        <span className="stat-value">{item.stats.humor}</span>
+                      </div>
+                      <div className="stat-bar">
+                        <div className="stat-bar-fill" style={{ width: `${item.stats.humor}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="card-stats-desc">{item.description}</div>
+                  </div>
                 )}
               </div>
             )

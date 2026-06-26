@@ -1,8 +1,9 @@
 /* ============================================
    棱镜新闻 · 身份选择器
-   设计原则：两种主题，极致对比
-   - 深色主题（首页）：深底 + 亮字，神秘仪式感
-   - 报纸主题（弹窗）：浅底 + 深字，复古阅读感
+   设计原则：统一报纸复古风格
+   - 米黄色纸张背景、深褐色油墨字体
+   - 暖酒红色强调色
+   - 衬线字体，双线分隔，纸张噪点纹理
    ============================================ */
 
 .perspective-picker {
@@ -13,22 +14,7 @@
   position: relative;
   z-index: 10;
 
-  /* 默认深色主题变量（首页） */
-  --text: #FFF5EB;
-  --text-secondary: rgba(255, 245, 235, 0.78);
-  --text-muted: rgba(255, 245, 235, 0.5);
-  --border: rgba(255, 212, 160, 0.2);
-  --card-bg: rgba(255, 245, 235, 0.04);
-  --card-bg-hover: rgba(255, 139, 123, 0.12);
-  --input-bg: rgba(255, 245, 235, 0.08);
-  --accent: #FF8B7B;
-  --accent-strong: #FFD4A0;
-  --accent-warm: #8B2635;
-  color: var(--text);
-}
-
-/* 弹窗内使用报纸主题（浅底深字，极致对比） */
-.picker-modal-content .perspective-picker {
+  /* 统一报纸主题变量 */
   --text: #1A1510;
   --text-secondary: #3D352A;
   --text-muted: #6B5D4D;
@@ -39,6 +25,9 @@
   --accent: #8B2635;
   --accent-strong: #8B2635;
   --accent-warm: #6B1C28;
+  --paper-bg: #F2EADF;
+  --paper-ink: #1A1510;
+  --paper-accent: #8B2635;
   color: var(--text);
   background: transparent;
 }
@@ -70,6 +59,14 @@
   margin-bottom: 1.25rem;
 }
 
+.suggestions-section {
+  padding-top: 10px;
+}
+
+.suggestions-section .suggestions-grid {
+  padding-top: 8px;
+}
+
 .picker-section-title {
   font-size: 0.9rem;
   font-weight: 700;
@@ -93,7 +90,7 @@
   align-items: center;
   gap: 1.5rem;
   position: relative;
-  isolation: isolate;
+  padding-top: 10px;
 }
 
 /* 卡片容器 */
@@ -188,21 +185,23 @@
   50% { box-shadow: 0 0 30px rgba(255, 179, 71, 0.6), 0 0 55px rgba(255, 139, 123, 0.3); }
 }
 
-/* 卡片背面 */
+/* 卡片背面 - 在浅色背景下更突出 */
 .card-back {
-  background: #1A1510;
+  background: linear-gradient(145deg, #2D2520 0%, #1A1510 100%);
   border-radius: 12px;
+  border: 3px solid var(--paper-accent);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 6px 20px rgba(139, 38, 53, 0.3);
 }
 
 .card-back::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255, 139, 123, 0.15), transparent 50%, rgba(139, 38, 53, 0.2));
+  background: linear-gradient(135deg, rgba(255, 139, 123, 0.2), transparent 50%, rgba(139, 38, 53, 0.25));
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -710,7 +709,7 @@
 
 .custom-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 139, 123, 0.15);
+  box-shadow: 0 0 0 3px rgba(139, 38, 53, 0.15);
 }
 
 .custom-submit-btn {
@@ -752,18 +751,19 @@
   padding: 0.35rem;
   background: var(--card-bg);
   border: 2px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   text-align: center;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  box-shadow: 0 2px 8px rgba(26, 21, 16, 0.08);
 }
 
 .suggestion-card:hover {
   border-color: var(--accent);
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(139, 38, 53, 0.15);
+  box-shadow: 0 8px 25px rgba(139, 38, 53, 0.2);
 }
 
 .suggestion-rarity {
@@ -1505,52 +1505,384 @@
 }
 
 /* ============================================
-   弹窗（报纸主题）额外样式适配
-   确保所有元素在浅色背景下对比清晰
+   弹窗内特效z-index降低，避免覆盖关闭按钮
    ============================================ */
-.picker-modal-content .perspective-picker .redraw-btn:hover {
-  background: rgba(139, 38, 53, 0.08);
+.picker-modal-content .ur-flash-overlay,
+.picker-modal-content .ssr-flash-overlay {
+  z-index: 5;
 }
 
-.picker-modal-content .perspective-picker .custom-input:focus {
-  box-shadow: 0 0 0 3px rgba(139, 38, 53, 0.15);
+.picker-modal-content .ur-particles-container,
+.picker-modal-content .ssr-particles-container {
+  z-index: 4;
 }
 
-.picker-modal-content .perspective-picker .draw-btn::before {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+.picker-modal-content .ur-legend-text,
+.picker-modal-content .ssr-legend-text {
+  z-index: 6;
 }
 
-.picker-modal-content .perspective-picker .select-card-mini {
-  background: linear-gradient(135deg, #8B2635 0%, #6B1C28 100%);
+.picker-modal-content .perspective-picker {
+  padding-top: 3.5rem;
+}
+
+/* ============================================
+   卡牌属性Tooltip
+   ============================================ */
+.card-stats-tooltip {
+  position: absolute;
+  bottom: 105%;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: rgba(26, 21, 16, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 212, 160, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  width: 240px;
+  z-index: 100;
   color: #FFF5EB;
-  border-color: #8B2635;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.picker-modal-content .perspective-picker .select-card-mini:hover {
-  background: linear-gradient(135deg, #A03040 0%, #8B2635 100%);
-  box-shadow: 0 6px 20px rgba(139, 38, 53, 0.4);
+.card-stats-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: rgba(26, 21, 16, 0.95);
 }
 
-/* 弹窗内卡片背面在浅色背景下更突出 */
-.picker-modal-content .perspective-picker .card-back {
-  background: linear-gradient(145deg, #2D2520 0%, #1A1510 100%);
-  border: 2px solid #8B2635;
-  box-shadow: 0 4px 20px rgba(139, 38, 53, 0.25);
+.card-container.has-full-card.flipped:hover .card-stats-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
-/* 弹窗内分割线 */
-.picker-modal-content .perspective-picker .picker-welcome {
-  border-bottom: 2px solid #1A1510;
+.card-stats-name {
+  font-size: 1.1rem;
+  font-weight: 900;
+  font-family: var(--font-serif);
+  margin-bottom: 0.3rem;
+  color: #FFD4A0;
 }
 
-/* 弹窗内五连抽提示文字 */
-.picker-modal-content .perspective-picker .five-draw-hint {
-  color: #6B5D4D;
+.card-stats-rarity {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
 }
 
-/* 弹窗内快速选择卡片hover效果增强 */
-.picker-modal-content .perspective-picker .suggestion-card:hover {
-  border-color: #8B2635;
-  box-shadow: 0 4px 16px rgba(139, 38, 53, 0.2);
-  transform: translateY(-3px);
+.card-stats-rarity.rarity-ur {
+  background: linear-gradient(135deg, #FFD700, #FFB347);
+  color: #1A1510;
+}
+
+.card-stats-rarity.rarity-ssr {
+  background: linear-gradient(135deg, #BA68C8, #8E24AA);
+  color: #FFF5EB;
+}
+
+.card-stats-rarity.rarity-sr {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  color: #FFF5EB;
+}
+
+.card-stats-rarity.rarity-r {
+  background: linear-gradient(135deg, #78909C, #455A64);
+  color: #FFF5EB;
+}
+
+.card-stats-rarity.rarity-n {
+  background: linear-gradient(135deg, #A89680, #6B5D4D);
+  color: #FFF5EB;
+}
+
+.card-stats-list {
+  margin-bottom: 0.5rem;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.15rem;
+  font-size: 0.75rem;
+}
+
+.stat-label {
+  color: rgba(255, 245, 235, 0.85);
+}
+
+.stat-value {
+  font-weight: 700;
+  color: #FFD4A0;
+}
+
+.stat-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 2px;
+  margin-bottom: 0.4rem;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFD700, #FF8B7B, #8B2635);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.card-stats-desc {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+  color: rgba(255, 245, 235, 0.8);
+}
+
+/* 五连抽小卡牌tooltip缩小 */
+.five-cards-grid .card-stats-tooltip {
+  width: 200px;
+  padding: 0.8rem;
+}
+
+.five-cards-grid .card-stats-name {
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+
+.five-cards-grid .stat-row {
+  font-size: 0.65rem;
+  margin-bottom: 0.1rem;
+}
+
+.five-cards-grid .stat-bar {
+  margin-bottom: 0.3rem;
+}
+
+.five-cards-grid .card-stats-desc {
+  font-size: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.five-cards-grid .card-stats-rarity {
+  font-size: 0.55rem;
+  padding: 1px 6px;
+  margin-bottom: 0.4rem;
+}
+
+/* 弹窗内tooltip保持深色毛玻璃风格 */
+.picker-modal-content .card-stats-tooltip {
+  background: rgba(26, 21, 16, 0.95);
+  color: #FFF5EB;
+  border-color: rgba(255, 212, 160, 0.3);
+}
+
+.picker-modal-content .card-stats-tooltip::after {
+  border-top-color: rgba(26, 21, 16, 0.95);
+}
+
+/* ============================================
+   快速选择卡牌Tooltip
+   ============================================ */
+.suggestion-card {
+  overflow: visible;
+}
+
+.suggestion-stats-tooltip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: rgba(26, 21, 16, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 212, 160, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  width: 220px;
+  z-index: 100;
+  color: #FFF5EB;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.suggestion-stats-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: rgba(26, 21, 16, 0.95);
+}
+
+.suggestion-card:hover .suggestion-stats-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.suggestion-stats-tooltip .card-stats-name {
+  font-size: 1rem;
+  font-weight: 900;
+  font-family: var(--font-serif);
+  margin-bottom: 0.3rem;
+  color: #FFD4A0;
+}
+
+.suggestion-stats-tooltip .card-stats-rarity {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.suggestion-stats-tooltip .card-stats-rarity.rarity-ur {
+  background: linear-gradient(135deg, #FFD700, #FFB347);
+  color: #1A1510;
+}
+
+.suggestion-stats-tooltip .card-stats-rarity.rarity-ssr {
+  background: linear-gradient(135deg, #BA68C8, #8E24AA);
+  color: #FFF5EB;
+}
+
+.suggestion-stats-tooltip .card-stats-rarity.rarity-sr {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  color: #FFF5EB;
+}
+
+.suggestion-stats-tooltip .card-stats-rarity.rarity-r {
+  background: linear-gradient(135deg, #78909C, #455A64);
+  color: #FFF5EB;
+}
+
+.suggestion-stats-tooltip .card-stats-rarity.rarity-n {
+  background: linear-gradient(135deg, #A89680, #6B5D4D);
+  color: #FFF5EB;
+}
+
+.suggestion-stats-tooltip .card-stats-list {
+  margin-bottom: 0.4rem;
+}
+
+.suggestion-stats-tooltip .stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.1rem;
+  font-size: 0.7rem;
+}
+
+.suggestion-stats-tooltip .stat-label {
+  color: rgba(255, 245, 235, 0.85);
+}
+
+.suggestion-stats-tooltip .stat-value {
+  font-weight: 700;
+  color: #FFD4A0;
+}
+
+.suggestion-stats-tooltip .stat-bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 1px;
+  margin-bottom: 0.3rem;
+}
+
+.suggestion-stats-tooltip .stat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFD700, #FF8B7B, #8B2635);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.suggestion-stats-tooltip .card-stats-desc {
+  font-size: 0.65rem;
+  opacity: 0.7;
+  margin-top: 0.4rem;
+  line-height: 1.4;
+  color: rgba(255, 245, 235, 0.8);
+}
+
+/* 弹窗内tooltip保持深色毛玻璃风格 */
+.picker-modal-content .suggestion-stats-tooltip {
+  background: rgba(26, 21, 16, 0.95);
+  color: #FFF5EB;
+  border-color: rgba(255, 212, 160, 0.3);
+}
+
+.picker-modal-content .suggestion-stats-tooltip::after {
+  border-top-color: rgba(26, 21, 16, 0.95);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .card-stats-tooltip {
+    width: 200px;
+    padding: 0.75rem;
+  }
+
+  .card-stats-name {
+    font-size: 0.95rem;
+  }
+
+  .stat-row {
+    font-size: 0.7rem;
+  }
+
+  .card-stats-desc {
+    font-size: 0.65rem;
+  }
+
+  .five-cards-grid .card-stats-tooltip {
+    width: 180px;
+    padding: 0.65rem;
+  }
+
+  .five-cards-grid .card-stats-name {
+    font-size: 0.8rem;
+  }
+
+  .five-cards-grid .stat-row {
+    font-size: 0.6rem;
+  }
+
+  .suggestion-stats-tooltip {
+    width: 180px;
+    padding: 0.75rem;
+  }
+
+  .suggestion-stats-tooltip .card-stats-name {
+    font-size: 0.9rem;
+  }
+
+  .suggestion-stats-tooltip .stat-row {
+    font-size: 0.65rem;
+  }
+
+  .suggestion-stats-tooltip .card-stats-desc {
+    font-size: 0.6rem;
+  }
 }

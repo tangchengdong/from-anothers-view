@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { getMockContentDetail, getMockRelatedContent, MOCK_ROLES, generateOpinion, getLocalImagePath } from '../mock/data'
 import { useAppStore } from '../store/useAppStore'
 import SharePoster from '../components/SharePoster'
-import BreakthroughModal from '../components/BreakthroughModal'
+import BreakthroughToast from '../components/BreakthroughToast'
 import { analyzeAttitude, extractKeywords, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
 import { generateDeepOpinionByStyle } from '../utils/opinionGenerator'
 import './ContentDetail.css'
@@ -64,13 +64,12 @@ function ContentDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { selectedPerspectives, incrementReadCount, resetSelection } = useAppStore()
+  const { selectedPerspectives, incrementReadCount, resetSelection, pendingBreakthrough } = useAppStore()
   const [content, setContent] = useState(null)
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
   const [showSharePoster, setShowSharePoster] = useState(false)
-  const [showBreakthrough, setShowBreakthrough] = useState(false)
-  const [breakthroughData, setBreakthroughData] = useState(null)
+  const [readCount, setReadCount] = useState(0)
   const [activePerspective, setActivePerspective] = useState(null)
   const [mainImgError, setMainImgError] = useState(false)
   const [relatedImgErrors, setRelatedImgErrors] = useState({})
@@ -114,19 +113,21 @@ function ContentDetail() {
       countedRef.current = true
       const result = incrementReadCount()
       if (result.achieved) {
-        setTimeout(() => {
-          setBreakthroughData({ readCount: result.newCount })
-          setShowBreakthrough(true)
-        }, 800)
+        setReadCount(result.newCount)
       }
     }
   }, [content])
 
   useEffect(() => {
-    if (!loading) {
-      window.scrollTo(0, 0)
+    if (!loading && content) {
+      const titleElement = document.querySelector('.detail-title')
+      if (titleElement) {
+        titleElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
     }
-  }, [loading])
+  }, [loading, content])
 
   const loadContent = async () => {
     setLoading(true)
@@ -491,13 +492,10 @@ function ContentDetail() {
         />
       )}
 
-      {showBreakthrough && breakthroughData && (
-        <BreakthroughModal
-          readCount={breakthroughData.readCount}
-          perspectives={selectedPerspectives}
-          onClose={() => setShowBreakthrough(false)}
-        />
-      )}
+      <BreakthroughToast
+        readCount={readCount}
+        perspectives={selectedPerspectives}
+      />
     </div>
   )
 }

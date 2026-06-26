@@ -1,17 +1,31 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import PerspectivePicker from '../components/PerspectivePicker'
 import OnboardingOverlay from '../components/OnboardingOverlay'
+import BreakthroughToast from '../components/BreakthroughToast'
 import './Home.css'
 
 function Home() {
-  const { setSelectedPerspectives } = useAppStore()
+  const { setSelectedPerspectives, readCount } = useAppStore()
   const navigate = useNavigate()
+  const [showBackToTop, setShowBackToTop] = useState(false)
 
   const handlePerspectiveSelect = (perspectives, itemsCount = 20) => {
     setSelectedPerspectives(perspectives, itemsCount)
     navigate('/discover')
+  }
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const handleBackToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -32,6 +46,21 @@ function Home() {
         onSelect={handlePerspectiveSelect}
         selectedPerspective={null}
       />
+
+      <BreakthroughToast
+        readCount={readCount}
+        perspectives={null}
+      />
+
+      {showBackToTop && (
+        <button
+          className="back-to-top-btn"
+          onClick={handleBackToTop}
+          aria-label="回到顶部"
+        >
+          ↑
+        </button>
+      )}
     </div>
   )
 }

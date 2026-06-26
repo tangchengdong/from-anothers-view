@@ -21,12 +21,12 @@ function Header() {
   }
 
   return (
-    <header className={`header ${isHome ? 'header-dark' : 'header-paper'}`}>
+    <header className="header header-paper">
       <div className="header-container">
         <Link to="/" className="logo" onClick={handleLogoClick}>
           <div className="logo-text">
             <h1>
-              <span className={isHome ? 'logo-gradient' : 'logo-serif'}>棱镜</span>
+              <span className="logo-serif">棱 镜</span>
             </h1>
           </div>
         </Link>

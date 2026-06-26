@@ -4,13 +4,19 @@ import { getMultiPerspectiveNews, getLocalImagePath } from '../mock/data'
 import { analyzeAttitude, extractKeywords, calculateCollision, findConsensusAndDivergence, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
 import './PerspectiveComparison.css'
 
-function PerspectiveComparison({ perspectives }) {
+function PerspectiveComparison({ perspectives, onHighlightedPerspectiveChange }) {
   const navigate = useNavigate()
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeNewsIndex, setActiveNewsIndex] = useState(0)
   const [highlightedPerspective, setHighlightedPerspective] = useState(null)
   const [avatarErrors, setAvatarErrors] = useState({})
+
+  const handleHighlightedChange = (perspective) => {
+    const newPerspective = highlightedPerspective?.name === perspective?.name ? null : perspective
+    setHighlightedPerspective(newPerspective)
+    onHighlightedPerspectiveChange?.(newPerspective)
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -100,9 +106,7 @@ function PerspectiveComparison({ perspectives }) {
                 background: highlightedPerspective?.name === p.name ? p.color : 'transparent',
                 color: highlightedPerspective?.name === p.name ? '#fff' : p.color
               }}
-              onClick={() => setHighlightedPerspective(
-                highlightedPerspective?.name === p.name ? null : p
-              )}
+              onClick={() => handleHighlightedChange(p)}
             >
               {renderAvatar(p, 'chip')}
               {' '}{p.name}
@@ -121,7 +125,7 @@ function PerspectiveComparison({ perspectives }) {
             className={`news-tab ${idx === activeNewsIndex ? 'active' : ''}`}
             onClick={() => {
               setActiveNewsIndex(idx)
-              setHighlightedPerspective(null)
+              handleHighlightedChange(null)
             }}
           >
             {item.hot && <span className="tab-hot">热</span>}
@@ -213,9 +217,7 @@ function PerspectiveComparison({ perspectives }) {
                   key={idx}
                   className={`opinion-card enhanced ${attitudeClass} ${isHighlighted ? 'highlighted' : 'dimmed'}`}
                   style={{ borderLeftColor: item.perspective.color }}
-                  onClick={() => setHighlightedPerspective(
-                    highlightedPerspective?.name === item.perspective.name ? null : item.perspective
-                  )}
+                  onClick={() => handleHighlightedChange(item.perspective)}
                 >
                   <div className="opinion-card-header">
                     {renderAvatar(item.perspective, 'card')}

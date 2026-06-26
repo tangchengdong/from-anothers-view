@@ -75,11 +75,6 @@ body.paper-theme {
   color: var(--paper-ink);
 }
 
-body.dark-theme {
-  background: var(--dark-bg);
-  color: var(--dark-text);
-}
-
 /* 报纸纹理 */
 body.paper-theme::before {
   content: '';
@@ -96,27 +91,9 @@ body.paper-theme::before {
   mix-blend-mode: multiply;
 }
 
-/* 深色主题黄昏暖光背景 - 像窗边阅读灯的温暖暮色 */
-body.dark-theme::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(ellipse at 25% 15%, rgba(255, 179, 71, 0.2) 0%, transparent 50%),
-    radial-gradient(ellipse at 75% 25%, rgba(255, 139, 123, 0.14) 0%, transparent 45%),
-    radial-gradient(ellipse at 50% 85%, rgba(139, 38, 53, 0.10) 0%, transparent 55%),
-    radial-gradient(ellipse at 15% 70%, rgba(255, 200, 140, 0.08) 0%, transparent 40%);
-  pointer-events: none;
-  z-index: 0;
-  animation: darkPrismBreath 12s ease-in-out infinite;
-}
-
-@keyframes darkPrismBreath {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.75; }
+body.dark-theme {
+  background: #D4C9B2;
+  color: var(--paper-ink);
 }
 
 #root {
@@ -127,12 +104,7 @@ body.dark-theme::before {
 }
 
 ::selection {
-  background: var(--prism-primary);
-  color: #fff;
-}
-
-body.dark-theme ::selection {
-  background: var(--prism-gradient);
+  background: var(--paper-accent);
   color: #fff;
 }
 
@@ -215,25 +187,6 @@ img {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--paper-ink-light);
-}
-
-body.dark-theme ::-webkit-scrollbar-track {
-  background: var(--dark-surface);
-}
-
-body.dark-theme ::-webkit-scrollbar-thumb {
-  background: rgba(255, 200, 150, 0.2);
-  border-radius: 4px;
-}
-
-body.dark-theme ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 200, 150, 0.35);
-}
-
-/* 文字选中动效 */
-::selection {
-  background: var(--prism-tertiary);
-  color: var(--paper-ink);
 }
 
 /* 焦点可见性 */

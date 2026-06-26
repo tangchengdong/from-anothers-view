@@ -16,17 +16,13 @@ function App() {
 
   useEffect(() => {
     document.body.classList.remove('paper-theme', 'dark-theme')
-    if (isHome) {
-      document.body.classList.add('dark-theme')
-    } else {
-      document.body.classList.add('paper-theme')
-    }
+    document.body.classList.add('paper-theme')
   }, [isHome])
 
   const hasPerspectives = selectedPerspectives && selectedPerspectives.length > 0
 
   return (
-    <div className={`app ${isHome ? 'app-dark' : 'app-paper'}`}>
+    <div className="app app-paper">
       <Header />
       <main className="main-content">
         <Routes>

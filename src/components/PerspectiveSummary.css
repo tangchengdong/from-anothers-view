@@ -59,9 +59,11 @@
 .guide-avatar {
   width: 48px;
   height: 48px;
+  border-radius: 4px;
   object-fit: cover;
+  object-position: top center;
   flex-shrink: 0;
-  border: 2px solid var(--paper-ink);
+  border: 1px solid var(--paper-rule);
   background: var(--paper-bg);
 }
 

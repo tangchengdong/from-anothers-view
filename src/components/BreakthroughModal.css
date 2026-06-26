@@ -243,11 +243,12 @@
 }
 
 .achievement-persp-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
   object-fit: cover;
-  border: 1px solid rgba(139, 115, 85, 0.2);
+  object-position: top center;
+  border: 1px solid rgba(139, 115, 85, 0.4);
 }
 
 .achievement-persp-text {

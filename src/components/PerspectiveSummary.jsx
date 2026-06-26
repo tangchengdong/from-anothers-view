@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
-import { getLocalImagePath } from '../mock/data'
+import { getLocalImagePath, getCardImagePath } from '../mock/data'
 import './PerspectiveSummary.css'
 
 function PerspectiveSummary({ perspective, perspectiveData, compact = false }) {
   const { selectedPerspectiveData } = useAppStore()
   const [loading, setLoading] = useState(true)
   const [description, setDescription] = useState('')
-  const [avatarError, setAvatarError] = useState(false)
+  const [avatarError, setAvatarError] = useState({})
 
   const data = perspectiveData || selectedPerspectiveData || perspective
   const name = data?.name || perspective?.name || perspective || '当前视角'
@@ -24,7 +24,7 @@ function PerspectiveSummary({ perspective, perspectiveData, compact = false }) {
     }
 
     setLoading(true)
-    setAvatarError(false)
+    setAvatarError({})
     setTimeout(() => {
       const builtInDesc = data?.description || perspective?.description
       setDescription(builtInDesc || `以「${name}」的视角看世界，发现不一样的精彩`)
@@ -45,21 +45,44 @@ function PerspectiveSummary({ perspective, perspectiveData, compact = false }) {
     }
   }
 
+  const getAvatarUrl = (p) => {
+    const cardKey = `card_${p.local_image}`
+    const localKey = `local_${p.local_image}`
+    
+    if (p.card_image && !avatarError[cardKey]) {
+      return { url: getCardImagePath(p.card_image), isCard: true, key: cardKey }
+    }
+    if (p.local_image && !avatarError[localKey]) {
+      return { url: getLocalImagePath(p.local_image), isCard: false, key: localKey }
+    }
+    return null
+  }
+
+  const handleAvatarError = (key) => {
+    setAvatarError(prev => ({ ...prev, [key]: true }))
+  }
+
+  const renderAvatar = (p) => {
+    const avatar = getAvatarUrl(p)
+    if (avatar) {
+      return (
+        <img 
+          src={avatar.url} 
+          alt={name}
+          className="guide-avatar"
+          onError={() => handleAvatarError(avatar.key)}
+        />
+      )
+    }
+    return <div className="guide-emoji">{emoji}</div>
+  }
+
   return (
     <section className={`summary-section ${compact ? 'compact' : ''}`}>
       <div className="summary-container guide-style">
         <div className="guide-header">
           <div className="guide-role">
-            {data?.local_image && !avatarError ? (
-              <img 
-                src={getLocalImagePath(data.local_image)} 
-                alt={name}
-                className="guide-avatar"
-                onError={() => setAvatarError(true)}
-              />
-            ) : (
-              <div className="guide-emoji">{emoji}</div>
-            )}
+            {renderAvatar(data)}
             <div className="guide-info">
               <div className="guide-title-row">
                 <h3 className="guide-title">{name}</h3>

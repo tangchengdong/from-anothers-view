@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getMultiPerspectiveNews, getLocalImagePath } from '../mock/data'
+import { getMultiPerspectiveNews, getLocalImagePath, getCardImagePath } from '../mock/data'
 import { analyzeAttitude, extractKeywords, calculateCollision, findConsensusAndDivergence, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
 import './PerspectiveComparison.css'
 
@@ -10,7 +10,7 @@ function PerspectiveComparison({ perspectives, onHighlightedPerspectiveChange })
   const [loading, setLoading] = useState(true)
   const [activeNewsIndex, setActiveNewsIndex] = useState(0)
   const [highlightedPerspective, setHighlightedPerspective] = useState(null)
-  const [avatarErrors, setAvatarErrors] = useState({})
+  const [imageLoadError, setImageLoadError] = useState({})
 
   const handleHighlightedChange = (perspective) => {
     const newPerspective = highlightedPerspective?.name === perspective?.name ? null : perspective
@@ -20,7 +20,7 @@ function PerspectiveComparison({ perspectives, onHighlightedPerspectiveChange })
 
   useEffect(() => {
     setLoading(true)
-    setAvatarErrors({})
+    setImageLoadError({})
     setTimeout(() => {
       const multiNews = getMultiPerspectiveNews(perspectives, 6)
       setNews(multiNews)
@@ -28,6 +28,23 @@ function PerspectiveComparison({ perspectives, onHighlightedPerspectiveChange })
       setHighlightedPerspective(null)
     }, 600)
   }, [perspectives])
+
+  const handleImageError = (key) => {
+    setImageLoadError(prev => ({ ...prev, [key]: true }))
+  }
+
+  const getAvatarUrl = (p, size = 'chip') => {
+    const cardKey = `card_${p.local_image}_${size}`
+    const localKey = `local_${p.local_image}_${size}`
+    
+    if (p.card_image && !imageLoadError[cardKey]) {
+      return { url: getCardImagePath(p.card_image), isCard: true, key: cardKey }
+    }
+    if (p.local_image && !imageLoadError[localKey]) {
+      return { url: getLocalImagePath(p.local_image), isCard: false, key: localKey }
+    }
+    return null
+  }
 
   const handleReadMore = (newsItem) => {
     const activePersp = highlightedPerspective || perspectives[0]
@@ -39,8 +56,19 @@ function PerspectiveComparison({ perspectives, onHighlightedPerspectiveChange })
     })
   }
 
-  const handleAvatarError = (key) => {
-    setAvatarErrors(prev => ({ ...prev, [key]: true }))
+  const renderAvatar = (p, size = 'chip') => {
+    const avatarData = getAvatarUrl(p, size)
+    if (avatarData) {
+      return (
+        <img 
+          src={avatarData.url}
+          alt={p.name} 
+          className={size === 'chip' ? 'chip-avatar' : 'opinion-card-avatar'}
+          onError={() => handleImageError(avatarData.key)}
+        />
+      )
+    }
+    return <span>{p.emoji}</span>
   }
 
   const currentNews = news[activeNewsIndex]
@@ -69,21 +97,6 @@ function PerspectiveComparison({ perspectives, onHighlightedPerspectiveChange })
         <p className="loading-hint">同一事件，五种身份，五种看法</p>
       </div>
     )
-  }
-
-  const renderAvatar = (p, size = 'chip') => {
-    const errorKey = `${size}_${p.name}`
-    if (p.local_image && !avatarErrors[errorKey]) {
-      return (
-        <img 
-          src={getLocalImagePath(p.local_image)} 
-          alt={p.name} 
-          className={size === 'chip' ? 'chip-avatar' : 'opinion-card-avatar'}
-          onError={() => handleAvatarError(errorKey)}
-        />
-      )
-    }
-    return <span>{p.emoji}</span>
   }
 
   return (

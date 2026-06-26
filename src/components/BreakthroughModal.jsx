@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
-import { getLocalImagePath } from '../mock/data'
+import { getLocalImagePath, getCardImagePath } from '../mock/data'
 import './BreakthroughModal.css'
 
 const ACHIEVEMENTS = [
@@ -24,6 +24,7 @@ function BreakthroughModal({ readCount, perspectives, onClose }) {
   const { pendingBreakthrough, clearPendingBreakthrough } = useAppStore()
   const [closing, setClosing] = useState(false)
   const [entered, setEntered] = useState(false)
+  const [avatarError, setAvatarError] = useState({})
 
   const currentAchievement = ACHIEVEMENTS.find(a => a.threshold === readCount) || 
     ACHIEVEMENTS[Math.min(Math.floor(readCount / 3), ACHIEVEMENTS.length - 1)]
@@ -31,6 +32,38 @@ function BreakthroughModal({ readCount, perspectives, onClose }) {
   const nextAchievement = ACHIEVEMENTS.find(a => a.threshold > readCount)
   const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)]
   const currentPersp = perspectives?.[0]
+
+  const getAvatarUrl = (p) => {
+    const cardKey = `card_${p.local_image}`
+    const localKey = `local_${p.local_image}`
+    
+    if (p.card_image && !avatarError[cardKey]) {
+      return { url: getCardImagePath(p.card_image), isCard: true, key: cardKey }
+    }
+    if (p.local_image && !avatarError[localKey]) {
+      return { url: getLocalImagePath(p.local_image), isCard: false, key: localKey }
+    }
+    return null
+  }
+
+  const handleAvatarError = (key) => {
+    setAvatarError(prev => ({ ...prev, [key]: true }))
+  }
+
+  const renderAvatar = (p) => {
+    const avatar = getAvatarUrl(p)
+    if (avatar) {
+      return (
+        <img 
+          src={avatar.url} 
+          alt={p.name}
+          className="achievement-persp-avatar"
+          onError={() => handleAvatarError(avatar.key)}
+        />
+      )
+    }
+    return null
+  }
 
   useEffect(() => {
     setTimeout(() => setEntered(true), 100)
@@ -85,13 +118,7 @@ function BreakthroughModal({ readCount, perspectives, onClose }) {
 
         {currentPersp && (
           <div className="achievement-perspective">
-            {currentPersp.local_image && (
-              <img 
-                src={getLocalImagePath(currentPersp.local_image)} 
-                alt={currentPersp.name}
-                className="achievement-persp-avatar"
-              />
-            )}
+            {renderAvatar(currentPersp)}
             <span className="achievement-persp-text">
               当前视角：{currentPersp.name}
             </span>

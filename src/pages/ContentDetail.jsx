@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { getMockContentDetail, getMockRelatedContent, MOCK_ROLES, generateOpinion, getLocalImagePath } from '../mock/data'
+import { getMockContentDetail, getMockRelatedContent, MOCK_ROLES, generateOpinion, getLocalImagePath, getCardImagePath } from '../mock/data'
 import { useAppStore } from '../store/useAppStore'
 import SharePoster from '../components/SharePoster'
 import BreakthroughToast from '../components/BreakthroughToast'
+import PrismRoundtable from '../components/PrismRoundtable'
 import { analyzeAttitude, extractKeywords, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
 import { generateDeepOpinionByStyle } from '../utils/opinionGenerator'
 import './ContentDetail.css'
@@ -14,32 +15,7 @@ const CATEGORY_EXTENSIONS = {
     '值得关注的是，技术迭代带来的不仅是效率提升，也伴随着就业结构、伦理边界和监管框架等方面的新挑战。有学者呼吁，在推动技术创新的同时，应当同步建立健全相关的法律法规和行业标准，确保技术发展始终沿着造福社会的方向前进，避免技术红利被少数群体独占。',
     '从国际竞争格局来看，全球主要经济体均在该领域加大研发投入，技术路线的选择和标准制定将深刻影响未来十年的产业分工。我国在部分细分领域已实现从跟跑到并跑甚至领跑的转变，但在基础研究和核心元器件方面仍存在短板，需要持续投入和长期积累。'
   ],
-  social: [
-    '记者在走访中了解到，这一事件在社交平台上引发了广泛讨论，相关话题阅读量迅速攀升。支持方和反对方各执一词，观点交锋激烈。有社会学专家表示，此类争议的出现本身就折射出社会价值观的多元化趋势，不同群体基于自身经历和立场形成不同判断，这在转型期社会中是正常现象。',
-    '当事人在接受采访时表示，事件的发酵程度超出了预期，希望公众能够给予更多理解和空间，也希望相关部门能够依法依规处理。附近居民则向记者反映，类似的情况并非个例，背后折射出的深层次问题值得关注，包括资源分配不均、沟通渠道不畅、基层治理有待加强等方面。',
-    '法律界人士指出，该事件涉及多方主体的权利义务关系，需要在法治框架内妥善解决。同时也提醒公众，在网络空间发表言论应当遵守法律法规，尊重他人合法权益，理性表达诉求，避免情绪化判断和网络暴力行为，共同维护健康的网络环境和社会秩序。'
-  ],
-  edu: [
-    '教育界人士普遍认为，这一话题之所以引发广泛关注，根本原因在于它触及了千家万户的切身利益。从优质教育资源的分配，到升学竞争的压力，再到教育公平的实现，每一个环节都牵动着家长和学生的神经。长期以来，教育改革始终在减负与提质、公平与效率之间寻找平衡点。',
-    '一线教师向记者表示，政策的初衷是好的，但在实际执行层面往往面临诸多现实困难。班级人数过多、评价体系单一、家校沟通不畅等问题，都影响着政策落地的效果。有从教二十年的资深教师坦言，真正的教育改革需要学校、家庭、社会三方合力，任何一方缺位都难以达到预期效果。',
-    '不少家长在接受采访时表达了矛盾的心态：一方面希望孩子能够快乐成长、全面发展，另一方面又不得不面对升学竞争的现实压力。"内卷"现象从校外培训蔓延到校内教育，学生的课业负担虽然形式上有所减轻，但家长的焦虑感并未实质性缓解。如何走出这一困境，考验着决策者的智慧。'
-  ],
-  consume: [
-    '消费市场研究机构的数据显示，相关品类的市场规模近年来持续扩大，消费者结构也在发生显著变化。年轻一代消费者更注重品质、体验和情感价值，品牌忠诚度相对较低，更愿意为兴趣和审美付费。这一消费趋势的变化正在倒逼传统品牌加速转型升级，也为新品牌的崛起创造了机会窗口。',
-    '价格波动是近期消费者反映最集中的问题之一。记者从多个渠道了解到，受原材料成本、供应链调整和季节性因素等多重影响，部分商品和服务的价格出现了不同程度的上涨。有经济学专家分析认为，当前的价格波动属于结构性调整，总体物价水平保持基本稳定，消费者无需过度担忧。',
-    '业内人士提醒消费者，面对层出不穷的营销手段和促销活动，应当保持理性消费意识，根据自身实际需求做出购买决策，避免冲动消费和过度借贷。同时建议消费者注意保留消费凭证，了解自身合法权益，在遇到消费纠纷时通过正规渠道维权，共同营造诚信、公平的消费环境。'
-  ],
-  culture: [
-    '文化评论人表示，这一文化现象的走红并非偶然，而是传统文化与当代审美碰撞融合的产物。近年来，从故宫文创到国风音乐，从非遗新传到国潮设计，越来越多的年轻人开始重新发现和拥抱传统文化，并用他们这一代人的方式进行创造性转化和创新性发展，让古老文化焕发出新的生命力。',
-    '从事文化产业多年的业内人士指出，文化消费的升级趋势十分明显。消费者不再满足于被动接受，而是渴望参与、互动和共创。沉浸式展览、互动式演出、文化主题体验等新业态蓬勃发展，既满足了人民群众日益增长的精神文化需求，也为文化产业发展注入了新动能。',
-    '有学者强调，文化自信不是复古排外，而是在传承中华优秀传统文化的基础上，吸收借鉴世界优秀文明成果，创造出属于我们这个时代的新文化。传统文化的生命力在于创新，只有让收藏在博物馆里的文物、陈列在广阔大地上的遗产、书写在古籍里的文字都活起来，才能真正实现文化的繁荣兴盛。'
-  ],
-  health: [
-    '医疗健康领域专家提醒公众，面对此类健康相关信息，应当通过权威渠道获取科学知识，切勿轻信网络传言和非正规来源的"养生秘诀"。很多流传甚广的说法缺乏循证医学依据，盲目跟风不仅可能无效，还可能延误最佳诊疗时机，对身体健康造成损害。',
-    '三甲医院临床医生告诉记者，近年来公众健康意识显著提升，这是值得肯定的进步。但与此同时，健康焦虑也在一定程度上蔓延，部分人过度体检、过度医疗，反而对身心造成不必要的负担。医生建议，保持规律作息、均衡饮食、适度运动和良好心态，才是维护健康最经济有效的方式。',
-    '公共卫生领域研究者指出，个人健康与公共卫生体系息息相关。从疫苗接种到慢性病管理，从心理健康到老年照护，都需要完善的制度保障和充足的医疗资源投入。推进健康中国建设，不仅要治病，更要防病；不仅要关注生理健康，也要重视心理健康，全方位全周期保障人民健康。'
-  ],
-  general: [
+  society: [
     '此事经媒体报道后，迅速引发社会各界的广泛关注和热议。多位专家学者从不同角度进行了解读分析，普遍认为该事件具有一定的典型意义和代表性，反映了当前社会发展进程中值得关注的新动向、新问题，需要理性看待、妥善应对。',
     '记者在进一步调查中发现，事件背后牵涉的因素远比表面看到的复杂。从历史沿革到现实矛盾，从个体选择到制度设计，多种因素交织叠加，使得这一话题具备了持续讨论的公共价值。相关部门已对此事给予关注，表示将在充分调研的基础上研究制定相应措施。',
     '有观察人士指出，在信息传播高度发达的今天，公众对公共事件的关注度和参与度前所未有地提高。这既是社会进步的表现，也对信息甄别能力和理性讨论素养提出了更高要求。希望各方能够在尊重事实的基础上开展建设性对话，共同推动问题的妥善解决和社会的持续进步。'
@@ -47,13 +23,15 @@ const CATEGORY_EXTENSIONS = {
 }
 
 function extendArticleBody(title, category, summary) {
-  const cat = CATEGORY_EXTENSIONS[category] || CATEGORY_EXTENSIONS.general
-  const base = summary || ''
-  const pars = [base]
-  const shuffled = [...cat].sort(() => Math.random() - 0.5)
-  pars.push(shuffled[0])
-  pars.push(shuffled[1])
-  return pars
+  const categoryKey = category && CATEGORY_EXTENSIONS[category] ? category : 'society'
+  const extensions = CATEGORY_EXTENSIONS[categoryKey] || CATEGORY_EXTENSIONS.society
+  
+  return [
+    summary || `近日，"${title}"相关话题引发广泛讨论，各方观点不一。`,
+    extensions[0],
+    extensions[1],
+    extensions[2]
+  ]
 }
 
 function getOtherPerspectives(currentPerspName, count = 4) {
@@ -69,6 +47,7 @@ function ContentDetail() {
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
   const [showSharePoster, setShowSharePoster] = useState(false)
+  const [showRoundtable, setShowRoundtable] = useState(false)
   const [readCount, setReadCount] = useState(0)
   const [activePerspective, setActivePerspective] = useState(null)
   const [mainImgError, setMainImgError] = useState(false)
@@ -93,41 +72,61 @@ function ContentDetail() {
   }, [content, currentPerspective, perspectiveOpinion])
 
   const opinionAnalysis = useMemo(() => {
-    return perspectiveOpinion ? analyzeAttitude(perspectiveOpinion) : null
-  }, [perspectiveOpinion])
+    if (!deepOpinion) return null
+    return analyzeAttitude(deepOpinion)
+  }, [deepOpinion])
 
   const opinionKeywords = useMemo(() => {
-    return perspectiveOpinion ? extractKeywords(perspectiveOpinion, 5) : []
+    if (!perspectiveOpinion) return []
+    return extractKeywords(perspectiveOpinion, 4)
   }, [perspectiveOpinion])
 
+  const computePrevNext = (items) => {
+    if (!items || items.length === 0) {
+      setPrevNext({ prev: null, next: null })
+      return
+    }
+    const currentId = parseInt(id, 10)
+    const sortedItems = [...items].sort((a, b) => a.id - b.id)
+    const currentIdx = sortedItems.findIndex(item => item.id === currentId)
+    
+    let prev = null
+    let next = null
+    
+    if (currentIdx > 0) {
+      prev = sortedItems[currentIdx - 1]
+    } else if (sortedItems.length > 1) {
+      prev = sortedItems[sortedItems.length - 1]
+    }
+    
+    if (currentIdx < sortedItems.length - 1 && currentIdx !== -1) {
+      next = sortedItems[currentIdx + 1]
+    } else if (sortedItems.length > 1) {
+      next = sortedItems[0]
+    }
+    
+    setPrevNext({ prev, next })
+  }
+
   useEffect(() => {
-    loadContent()
     countedRef.current = false
-    setActivePerspective(null)
+    setLoading(true)
     setMainImgError(false)
     setRelatedImgErrors({})
+    setAvatarErrors({})
+    setActivePerspective(null)
+    setOtherPersps(getOtherPerspectives(defaultPerspective?.name, 4))
+    window.scrollTo({ top: 0, behavior: 'auto' })
+    loadContent()
   }, [id, location.state])
 
   useEffect(() => {
     if (content && !countedRef.current) {
+      incrementReadCount()
+      setReadCount(prev => prev + 1)
       countedRef.current = true
-      const result = incrementReadCount()
-      if (result.achieved) {
-        setReadCount(result.newCount)
-      }
     }
   }, [content])
-
-  useEffect(() => {
-    if (!loading && content) {
-      const titleElement = document.querySelector('.detail-title')
-      if (titleElement) {
-        titleElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
-    }
-  }, [loading, content])
 
   const loadContent = async () => {
     setLoading(true)
@@ -171,31 +170,60 @@ function ContentDetail() {
       // API unavailable, using mock data
     }
 
-    const mockData = getMockContentDetail(id, defaultPerspective)
-    if (mockData) {
-      const summary = mockData.summary || ''
-      const bodyParagraphs = summary.length < 100
-        ? extendArticleBody(mockData.title, mockData.category, summary)
-        : [summary]
-      mockData.content = bodyParagraphs.join('\n\n')
-      mockData._bodyParagraphs = bodyParagraphs
-      setContent(mockData)
-      const relatedItems = getMockRelatedContent(id, null, 3)
+    const mockDetail = getMockContentDetail(id, defaultPerspective)
+    if (mockDetail) {
+      setContent(mockDetail)
+      const relatedItems = getMockRelatedContent(id, defaultPerspective?.name, 3)
       setRelated(relatedItems)
       setOtherPersps(getOtherPerspectives(defaultPerspective?.name, 4))
       computePrevNext(relatedItems)
+      setLoading(false)
+      return
     }
+
+    setContent(null)
     setLoading(false)
   }
 
-  const computePrevNext = (relatedItems) => {
-    if (relatedItems && relatedItems.length >= 2) {
-      setPrevNext({ prev: relatedItems[0], next: relatedItems[1] })
-    } else if (relatedItems && relatedItems.length === 1) {
-      setPrevNext({ prev: relatedItems[0], next: null })
-    } else {
-      setPrevNext({ prev: null, next: null })
+  const handleAvatarError = (key) => {
+    setAvatarErrors(prev => ({ ...prev, [key]: true }))
+  }
+
+  const getAvatarUrl = (p, prefix = 'main') => {
+    const cardKey = `${prefix}_card_${p.name}`
+    const localKey = `${prefix}_local_${p.name}`
+    
+    if (p.card_image && !avatarErrors[cardKey]) {
+      return { url: getCardImagePath(p.card_image), isCard: true, key: cardKey }
     }
+    if (p.local_image && !avatarErrors[localKey]) {
+      return { url: getLocalImagePath(p.local_image), isCard: false, key: localKey }
+    }
+    return null
+  }
+
+  const renderAvatar = (p, prefix = 'main', className = '') => {
+    const avatarData = getAvatarUrl(p, prefix)
+    if (avatarData) {
+      return (
+        <img 
+          src={avatarData.url}
+          alt={p.name}
+          className={className}
+          onError={() => handleAvatarError(avatarData.key)}
+        />
+      )
+    }
+    return <span className={`${className}-emoji`}>{p.emoji}</span>
+  }
+
+  const handleSwitchPerspective = (p) => {
+    setActivePerspective(p)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleResetPerspective = () => {
+    setActivePerspective(null)
   }
 
   const handleShare = () => {
@@ -209,18 +237,6 @@ function ContentDetail() {
       navigator.clipboard?.writeText(window.location.href)
       alert('链接已复制到剪贴板')
     }
-  }
-
-  const handleSwitchPerspective = (persp) => {
-    setActivePerspective(persp)
-    setTimeout(() => {
-      const el = document.querySelector('.prism-perspective-block')
-      if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' })
-    }, 50)
-  }
-
-  const handleResetPerspective = () => {
-    setActivePerspective(null)
   }
 
   const handleDrawMore = () => {
@@ -238,10 +254,6 @@ function ContentDetail() {
 
   const handleRelatedImageError = (itemId) => {
     setRelatedImgErrors(prev => ({ ...prev, [itemId]: true }))
-  }
-
-  const handleAvatarError = (key) => {
-    setAvatarErrors(prev => ({ ...prev, [key]: true }))
   }
 
   const handlePrevNext = (item) => {
@@ -329,16 +341,7 @@ function ContentDetail() {
             <div className={`prism-perspective-block attitude-${opinionAnalysis.attitude}`}>
               <div className="prism-block-header">
                 <span className="prism-icon">◈</span>
-                {currentPerspective.local_image && !avatarErrors[`main_${currentPerspective.name}`] ? (
-                  <img 
-                    src={getLocalImagePath(currentPerspective.local_image)} 
-                    alt={currentPerspective.name}
-                    className="prism-avatar"
-                    onError={() => handleAvatarError(`main_${currentPerspective.name}`)}
-                  />
-                ) : (
-                  <span className="prism-avatar-emoji">{currentPerspective.emoji}</span>
-                )}
+                {renderAvatar(currentPerspective, 'main', 'prism-avatar')}
                 <span className="prism-label">棱镜深度 · {currentPerspective.name} 独家解读</span>
                 <span className="ai-generated-badge" title="由AI基于角色人设动态生成">⚡ AI 深度</span>
                 {attitudeCfg && (
@@ -393,16 +396,7 @@ function ContentDetail() {
                       onClick={() => isActive ? handleResetPerspective() : handleSwitchPerspective(p)}
                     >
                       <div className="other-persp-name">
-                        {p.local_image && !avatarErrors[avatarKey] ? (
-                          <img 
-                            src={getLocalImagePath(p.local_image)} 
-                            alt={p.name}
-                            className="other-persp-avatar"
-                            onError={() => handleAvatarError(avatarKey)}
-                          />
-                        ) : (
-                          <span className="other-persp-emoji">{p.emoji}</span>
-                        )}
+                        {renderAvatar(p, avatarKey, 'other-persp-avatar')}
                         <span className="other-persp-name-text">{p.name}</span>
                         <span className="other-persp-attitude" style={{ color: pCfg.color, background: pCfg.bg }}>
                           {pCfg.icon}
@@ -425,6 +419,10 @@ function ContentDetail() {
             <button className="action-btn" onClick={() => setShowSharePoster(true)}>
               <span className="action-icon">⌘</span>
               <span>生成海报</span>
+            </button>
+            <button className="action-btn action-btn-roundtable" onClick={() => setShowRoundtable(true)}>
+              <span className="action-icon">❖</span>
+              <span>棱镜圆桌会</span>
             </button>
             <button className="action-btn" onClick={handleShare}>
               <span className="action-icon">⇗</span>
@@ -489,6 +487,12 @@ function ContentDetail() {
           opinion={perspectiveOpinion}
           newsTitle={content?.title}
           onClose={() => setShowSharePoster(false)}
+        />
+      )}
+
+      {showRoundtable && (
+        <PrismRoundtable
+          onClose={() => setShowRoundtable(false)}
         />
       )}
 

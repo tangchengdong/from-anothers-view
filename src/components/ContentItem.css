@@ -149,9 +149,10 @@
 .opinion-avatar {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: 4px;
   object-fit: cover;
-  border: 2px solid var(--paper-accent);
+  object-position: top center;
+  border: 1px solid var(--paper-rule);
   flex-shrink: 0;
 }
 

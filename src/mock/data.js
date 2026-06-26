@@ -1586,6 +1586,13 @@ export function getMultiPerspectiveNews(perspectives, count = 6) {
   })
 }
 
+export function getHotNewsRanking(count = 10) {
+  const allNews = [...NORMALIZED_MOCK_NEWS, ...NORMALIZED_REAL_NEWS]
+  const hotNews = allNews.filter(n => n.hot || n.views > 30000)
+  const sorted = hotNews.sort((a, b) => (b.views || 0) - (a.views || 0))
+  return sorted.slice(0, count)
+}
+
 export { RARITY_CONFIG, getLocalImagePath, getCardImagePath, NEWS_CATEGORIES, generateOpinion, generateDeepOpinion }
 
 function generateMockArticleContent(template, perspective = null) {

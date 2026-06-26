@@ -49,6 +49,7 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  word-break: break-word;
 }
 
 .title-decoration {
@@ -181,6 +182,8 @@
   line-height: 1.4;
   margin: 0 0 0.75rem;
   color: var(--paper-ink);
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .comparison-news-meta {
@@ -191,6 +194,7 @@
   font-family: var(--font-serif);
   margin-bottom: 0.75rem;
   letter-spacing: 0.05em;
+  flex-wrap: wrap;
 }
 
 .meta-source {
@@ -204,6 +208,7 @@
   color: var(--paper-ink-secondary);
   margin: 0;
   font-family: var(--font-sans);
+  word-break: break-word;
 }
 
 .opinions-grid {
@@ -308,18 +313,21 @@
 }
 
 .chip-avatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
   object-fit: cover;
+  object-position: top center;
   vertical-align: middle;
+  border: 1px solid var(--paper-rule);
 }
 
 .opinion-card-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
   object-fit: cover;
+  object-position: top center;
   border: 2px solid var(--paper-rule);
   flex-shrink: 0;
 }
@@ -337,6 +345,7 @@
   margin: 0;
   font-family: var(--font-serif);
   font-style: italic;
+  word-break: break-word;
 }
 
 .read-more-btn {
@@ -537,6 +546,7 @@
   padding: 0.6rem 0.85rem;
   font-size: 0.85rem;
   font-family: var(--font-serif);
+  word-break: break-word;
 }
 
 .consensus-item {
@@ -729,8 +739,8 @@
   }
 
   .opinion-card-avatar {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
 
   .opinion-name {
@@ -780,7 +790,6 @@
   }
 }
 
-/* 增强五连抽对比视觉效果 */
 .opinion-card {
   position: relative;
   overflow: hidden;
@@ -819,7 +828,6 @@
   transform: scale(0.98);
 }
 
-/* 态度颜色增强 */
 .opinion-card.attitude-positive {
   border-left-color: #2D8B5F;
   --card-accent: #2D8B5F;
@@ -835,7 +843,6 @@
   --card-accent: #8B7355;
 }
 
-/* 碰撞感视觉效果 - 高碰撞度时 */
 .comparison-content.high-collision::before {
   animation: collisionPulse 2s ease-in-out infinite;
 }

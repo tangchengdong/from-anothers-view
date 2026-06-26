@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { getLocalImagePath } from '../mock/data'
+import { getLocalImagePath, getCardImagePath } from '../mock/data'
 import './SharePoster.css'
 
 const RARITY_LABELS = {
@@ -139,10 +139,24 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
     ctx.fillText(issueNum, W - 55, 60)
 
     let characterImg = null
+    let isCardImage = false
+    
+    const cardImgPath = perspective?.card_image ? getCardImagePath(perspective.card_image) : null
     const localImgPath = perspective?.local_image ? getLocalImagePath(perspective.local_image) : null
-    if (localImgPath) {
+    
+    if (cardImgPath) {
+      try {
+        characterImg = await loadImage(cardImgPath)
+        isCardImage = true
+      } catch (e) {
+        characterImg = null
+      }
+    }
+    
+    if (!characterImg && localImgPath) {
       try {
         characterImg = await loadImage(localImgPath)
+        isCardImage = false
       } catch (e) {
         characterImg = null
       }
@@ -169,7 +183,20 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
 
     if (characterImg) {
       const imgSize = avatarRadius * 2
-      ctx.drawImage(characterImg, W / 2 - avatarRadius, avatarCenterY - avatarRadius, imgSize, imgSize)
+      if (isCardImage) {
+        const sourceSize = Math.min(characterImg.width, characterImg.height)
+        const sourceX = (characterImg.width - sourceSize) / 2
+        const sourceY = 0
+        ctx.drawImage(
+          characterImg,
+          sourceX, sourceY,
+          sourceSize, sourceSize,
+          W / 2 - avatarRadius, avatarCenterY - avatarRadius,
+          imgSize, imgSize
+        )
+      } else {
+        ctx.drawImage(characterImg, W / 2 - avatarRadius, avatarCenterY - avatarRadius, imgSize, imgSize)
+      }
     } else {
       ctx.fillStyle = 'rgba(45, 37, 32, 0.9)'
       ctx.fillRect(W / 2 - avatarRadius, avatarCenterY - avatarRadius, avatarRadius * 2, avatarRadius * 2)

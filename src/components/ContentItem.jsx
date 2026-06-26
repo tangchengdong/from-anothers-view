@@ -2,14 +2,14 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import { analyzeAttitude, extractKeywords, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
-import { getLocalImagePath } from '../mock/data'
+import { getLocalImagePath, getCardImagePath } from '../mock/data'
 import './ContentItem.css'
 
 function ContentItem({ content, index, perspective: perspectiveProp }) {
   const navigate = useNavigate()
   const { selectedPerspectives } = useAppStore()
   const [imgError, setImgError] = useState(false)
-  const [avatarError, setAvatarError] = useState(false)
+  const [avatarError, setAvatarError] = useState({})
 
   const perspective = perspectiveProp || (selectedPerspectives?.length === 1 ? selectedPerspectives[0] : (selectedPerspectives?.[0] || null))
 
@@ -19,6 +19,38 @@ function ContentItem({ content, index, perspective: perspectiveProp }) {
 
   const handleImageError = () => {
     setImgError(true)
+  }
+
+  const handleAvatarError = (key) => {
+    setAvatarError(prev => ({ ...prev, [key]: true }))
+  }
+
+  const getAvatarUrl = (p) => {
+    const cardKey = `card_${p.local_image}`
+    const localKey = `local_${p.local_image}`
+    
+    if (p.card_image && !avatarError[cardKey]) {
+      return { url: getCardImagePath(p.card_image), isCard: true, key: cardKey }
+    }
+    if (p.local_image && !avatarError[localKey]) {
+      return { url: getLocalImagePath(p.local_image), isCard: false, key: localKey }
+    }
+    return null
+  }
+
+  const renderAvatar = (p) => {
+    const avatar = getAvatarUrl(p)
+    if (avatar) {
+      return (
+        <img 
+          src={avatar.url} 
+          alt={p.name}
+          className="opinion-avatar"
+          onError={() => handleAvatarError(avatar.key)}
+        />
+      )
+    }
+    return <span className="opinion-emoji">{p.emoji}</span>
   }
 
   const imageUrl = content.image_url || content.image
@@ -54,16 +86,7 @@ function ContentItem({ content, index, perspective: perspectiveProp }) {
             <div className="opinion-header">
               <span className="opinion-label">
                 <span className="opinion-icon-diamond">◈</span>
-                {perspective.local_image && !avatarError ? (
-                  <img 
-                    src={getLocalImagePath(perspective.local_image)} 
-                    alt={perspective.name}
-                    className="opinion-avatar"
-                    onError={() => setAvatarError(true)}
-                  />
-                ) : (
-                  <span className="opinion-emoji">{perspective.emoji}</span>
-                )}
+                {renderAvatar(perspective)}
                 <span className="opinion-name">{perspective.name}</span>
               </span>
               {attitudeCfg && (

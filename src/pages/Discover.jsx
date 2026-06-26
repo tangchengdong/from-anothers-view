@@ -8,6 +8,8 @@ import PerspectivePicker from '../components/PerspectivePicker'
 import PerspectiveComparison from '../components/PerspectiveComparison'
 import SharePoster from '../components/SharePoster'
 import BreakthroughToast from '../components/BreakthroughToast'
+import HotNewsRanking from '../components/HotNewsRanking'
+import PrismRoundtable from '../components/PrismRoundtable'
 import { MOCK_ROLES } from '../mock/data'
 import './Discover.css'
 
@@ -50,6 +52,7 @@ function Discover() {
   const { selectedPerspectives, itemsPerPerspective, setSelectedPerspectives, setSubcategory, resetSelection, readCount } = useAppStore()
   const [showPickerModal, setShowPickerModal] = useState(false)
   const [showSharePoster, setShowSharePoster] = useState(false)
+  const [showRoundtable, setShowRoundtable] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [weather] = useState(formatWeather())
@@ -171,74 +174,79 @@ function Discover() {
       )}
 
       {hasContent && (
-        <>
-          {isLargeScreen ? (
-            <div className="multi-perspective-container">
-              {isMultiPerspective && (
+        <div className="discover-main-layout">
+          <aside className="discover-sidebar">
+            <HotNewsRanking />
+          </aside>
+          <main className="discover-main-content">
+            {isLargeScreen ? (
+              <div className="multi-perspective-container">
+                {isMultiPerspective && (
+                  <PerspectiveComparison 
+                    perspectives={selectedPerspectives} 
+                    onHighlightedPerspectiveChange={setHighlightedPerspective} 
+                  />
+                )}
+                <div className="perspective-columns">
+                  {displayPerspectives.map((perspective, idx) => {
+                    const isAdditional = !highlightedPerspective && idx >= selectedPerspectives.length
+                    return (
+                      <div key={`${perspective.name}-${idx}`} className={`perspective-section ${isAdditional ? 'perspective-section-additional' : ''}`}>
+                        <PerspectiveSummary perspective={perspective} compact={true} />
+                        <StreamFeed
+                          perspective={perspective}
+                          subcategory={null}
+                          onSubcategoryChange={handleSubcategoryChange}
+                          limit={itemsPerPerspective}
+                          sectionTitle={`${perspective.emoji} ${perspective.name} 专栏`}
+                        />
+                        {isAdditional && (
+                          <div className="perspective-additional-badge">
+                            随机推荐
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : isMultiPerspective ? (
+              <div className="multi-perspective-container">
                 <PerspectiveComparison 
                   perspectives={selectedPerspectives} 
                   onHighlightedPerspectiveChange={setHighlightedPerspective} 
                 />
-              )}
-              <div className="perspective-columns">
-                {displayPerspectives.map((perspective, idx) => {
-                  const isAdditional = !highlightedPerspective && idx >= selectedPerspectives.length
-                  return (
-                    <div key={`${perspective.name}-${idx}`} className={`perspective-section ${isAdditional ? 'perspective-section-additional' : ''}`}>
-                      <PerspectiveSummary perspective={perspective} compact={true} />
-                      <StreamFeed
-                        perspective={perspective}
-                        subcategory={null}
-                        onSubcategoryChange={handleSubcategoryChange}
-                        limit={itemsPerPerspective}
-                        sectionTitle={`${perspective.emoji} ${perspective.name} 专栏`}
-                      />
-                      {isAdditional && (
-                        <div className="perspective-additional-badge">
-                          随机推荐
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
+                <div className="perspective-columns">
+                  {displayPerspectives.map((perspective, idx) => {
+                    const isAdditional = !highlightedPerspective && idx >= selectedPerspectives.length
+                    return (
+                      <div key={idx} className="perspective-section">
+                        <PerspectiveSummary perspective={perspective} compact={true} />
+                        <StreamFeed
+                          perspective={perspective}
+                          subcategory={null}
+                          onSubcategoryChange={handleSubcategoryChange}
+                          limit={itemsPerPerspective}
+                          sectionTitle={`${perspective.emoji} ${perspective.name} 专栏`}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          ) : isMultiPerspective ? (
-            <div className="multi-perspective-container">
-              <PerspectiveComparison 
-                perspectives={selectedPerspectives} 
-                onHighlightedPerspectiveChange={setHighlightedPerspective} 
-              />
-              <div className="perspective-columns">
-                {displayPerspectives.map((perspective, idx) => {
-                  const isAdditional = !highlightedPerspective && idx >= selectedPerspectives.length
-                  return (
-                    <div key={idx} className="perspective-section">
-                      <PerspectiveSummary perspective={perspective} compact={true} />
-                      <StreamFeed
-                        perspective={perspective}
-                        subcategory={null}
-                        onSubcategoryChange={handleSubcategoryChange}
-                        limit={itemsPerPerspective}
-                        sectionTitle={`${perspective.emoji} ${perspective.name} 专栏`}
-                      />
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          ) : (
-            <>
-              <PerspectiveSummary perspective={firstPerspective} compact={true} />
-              <StreamFeed
-                perspective={firstPerspective}
-                subcategory={null}
-                onSubcategoryChange={handleSubcategoryChange}
-                limit={itemsPerPerspective}
-              />
-            </>
-          )}
-        </>
+            ) : (
+              <>
+                <PerspectiveSummary perspective={firstPerspective} compact={true} />
+                <StreamFeed
+                  perspective={firstPerspective}
+                  subcategory={null}
+                  onSubcategoryChange={handleSubcategoryChange}
+                  limit={itemsPerPerspective}
+                />
+              </>
+            )}
+          </main>
+        </div>
       )}
 
       {showPickerModal && (
@@ -265,6 +273,21 @@ function Discover() {
         readCount={readCount}
         perspectives={selectedPerspectives}
       />
+
+      {showRoundtable && (
+        <PrismRoundtable
+          onClose={() => setShowRoundtable(false)}
+        />
+      )}
+
+      <button
+        className="roundtable-fab"
+        onClick={() => setShowRoundtable(true)}
+        aria-label="棱镜圆桌会"
+      >
+        <span className="fab-icon">❖</span>
+        <span className="fab-text">圆桌会</span>
+      </button>
 
       {showBackToTop && (
         <button

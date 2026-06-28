@@ -31,6 +31,9 @@ function Header() {
           </div>
         </Link>
         <div className="header-actions">
+          <Link to="/mind-palace" className="mind-palace-header-btn">
+            🏛️ 思维殿堂
+          </Link>
           <button className="debate-header-btn" onClick={() => window.dispatchEvent(new CustomEvent('open-debate-room'))}>
             ⚖️ 辩论室
           </button>

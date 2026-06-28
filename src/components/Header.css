@@ -106,6 +106,32 @@
   gap: 0.75rem;
 }
 
+.mind-palace-header-btn {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  color: #b8860b;
+  background: transparent;
+  border: 2px solid #daa520;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+}
+
+.mind-palace-header-btn:hover {
+  background: linear-gradient(135deg, #ffd700 0%, #daa520 100%);
+  color: #1a1525;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
 .debate-header-btn {
   padding: 8px 16px;
   font-size: 0.85rem;

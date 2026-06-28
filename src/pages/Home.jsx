@@ -10,10 +10,21 @@ function Home() {
   const { setSelectedPerspectives, readCount } = useAppStore()
   const navigate = useNavigate()
   const [showBackToTop, setShowBackToTop] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(true)
 
   const handlePerspectiveSelect = (perspectives, itemsCount = 20) => {
     setSelectedPerspectives(perspectives, itemsCount)
     navigate('/discover')
+  }
+
+  const handleOnboardingStart = () => {
+    setShowOnboarding(false)
+    setTimeout(() => {
+      window.scrollTo({
+        top: window.innerHeight * 0.6,
+        behavior: 'smooth'
+      })
+    }, 200)
   }
 
   useEffect(() => {
@@ -30,7 +41,7 @@ function Home() {
 
   return (
     <div className="home-page">
-      <OnboardingOverlay />
+      {showOnboarding && <OnboardingOverlay onStart={handleOnboardingStart} />}
 
       <div className="home-hero">
         <div className="hero-brand">

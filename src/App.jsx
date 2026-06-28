@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAppStore } from './store/useAppStore'
 import Header from './components/Header'
@@ -7,17 +7,25 @@ import Home from './pages/Home'
 import Discover from './pages/Discover'
 import ContentDetail from './pages/ContentDetail'
 import SearchResults from './pages/SearchResults'
+import DebateRoom from './components/DebateRoom'
 import './App.css'
 
 function App() {
   const location = useLocation()
   const { selectedPerspectives } = useAppStore()
   const isHome = location.pathname === '/'
+  const [showDebateRoom, setShowDebateRoom] = useState(false)
 
   useEffect(() => {
     document.body.classList.remove('paper-theme', 'dark-theme')
     document.body.classList.add('paper-theme')
   }, [isHome])
+
+  useEffect(() => {
+    const handleOpenDebate = () => setShowDebateRoom(true)
+    window.addEventListener('open-debate-room', handleOpenDebate)
+    return () => window.removeEventListener('open-debate-room', handleOpenDebate)
+  }, [])
 
   const hasPerspectives = selectedPerspectives && selectedPerspectives.length > 0
 
@@ -38,6 +46,7 @@ function App() {
         </Routes>
       </main>
       {!isHome && <Footer />}
+      {showDebateRoom && <DebateRoom onClose={() => setShowDebateRoom(false)} />}
     </div>
   )
 }

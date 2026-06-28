@@ -30,11 +30,16 @@ function Header() {
             </h1>
           </div>
         </Link>
-        {!isHome && (
-          <button className="redraw-header-btn" onClick={handleRedraw}>
-            ✦ 重新抽卡
+        <div className="header-actions">
+          <button className="debate-header-btn" onClick={() => window.dispatchEvent(new CustomEvent('open-debate-room'))}>
+            ⚖️ 辩论室
           </button>
-        )}
+          {!isHome && (
+            <button className="redraw-header-btn" onClick={handleRedraw}>
+              ✦ 重新抽卡
+            </button>
+          )}
+        </div>
       </div>
     </header>
   )

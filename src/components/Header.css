@@ -100,6 +100,37 @@
   50% { background-position: 100% 50%; }
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.debate-header-btn {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  color: var(--paper-accent);
+  background: transparent;
+  border: 2px solid var(--paper-accent);
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.debate-header-btn:hover {
+  background: var(--paper-accent);
+  color: var(--paper-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 38, 53, 0.3);
+}
+
 .redraw-header-btn {
   padding: 8px 20px;
   font-size: 0.85rem;

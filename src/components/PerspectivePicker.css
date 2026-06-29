@@ -1886,3 +1886,37 @@
     font-size: 0.6rem;
   }
 }
+
+.card-back.attention-pulse {
+  animation: cardAttentionPulse 0.9s ease-out;
+}
+
+.card-back.attention-pulse::after {
+  opacity: 1;
+  animation: cardAttentionGlow 0.9s ease-out;
+}
+
+@keyframes cardAttentionPulse {
+  0% {
+    box-shadow: 0 6px 20px rgba(139, 38, 53, 0.3);
+    transform: scale(1);
+  }
+  30% {
+    box-shadow: 0 0 0 8px rgba(139, 38, 53, 0.25), 0 10px 30px rgba(139, 38, 53, 0.5);
+    transform: scale(1.05);
+  }
+  60% {
+    box-shadow: 0 0 0 16px rgba(139, 38, 53, 0.1), 0 8px 24px rgba(139, 38, 53, 0.35);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 6px 20px rgba(139, 38, 53, 0.3);
+    transform: scale(1);
+  }
+}
+
+@keyframes cardAttentionGlow {
+  0% { opacity: 0; }
+  40% { opacity: 1; }
+  100% { opacity: 0; }
+}

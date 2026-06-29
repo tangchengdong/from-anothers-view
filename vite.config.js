@@ -7,5 +7,17 @@ export default defineConfig(({ command }) => ({
   server: {
     port: 3000,
     strictPort: true
+  },
+  build: {
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'state-vendor': ['zustand'],
+          'http-vendor': ['axios']
+        }
+      }
+    }
   }
 }))

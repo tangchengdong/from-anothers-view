@@ -12,12 +12,22 @@ function Header() {
   const handleLogoClick = (e) => {
     e.preventDefault()
     resetSelection()
-    navigate('/')
+    if (isHome) {
+      window.dispatchEvent(new CustomEvent('prism-reset-onboarding'))
+    } else {
+      navigate('/')
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('prism-reset-onboarding'))
+      }, 50)
+    }
   }
 
   const handleRedraw = () => {
     resetSelection()
     navigate('/')
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('prism-reset-onboarding'))
+    }, 50)
   }
 
   return (

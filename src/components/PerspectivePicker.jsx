@@ -524,7 +524,7 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
                 ) : (
                   <>
                     <button className="select-drawn-btn primary" onClick={handleSelectSingle}>
-                      就用这个视角
+                      用「{drawnCard.name}」看世界
                     </button>
                     <button className="redraw-btn" onClick={handleSingleDraw} disabled={isDrawing}>
                       再来一张

@@ -164,9 +164,12 @@ function DebateRoom({ onClose }) {
   const renderNewsSelect = () => (
     <div className="debate-news-select">
       <div className="debate-phase-header">
-        <div className="phase-badge">第一步</div>
+        <div className="phase-label">
+          <span className="label-num">壹</span>
+          <span className="label-text">选题</span>
+        </div>
         <h2 className="phase-title">选择辩论话题</h2>
-        <p className="phase-desc">挑选一则热点新闻，开启正反方精彩辩论</p>
+        <p className="phase-desc font-serif">挑选一则热点新闻，开启正反方精彩辩论</p>
       </div>
 
       <div className="news-list">
@@ -177,19 +180,21 @@ function DebateRoom({ onClose }) {
             onClick={() => handleNewsSelect(news)}
           >
             <div className="news-rank">
-              <span className={`rank-number rank-${Math.min(index + 1, 3)}`}>{index + 1}</span>
+              <span className={`rank-badge rank-${Math.min(index + 1, 3)}`}>
+                {index + 1}
+              </span>
             </div>
-            <div className="news-info">
-              <h3 className="news-title">{news.title}</h3>
+            <div className="news-body">
+              <h3 className="news-title font-serif">{news.title}</h3>
               <div className="news-meta">
                 <span className="news-source">{news.source}</span>
-                <span className="news-dot">·</span>
-                <span className="news-views">🔥 {formatViews(news.views)}热度</span>
+                <span className="meta-divider">·</span>
+                <span className="news-views">{formatViews(news.views)} 热度</span>
               </div>
             </div>
             <div className="news-action">
-              <span className="action-icon">⚔️</span>
-              <span className="action-text">开战</span>
+              <span className="action-text">选题</span>
+              <span className="action-arrow">→</span>
             </div>
           </div>
         ))}
@@ -200,48 +205,54 @@ function DebateRoom({ onClose }) {
   const renderRoleSelect = () => (
     <div className="debate-role-select">
       <div className="debate-phase-header">
-        <div className="phase-badge">第二步</div>
+        <div className="phase-label">
+          <span className="label-num">贰</span>
+          <span className="label-text">点将</span>
+        </div>
         <h2 className="phase-title">选择辩论阵容</h2>
-        <p className="phase-desc">
-          当前选择：
-          <span className="current-side pro">正方 {DEBATE_ROLES[currentSlot].label}</span>
-          {currentSide === 'con' && <span className="current-side con">反方 {DEBATE_ROLES[currentSlot].label}</span>}
+        <p className="phase-desc font-serif">
+          当前：
+          <span className={`current-side ${currentSide}`}>
+            {currentSide === 'pro' ? '正方' : '反方'} · {DEBATE_ROLES[currentSlot].label}
+          </span>
         </p>
       </div>
 
       <div className="debate-arena">
-        <div className="team-section pro-team">
-          <div className="team-label pro">
-            <span className="team-icon">🔵</span>
+        <div className="team-column pro-column">
+          <div className="team-header pro">
+            <span className="team-mark">正</span>
             <span className="team-name">正方</span>
           </div>
-          <div className="team-slots">
+          <div className="team-roster">
             {DEBATE_ROLES.map((pos, idx) => (
               <div
                 key={idx}
-                className={`role-slot ${proTeam[idx] ? 'filled' : ''} ${currentSide === 'pro' && currentSlot === idx ? 'active' : ''}`}
+                className={`roster-slot ${proTeam[idx] ? 'filled' : ''} ${currentSide === 'pro' && currentSlot === idx ? 'active' : ''}`}
                 onClick={() => handleSlotClick('pro', idx)}
               >
-                <div className="slot-position">{pos.label}</div>
-                <div className="slot-role">{pos.role}</div>
+                <div className="slot-position">
+                  <span className="pos-label">{pos.label}</span>
+                  <span className="pos-role">{pos.role}</span>
+                </div>
                 {proTeam[idx] ? (
-                  <div className="slot-avatar-wrapper">
+                  <div className="slot-avatar">
                     {getAvatarUrl(proTeam[idx]) ? (
                       <img
                         src={getAvatarUrl(proTeam[idx]).url}
                         alt={proTeam[idx].name}
-                        className="slot-avatar"
+                        className="avatar-img"
                         onError={() => handleAvatarError(getAvatarUrl(proTeam[idx]).key)}
                       />
                     ) : (
-                      <span className="slot-emoji">{proTeam[idx].emoji}</span>
+                      <span className="avatar-emoji">{proTeam[idx].emoji}</span>
                     )}
-                    <div className="slot-name">{proTeam[idx].name}</div>
+                    <span className="avatar-name">{proTeam[idx].name}</span>
                   </div>
                 ) : (
                   <div className="slot-empty">
-                    <span className="empty-icon">+</span>
-                    <span className="empty-text">点击选择</span>
+                    <span className="empty-plus">+</span>
+                    <span className="empty-text">待选</span>
                   </div>
                 )}
               </div>
@@ -249,46 +260,52 @@ function DebateRoom({ onClose }) {
           </div>
         </div>
 
-        <div className="vs-divider">
-          <div className="vs-text">VS</div>
-          <div className="vs-topic">
-            <div className="topic-label">辩题</div>
-            <div className="topic-text">{selectedNews?.title}</div>
+        <div className="arena-center">
+          <div className="vs-container">
+            <div className="vs-line top" />
+            <div className="vs-text">辩</div>
+            <div className="vs-line bottom" />
+          </div>
+          <div className="topic-display">
+            <span className="topic-label">辩题</span>
+            <p className="topic-text font-serif">{selectedNews?.title}</p>
           </div>
         </div>
 
-        <div className="team-section con-team">
-          <div className="team-label con">
-            <span className="team-icon">🔴</span>
+        <div className="team-column con-column">
+          <div className="team-header con">
+            <span className="team-mark">反</span>
             <span className="team-name">反方</span>
           </div>
-          <div className="team-slots">
+          <div className="team-roster">
             {DEBATE_ROLES.map((pos, idx) => (
               <div
                 key={idx}
-                className={`role-slot ${conTeam[idx] ? 'filled' : ''} ${currentSide === 'con' && currentSlot === idx ? 'active' : ''}`}
+                className={`roster-slot ${conTeam[idx] ? 'filled' : ''} ${currentSide === 'con' && currentSlot === idx ? 'active' : ''}`}
                 onClick={() => handleSlotClick('con', idx)}
               >
-                <div className="slot-position">{pos.label}</div>
-                <div className="slot-role">{pos.role}</div>
+                <div className="slot-position">
+                  <span className="pos-label">{pos.label}</span>
+                  <span className="pos-role">{pos.role}</span>
+                </div>
                 {conTeam[idx] ? (
-                  <div className="slot-avatar-wrapper">
+                  <div className="slot-avatar">
                     {getAvatarUrl(conTeam[idx]) ? (
                       <img
                         src={getAvatarUrl(conTeam[idx]).url}
                         alt={conTeam[idx].name}
-                        className="slot-avatar"
+                        className="avatar-img"
                         onError={() => handleAvatarError(getAvatarUrl(conTeam[idx]).key)}
                       />
                     ) : (
-                      <span className="slot-emoji">{conTeam[idx].emoji}</span>
+                      <span className="avatar-emoji">{conTeam[idx].emoji}</span>
                     )}
-                    <div className="slot-name">{conTeam[idx].name}</div>
+                    <span className="avatar-name">{conTeam[idx].name}</span>
                   </div>
                 ) : (
                   <div className="slot-empty">
-                    <span className="empty-icon">+</span>
-                    <span className="empty-text">点击选择</span>
+                    <span className="empty-plus">+</span>
+                    <span className="empty-text">待选</span>
                   </div>
                 )}
               </div>
@@ -299,8 +316,8 @@ function DebateRoom({ onClose }) {
 
       <div className="role-pool">
         <div className="pool-header">
-          <span className="pool-title">🎯 角色池</span>
-          <span className="pool-hint">点击角色添加到当前位置</span>
+          <span className="pool-title">角色池</span>
+          <span className="pool-hint font-serif">点击角色添加到当前位置</span>
         </div>
         <div className="pool-grid">
           {availableRoles.map((role, idx) => {
@@ -309,27 +326,26 @@ function DebateRoom({ onClose }) {
             return (
               <div
                 key={idx}
-                className={`pool-role-card ${isSelected ? 'selected' : ''}`}
+                className={`pool-card ${isSelected ? 'selected' : ''}`}
                 onClick={() => !isSelected && handleRoleSelect(role)}
               >
-                <div className="role-card-glow" style={{ boxShadow: isSelected ? 'none' : `0 0 20px ${role.color}40` }} />
-                <div className="role-card-avatar">
+                <div className="card-portrait">
                   {getAvatarUrl(role) ? (
                     <img
                       src={getAvatarUrl(role).url}
                       alt={role.name}
-                      className="role-avatar-img"
+                      className="portrait-img"
                       onError={() => handleAvatarError(getAvatarUrl(role).key)}
                     />
                   ) : (
-                    <span className="role-avatar-emoji">{role.emoji}</span>
+                    <span className="portrait-emoji">{role.emoji}</span>
                   )}
                 </div>
-                <div className="role-card-info">
-                  <div className="role-card-name">{role.name}</div>
-                  <div className="role-card-desc">{role.description}</div>
+                <div className="card-info">
+                  <span className="card-name" style={{ color: role.color }}>{role.name}</span>
+                  <span className="card-desc">{role.description}</span>
                 </div>
-                {isSelected && <div className="role-selected-check">✓</div>}
+                {isSelected && <div className="card-check">已选</div>}
               </div>
             )
           })}
@@ -337,92 +353,96 @@ function DebateRoom({ onClose }) {
       </div>
 
       <div className="debate-actions">
-        <button className="action-btn back-btn" onClick={() => setPhase('news-select')}>
-          ← 返回选话题
+        <button className="action-btn secondary" onClick={() => setPhase('news-select')}>
+          ← 返回选题
         </button>
         <button
-          className={`action-btn start-btn ${canStartDebate() ? 'ready' : ''}`}
+          className={`action-btn primary ${canStartDebate() ? 'ready' : ''}`}
           onClick={startDebate}
           disabled={!canStartDebate()}
         >
-          {canStartDebate() ? '⚔️ 开始辩论' : `请选择${currentSide === 'pro' ? '正方' : '反方'}${DEBATE_ROLES[currentSlot].label}`}
+          {canStartDebate() ? '开 始 辩 论' : `请选择${currentSide === 'pro' ? '正方' : '反方'}${DEBATE_ROLES[currentSlot].label}`}
         </button>
       </div>
     </div>
   )
 
   const renderDebate = () => (
-    <div className="debate-arena-phase">
-      <div className="debate-header">
-        <div className="debate-topic-display">
-          <span className="topic-badge">📢 辩题</span>
-          <h2 className="topic-main">{selectedNews?.title}</h2>
+    <div className="debate-live">
+      <div className="live-header">
+        <div className="live-topic">
+          <span className="topic-tag">辩题</span>
+          <h2 className="topic-main font-serif">{selectedNews?.title}</h2>
         </div>
       </div>
 
-      <div className="debate-stage">
-        <div className="stage-team pro-stage">
-          <div className="stage-team-header">
-            <span className="stage-team-icon">🔵</span>
-            <span className="stage-team-name">正方</span>
+      <div className="live-stage">
+        <div className="stage-side pro-side">
+          <div className="side-label pro">
+            <span className="label-mark">正</span>
+            <span className="label-name">正方</span>
           </div>
-          <div className="stage-debaters">
+          <div className="side-debaters">
             {proTeam.map((role, idx) => (
               <div
                 key={idx}
-                className={`stage-debater ${currentSpeaker !== null && debateMessages[currentSpeaker]?.side === 'pro' && debateMessages[currentSpeaker]?.position === idx ? 'speaking' : ''}`}
+                className={`debater-item ${currentSpeaker !== null && debateMessages[currentSpeaker]?.side === 'pro' && debateMessages[currentSpeaker]?.position === idx ? 'speaking' : ''}`}
               >
-                <div className="debater-avatar-ring">
+                <div className="debater-portrait">
                   {getAvatarUrl(role) ? (
                     <img
                       src={getAvatarUrl(role).url}
                       alt={role.name}
-                      className="debater-avatar"
+                      className="debater-img"
                       onError={() => handleAvatarError(getAvatarUrl(role).key)}
                     />
                   ) : (
                     <span className="debater-emoji">{role.emoji}</span>
                   )}
+                  <div className="speaking-indicator" />
                 </div>
-                <div className="debater-info">
-                  <div className="debater-pos">{DEBATE_ROLES[idx].label}</div>
-                  <div className="debater-name">{role.name}</div>
+                <div className="debater-meta">
+                  <span className="debater-pos">{DEBATE_ROLES[idx].label}</span>
+                  <span className="debater-name">{role.name}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="stage-center">
-          <div className="vs-glow">VS</div>
+        <div className="stage-middle">
+          <div className="middle-vs">
+            <span className="vs-char">辩</span>
+          </div>
         </div>
 
-        <div className="stage-team con-stage">
-          <div className="stage-team-header">
-            <span className="stage-team-icon">🔴</span>
-            <span className="stage-team-name">反方</span>
+        <div className="stage-side con-side">
+          <div className="side-label con">
+            <span className="label-mark">反</span>
+            <span className="label-name">反方</span>
           </div>
-          <div className="stage-debaters">
+          <div className="side-debaters">
             {conTeam.map((role, idx) => (
               <div
                 key={idx}
-                className={`stage-debater ${currentSpeaker !== null && debateMessages[currentSpeaker]?.side === 'con' && debateMessages[currentSpeaker]?.position === idx ? 'speaking' : ''}`}
+                className={`debater-item ${currentSpeaker !== null && debateMessages[currentSpeaker]?.side === 'con' && debateMessages[currentSpeaker]?.position === idx ? 'speaking' : ''}`}
               >
-                <div className="debater-avatar-ring">
+                <div className="debater-portrait">
                   {getAvatarUrl(role) ? (
                     <img
                       src={getAvatarUrl(role).url}
                       alt={role.name}
-                      className="debater-avatar"
+                      className="debater-img"
                       onError={() => handleAvatarError(getAvatarUrl(role).key)}
                     />
                   ) : (
                     <span className="debater-emoji">{role.emoji}</span>
                   )}
+                  <div className="speaking-indicator" />
                 </div>
-                <div className="debater-info">
-                  <div className="debater-pos">{DEBATE_ROLES[idx].label}</div>
-                  <div className="debater-name">{role.name}</div>
+                <div className="debater-meta">
+                  <span className="debater-pos">{DEBATE_ROLES[idx].label}</span>
+                  <span className="debater-name">{role.name}</span>
                 </div>
               </div>
             ))}
@@ -430,56 +450,51 @@ function DebateRoom({ onClose }) {
         </div>
       </div>
 
-      <div className="debate-chat">
-        <div className="chat-messages">
+      <div className="live-transcript">
+        <div className="transcript-header">
+          <span className="transcript-title">辩 论 实 录</span>
+          <span className="transcript-line" />
+        </div>
+        <div className="transcript-content">
           {debateMessages.slice(0, currentSpeaker + 1).map((msg, idx) => (
             <div
               key={msg.id}
-              className={`chat-message ${msg.side === 'pro' ? 'pro-message' : 'con-message'}`}
+              className={`transcript-entry ${msg.side}`}
               style={{ animationDelay: `${idx * 0.1}s` }}
             >
-              <div className="message-avatar">
-                {getAvatarUrl(msg.role) ? (
-                  <img
-                    src={getAvatarUrl(msg.role).url}
-                    alt={msg.role.name}
-                    className="msg-avatar-img"
-                    onError={() => handleAvatarError(getAvatarUrl(msg.role).key)}
-                  />
-                ) : (
-                  <span className="msg-avatar-emoji">{msg.role.emoji}</span>
-                )}
+              <div className="entry-marker">
+                <span className={`marker-side ${msg.side}`}>
+                  {msg.side === 'pro' ? '正' : '反'}
+                </span>
               </div>
-              <div className="message-content">
-                <div className="message-header">
-                  <span className={`message-side ${msg.side}`}>
-                    {msg.side === 'pro' ? '正方' : '反方'} · {DEBATE_ROLES[msg.position].label}
-                  </span>
-                  <span className="message-name">{msg.role.name}</span>
+              <div className="entry-body">
+                <div className="entry-header">
+                  <span className="entry-position">{DEBATE_ROLES[msg.position].label}</span>
+                  <span className="entry-name">{msg.role.name}</span>
                 </div>
-                <div className="message-text">{msg.speech}</div>
+                <p className="entry-text font-serif">{msg.speech}</p>
               </div>
             </div>
           ))}
           {currentSpeaker < debateMessages.length - 1 && (
-            <div className="typing-indicator">
-              <div className="typing-dots">
+            <div className="transcript-loading">
+              <span className="loading-dots">
                 <span className="dot" />
                 <span className="dot" />
                 <span className="dot" />
-              </div>
-              <span className="typing-text">下一位辩手正在准备发言...</span>
+              </span>
+              <span className="loading-text font-serif">下一位辩手正在准备...</span>
             </div>
           )}
         </div>
       </div>
 
-      <div className="debate-footer">
-        <button className="footer-btn back-btn" onClick={() => setPhase('role-select')}>
-          ← 重新选角
+      <div className="live-footer">
+        <button className="footer-btn secondary" onClick={() => setPhase('role-select')}>
+          ← 重新点将
         </button>
         {currentSpeaker >= debateMessages.length - 1 && (
-          <button className="footer-btn restart-btn" onClick={startDebate}>
+          <button className="footer-btn primary" onClick={startDebate}>
             🔄 重新辩论
           </button>
         )}
@@ -490,19 +505,23 @@ function DebateRoom({ onClose }) {
   return (
     <div className="debate-room-overlay" onClick={onClose}>
       <div className="debate-room-modal" onClick={e => e.stopPropagation()}>
-        <div className="debate-room-header">
-          <div className="debate-logo">
-            <span className="logo-icon">⚖️</span>
-            <h1 className="logo-text">棱镜辩论室</h1>
+        <div className="modal-header">
+          <div className="header-title">
+            <span className="title-ornament left">❖</span>
+            <h1 className="title-text">棱 镜 辩 论 室</h1>
+            <span className="title-ornament right">❖</span>
           </div>
-          <button className="debate-close" onClick={onClose}>✕</button>
+          <button className="header-close" onClick={onClose}>
+            <span className="close-text">关闭</span>
+            <span className="close-icon">✕</span>
+          </button>
         </div>
 
-        <div className="debate-room-content">
+        <div className="modal-body">
           {loading ? (
             <div className="debate-loading">
               <div className="loading-spinner" />
-              <p>正在准备辩论室...</p>
+              <p className="font-serif">正在准备辩论室...</p>
             </div>
           ) : phase === 'news-select' ? (
             renderNewsSelect()

@@ -2,47 +2,46 @@ const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
-const IMAGES_DIR = path.join(__dirname, 'src', 'assets', 'characters');
-const MAX_SIZE_BYTES = 200 * 1024;
-const MIN_WIDTH = 400;
+const TARGETS = [
+  { dir: path.join(__dirname, 'public', 'cards'), maxSizeKB: 120, minWidth: 480, label: 'public/cards' },
+  { dir: path.join(__dirname, 'src', 'assets', 'characters'), maxSizeKB: 80, minWidth: 300, label: 'src/assets/characters' }
+];
 
-async function compressImage(inputPath, outputPath) {
+async function compressToWebp(inputPath, outputPath, maxSizeKB, minWidth) {
   const originalSize = fs.statSync(inputPath).size;
   const metadata = await sharp(inputPath).metadata();
-  
-  let width = metadata.width;
-  let height = metadata.height;
-  
-  if (width < MIN_WIDTH) {
-    width = MIN_WIDTH;
-    height = Math.round((MIN_WIDTH / metadata.width) * metadata.height);
-  }
-  
-  let quality = 80;
+
+  let width = Math.min(metadata.width, minWidth);
+  let height = Math.round((width / metadata.width) * metadata.height);
+
+  let quality = 82;
   let outputBuffer;
   let compressedSize;
-  
+  const maxBytes = maxSizeKB * 1024;
+
+  let attempts = 0;
   do {
+    attempts++;
     outputBuffer = await sharp(inputPath)
       .resize(width, height, { fit: 'inside', withoutEnlargement: false })
       .webp({ quality, effort: 6 })
       .toBuffer();
-    
+
     compressedSize = outputBuffer.length;
-    
-    if (compressedSize > MAX_SIZE_BYTES && quality > 20) {
-      quality -= 10;
-    } else if (compressedSize > MAX_SIZE_BYTES && width > MIN_WIDTH) {
-      width = Math.round(width * 0.9);
-      height = Math.round(height * 0.9);
-      quality = 80;
+
+    if (compressedSize > maxBytes && quality > 30) {
+      quality -= 8;
+    } else if (compressedSize > maxBytes && width > 200) {
+      width = Math.round(width * 0.88);
+      height = Math.round(height * 0.88);
+      quality = 82;
     } else {
       break;
     }
-  } while (compressedSize > MAX_SIZE_BYTES && (quality > 20 || width > MIN_WIDTH));
-  
+  } while (compressedSize > maxBytes && attempts < 25 && (quality > 30 || width > 200));
+
   fs.writeFileSync(outputPath, outputBuffer);
-  
+
   return {
     originalSize,
     compressedSize,
@@ -54,59 +53,86 @@ async function compressImage(inputPath, outputPath) {
   };
 }
 
-async function main() {
-  const files = fs.readdirSync(IMAGES_DIR).filter(f => f.toLowerCase().endsWith('.png'));
-  
-  console.log(`找到 ${files.length} 张 PNG 图片\n`);
-  console.log('文件名'.padEnd(25) + '原始大小'.padStart(12) + '压缩后'.padStart(12) + '压缩率'.padStart(10) + '原始尺寸'.padStart(15) + '压缩后尺寸'.padStart(15));
-  console.log('-'.repeat(90));
-  
-  const results = [];
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+async function processDir(target) {
+  const { dir, maxSizeKB, minWidth, label } = target;
+
+  if (!fs.existsSync(dir)) {
+    console.log(`[跳过] ${label} 目录不存在: ${dir}`);
+    return { totalOriginal: 0, totalCompressed: 0, count: 0 };
+  }
+
+  const allFiles = fs.readdirSync(dir);
+  const sourceFiles = allFiles.filter(f => /\.(jpg|jpeg|png)$/i.test(f));
+  const webpFiles = allFiles.filter(f => /\.webp$/i.test(f));
+
+  console.log(`\n${'='.repeat(70)}`);
+  console.log(`处理目录: ${label}`);
+  console.log(`发现 ${sourceFiles.length} 张 JPG/PNG 源图片, 已有 ${webpFiles.length} 张 WebP`);
+  console.log(`${'='.repeat(70)}`);
+
   let totalOriginal = 0;
   let totalCompressed = 0;
-  
-  for (const file of files) {
-    const inputPath = path.join(IMAGES_DIR, file);
-    const outputFile = file.replace(/\.png$/i, '.webp');
-    const outputPath = path.join(IMAGES_DIR, outputFile);
-    
+  let count = 0;
+
+  for (const file of sourceFiles) {
+    const inputPath = path.join(dir, file);
+    const webpOutput = path.join(dir, file.replace(/\.(jpg|jpeg|png)$/i, '.webp'));
+
+    const webpExists = fs.existsSync(webpOutput);
+
     try {
-      const result = await compressImage(inputPath, outputPath);
-      results.push({ file: outputFile, ...result });
+      const result = await compressToWebp(inputPath, webpOutput, maxSizeKB, minWidth);
       totalOriginal += result.originalSize;
       totalCompressed += result.compressedSize;
-      
+      count++;
+
       const ratio = ((1 - result.compressedSize / result.originalSize) * 100).toFixed(1);
+      const status = webpExists ? '[更新]' : '[新建]';
       console.log(
-        outputFile.padEnd(25) +
-        formatSize(result.originalSize).padStart(12) +
-        formatSize(result.compressedSize).padStart(12) +
-        (ratio + '%').padStart(10) +
-        `${result.originalWidth}x${result.originalHeight}`.padStart(15) +
-        `${result.finalWidth}x${result.finalHeight}`.padStart(15)
+        `${status} ${file.padEnd(32)} ${formatSize(result.originalSize).padStart(10)} -> ${formatSize(result.compressedSize).padStart(10)} (-${ratio}%) Q${result.quality} ${result.finalWidth}x${result.finalHeight}`
       );
     } catch (err) {
       console.error(`处理 ${file} 时出错:`, err.message);
     }
   }
-  
-  console.log('-'.repeat(90));
-  const totalRatio = ((1 - totalCompressed / totalOriginal) * 100).toFixed(1);
-  console.log(
-    '总计'.padEnd(25) +
-    formatSize(totalOriginal).padStart(12) +
-    formatSize(totalCompressed).padStart(12) +
-    (totalRatio + '%').padStart(10)
-  );
-  
-  console.log('\n✓ 压缩完成！WebP 文件已保存到同一目录');
-  return results;
+
+  if (count > 0) {
+    console.log(`${'-'.repeat(70)}`);
+    const totalRatio = ((1 - totalCompressed / totalOriginal) * 100).toFixed(1);
+    console.log(
+      `[${label}] 总计: ${formatSize(totalOriginal)} -> ${formatSize(totalCompressed)} (节省 ${totalRatio}%, ${count} 张)`
+    );
+  }
+
+  return { totalOriginal, totalCompressed, count };
 }
 
-function formatSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+async function main() {
+  console.log('===== 图片批量压缩为 WebP =====');
+  console.log(`目标: 卡牌 <=120KB(480px宽), 头像 <=80KB(300px宽)`);
+
+  let grandOriginal = 0;
+  let grandCompressed = 0;
+  let grandCount = 0;
+
+  for (const target of TARGETS) {
+    const result = await processDir(target);
+    grandOriginal += result.totalOriginal;
+    grandCompressed += result.totalCompressed;
+    grandCount += result.count;
+  }
+
+  console.log(`\n${'='.repeat(70)}`);
+  console.log(`全部完成! 处理 ${grandCount} 张图片`);
+  console.log(`总大小: ${formatSize(grandOriginal)} -> ${formatSize(grandCompressed)}`);
+  const ratio = ((1 - grandCompressed / grandOriginal) * 100).toFixed(1);
+  console.log(`总体节省: ${ratio}%`);
 }
 
 main().catch(console.error);

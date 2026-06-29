@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "compress-images": "node compress-images.cjs",
     "deploy": "vite build && gh-pages -d dist"
   },
   "dependencies": {

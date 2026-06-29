@@ -14,8 +14,8 @@ import './App.css'
 function App() {
   const location = useLocation()
   const { selectedPerspectives } = useAppStore()
-  const isHome = location.pathname === '/'
-  const isMindPalace = location.pathname === '/mind-palace'
+  const isHome = location.pathname === '/' || location.pathname === ''
+  const isMindPalace = location.pathname === '/mind-palace' || location.hash === '#/mind-palace'
   const [showDebateRoom, setShowDebateRoom] = useState(false)
 
   useEffect(() => {

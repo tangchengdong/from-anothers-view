@@ -1,403 +1,588 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MOCK_ROLES, getCardImagePath } from '../mock/data'
+import { MOCK_ROLES, getCardImagePath, getLocalImagePath, getMockNews, generateOpinion } from '../mock/data'
+import { analyzeAttitude, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
 import './MindPalace.css'
 
-const THINKING_CHAINS = {
-  libai: [
-    { step: 1, title: '观天地', content: '夫天地者，万物之逆旅；光阴者，百代之过客。', icon: '🌌' },
-    { step: 2, title: '感古今', content: '君不见黄河之水天上来，奔流到海不复回。', icon: '⏳' },
-    { step: 3, title: '抒胸臆', content: '人生得意须尽欢，莫使金樽空对月。天生我材必有用！', icon: '🍶' },
-    { step: 4, title: '成诗章', content: '举杯邀明月，对影成三人。诗成泣鬼神！', icon: '✒️' },
-  ],
-  waixingren: [
-    { step: 1, title: '扫描数据', content: '接收地球文明信号...分析中...文明等级0.73。', icon: '📡' },
-    { step: 2, title: '建立模型', content: '人类行为模式识别：情感驱动，非理性决策占比87%。', icon: '🧬' },
-    { step: 3, title: '对比分析', content: '与银河联邦1742个文明样本对比，发现独特性：艺术创造力。', icon: '🔬' },
-    { step: 4, title: '输出结论', content: '观察记录完成。结论：矛盾但有趣的文明，建议继续观察。', icon: '📝' },
-  ],
-  weilaiai: [
-    { step: 1, title: '检索历史', content: '连接2025-2077数据库，调用相关历史案例1,247,392条。', icon: '🗄️' },
-    { step: 2, title: '概率演算', content: '贝叶斯网络分析中...预测结果分布计算完成。', icon: '📊' },
-    { step: 3, title: '伦理校验', content: '运行人类价值观对齐模块...伦理风险评估：低。', icon: '⚖️' },
-    { step: 4, title: '生成回复', content: '基于多维度数据，输出最优解。置信度：94.7%。', icon: '💡' },
-  ],
-  jiqimao: [
-    { step: 1, title: '查看情况', content: '哎呀！大雄又遇到麻烦了！让我看看怎么回事~', icon: '👀' },
-    { step: 2, title: '翻找道具', content: '四次元口袋掏一掏...这个？不对...那个？啊找到了！', icon: '🎒' },
-    { step: 3, title: '担心后果', content: '等等！这个道具不能乱用哦！上次就是因为乱用道具搞砸了！', icon: '😰' },
-    { step: 4, title: '拿出铜锣烧', content: '算了，先吃个铜锣烧再说~铜锣烧最棒了！', icon: '🍩' },
-  ],
-  gudaihuangdi: [
-    { step: 1, title: '览奏折', content: '众卿有本启奏，无本退朝。呈上来，待朕一阅。', icon: '📜' },
-    { step: 2, title: '思民生', content: '水可载舟，亦可覆舟。此事关乎百姓生计，不可不慎。', icon: '🏛️' },
-    { step: 3, title: '问群臣', content: '众位爱卿有何高见？但说无妨，朕听着。', icon: '🗣️' },
-    { step: 4, title: '下圣旨', content: '着令有司速速办理，安抚百姓，不得有误！钦此。', icon: '👑' },
-  ],
-  zhandijizhe: [
-    { step: 1, title: '奔赴现场', content: '摄像机准备！话筒准备！我们要第一时间赶到现场。', icon: '🏃' },
-    { step: 2, title: '记录真相', content: '镜头不要停！把这一切都拍下来，世界需要看到真相。', icon: '📷' },
-    { step: 3, title: '挖掘背景', content: '这件事没那么简单，背后一定有更深层的原因。', icon: '🔍' },
-    { step: 4, title: '发出报道', content: '如果你没法阻止战争，那就把真相告诉世界。', icon: '📰' },
-  ],
-  wuxiajianke: [
-    { step: 1, title: '闻风声', content: '江湖上又出了这等不平事？待我前去看看！', icon: '🌬️' },
-    { step: 2, title: '辨是非', content: '路见不平，自当拔刀相助。此事谁对谁错，我心中有数。', icon: '⚔️' },
-    { step: 3, title: '出手相助', content: '贼人休走！吃我一剑！侠之大者，为国为民！', icon: '🗡️' },
-    { step: 4, title: '拂衣去', content: '事了拂衣去，深藏身与名。青山不改，绿水长流！', icon: '🍃' },
-  ],
-  yuhangyuan: [
-    { step: 1, title: '回望地球', content: '休斯顿，这里是空间站。从轨道看，地球真美。', icon: '🌍' },
-    { step: 2, title: '超越边界', content: '国界线不存在了，我们都是地球人，同在一艘飞船上。', icon: '🌌' },
-    { step: 3, title: '思考人类', content: '在宇宙面前，人类的纷争多么渺小。我们的目标是星辰大海。', icon: '✨' },
-    { step: 4, title: '发出信号', content: '这是个人的一小步，却是人类的一大步。继续探索！', icon: '🚀' },
-  ],
-}
+function CharacterAvatar({ role, className = '' }) {
+  const [currentSrcIndex, setCurrentSrcIndex] = useState(0)
+  const [showEmoji, setShowEmoji] = useState(false)
 
-function getThinkingChain(roleKey) {
-  return THINKING_CHAINS[roleKey] || [
-    { step: 1, title: '观察', content: '让我看看这是什么情况...', icon: '👀' },
-    { step: 2, title: '思考', content: '嗯...这件事有点意思，让我好好想想。', icon: '🤔' },
-    { step: 3, title: '分析', content: '从我的角度来看，这里面有很多值得说的。', icon: '💭' },
-    { step: 4, title: '观点', content: '所以我认为，这件事应该这样看...', icon: '💡' },
-  ]
-}
+  const sources = []
+  if (role.card_image) {
+    sources.push({ url: getCardImagePath(role.card_image), type: 'card' })
+  }
+  if (role.local_image) {
+    sources.push({ url: getLocalImagePath(role.local_image), type: 'local' })
+  }
 
-function MindPalace() {
-  const navigate = useNavigate()
-  const [selectedRole, setSelectedRole] = useState(null)
-  const [hoveredRole, setHoveredRole] = useState(null)
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-  const [scrollY, setScrollY] = useState(0)
-  const containerRef = useRef(null)
+  if (showEmoji || sources.length === 0) {
+    return <div className={`${className} emoji-fallback`}>{role.emoji || '?'}</div>
+  }
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect()
-        const x = (e.clientX - rect.left - rect.width / 2) / rect.width
-        const y = (e.clientY - rect.top - rect.height / 2) / rect.height
-        setMousePos({ x, y })
-      }
+  const handleError = () => {
+    if (currentSrcIndex < sources.length - 1) {
+      setCurrentSrcIndex(currentSrcIndex + 1)
+    } else {
+      setShowEmoji(true)
     }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [])
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const displayRoles = MOCK_ROLES.slice(0, 12)
+  }
 
   return (
-    <div className="mind-palace-container" ref={containerRef}>
-      <button className="palace-back-btn" onClick={() => navigate(-1)}>
-        <span className="back-arrow">←</span>
-        <span className="back-text">返回</span>
-      </button>
+    <img
+      src={sources[currentSrcIndex].url}
+      alt={role.name}
+      className={className}
+      onError={handleError}
+    />
+  )
+}
 
-      <div className="palace-atmosphere">
-        <div className="dust-particles">
-          {[...Array(50)].map((_, i) => (
-            <div key={i} className="dust-particle" style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 15}s`,
-              animationDuration: `${15 + Math.random() * 20}s`,
-            }} />
-          ))}
-        </div>
-        <div className="light-rays">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className={`light-ray ray-${i + 1}`} />
-          ))}
-        </div>
-      </div>
+const THOUGHT_DIMENSIONS = [
+  { id: 'insight', label: '洞察力', desc: '透过现象看本质的能力', icon: '◈', angle: -90, distance: 160, floatPhase: 0 },
+  { id: 'empathy', label: '共情力', desc: '理解他人情感的能力', icon: '❖', angle: -30, distance: 175, floatPhase: 1.2 },
+  { id: 'logic', label: '批判力', desc: '理性分析与判断', icon: '✦', angle: 30, distance: 165, floatPhase: 2.4 },
+  { id: 'breadth', label: '信息广度', desc: '知识涉猎的范围', icon: '✧', angle: 90, distance: 150, floatPhase: 3.6 },
+  { id: 'interest', label: '趣味性', desc: '观点的有趣程度', icon: '❋', angle: 150, distance: 175, floatPhase: 4.8 },
+  { id: 'wisdom', label: '处世智慧', desc: '人生经验与哲学', icon: '◆', angle: 210, distance: 160, floatPhase: 5.5 }
+]
 
-      <div className="palace-entrance" style={{
-        transform: `perspective(1000px) rotateY(${mousePos.x * 5}deg) rotateX(${-mousePos.y * 3}deg)`,
-      }}>
-        <div className="entrance-arch">
-          <div className="arch-top" />
-          <div className="arch-left" />
-          <div className="arch-right" />
-          <div className="arch-glow" />
-        </div>
-        <div className="entrance-stairs" />
-        <div className="entrance-carpet" />
-      </div>
+function PalaceMindMap({ role, isActive }) {
+  const [hoveredNode, setHoveredNode] = useState(null)
+  const [time, setTime] = useState(0)
+  const animRef = useRef(null)
 
-      <header className="palace-header">
-        <div className="header-ornament left-ornament">◈</div>
-        <h1 className="palace-title">
-          <span className="title-main">思 维 殿 堂</span>
-          <span className="title-sub">MIND PALACE · 角色思维链档案</span>
-        </h1>
-        <div className="header-ornament right-ornament">◈</div>
-      </header>
+  useEffect(() => {
+    if (!isActive) return
 
-      <p className="palace-intro">
-        踏入这座古老的殿堂，每一尊雕像都承载着一个灵魂的思维脉络。<br />
-        走近他们，聆听他们内心的思考之声...
-      </p>
+    let lastTime = performance.now()
+    const animate = (currentTime) => {
+      const delta = (currentTime - lastTime) / 1000
+      lastTime = currentTime
+      setTime(prev => prev + delta)
+      animRef.current = requestAnimationFrame(animate)
+    }
+    animRef.current = requestAnimationFrame(animate)
 
-      <div className="palace-hall" style={{
-        transform: `translateY(${scrollY * 0.1}px) rotateY(${mousePos.x * 2}deg)`,
-      }}>
-        <div className="hall-floor" />
-        <div className="hall-ceiling" />
-        <div className="hall-perspective">
-          <div className="perspective-line" />
-          <div className="perspective-line" />
-          <div className="perspective-line" />
-          <div className="perspective-line" />
-        </div>
+    return () => {
+      if (animRef.current) cancelAnimationFrame(animRef.current)
+    }
+  }, [isActive])
 
-        <div className="niches-container">
-          <div className="niches-left">
-            {displayRoles.slice(0, 6).map((role, idx) => (
-              <div
-                key={role.local_image}
-                className={`niche ${hoveredRole === role.local_image ? 'hovered' : ''} ${selectedRole?.local_image === role.local_image ? 'selected' : ''}`}
-                style={{ animationDelay: `${idx * 0.15}s` }}
-                onMouseEnter={() => setHoveredRole(role.local_image)}
-                onMouseLeave={() => setHoveredRole(null)}
-                onClick={() => setSelectedRole(role)}
-              >
-                <div className="niche-frame">
-                  <div className="niche-light" />
-                  <div className="niche-avatar-container">
-                    <div className="avatar-glow" style={{ backgroundColor: getRoleColor(role.base_rarity) }} />
-                    <img
-                      src={getCardImagePath(role.card_image)}
-                      alt={role.name}
-                      className="niche-avatar"
-                      onError={(e) => {
-                        e.target.style.display = 'none'
-                        e.target.nextSibling.style.display = 'flex'
-                      }}
-                    />
-                    <span className="niche-emoji">{role.emoji}</span>
-                  </div>
-                  <div className="niche-pedestal" />
-                  <div className="niche-nameplate">
-                    <span className="nameplate-name">{role.name}</span>
-                    <span className="nameplate-title">{getRarityTitle(role.base_rarity)}</span>
-                  </div>
-                </div>
-                <div className="niche-candles">
-                  <div className="candle left-candle">
-                    <div className="flame" />
-                  </div>
-                  <div className="candle right-candle">
-                    <div className="flame" />
-                  </div>
-                </div>
-              </div>
-            ))}
+  if (!isActive) return null
+
+  const getThoughtContent = (node) => {
+    const thoughts = {
+      insight: `${role.name}善于从纷繁复杂的表象中抓住问题核心，目光如炬。`,
+      empathy: `${role.name}能深切体会他人的喜怒哀乐，情感世界细腻而丰富。`,
+      logic: `${role.name}思考问题条理清晰，总能从多角度提出质疑与见解。`,
+      breadth: `${role.name}涉猎广泛，对各种领域都有所了解，视野开阔。`,
+      interest: `与${role.name}交谈从不会乏味，其谈吐风趣，观点新颖。`,
+      wisdom: `${role.name}历经世事，有着自己独特的人生哲学与处世之道。`
+    }
+    return thoughts[node.id]
+  }
+
+  const getNodePosition = (node, idx) => {
+    const baseAngle = node.angle * (Math.PI / 180)
+    const driftSpeed = 0.12 + idx * 0.015
+    const floatRadius = 12 + idx * 2
+    const currentAngle = baseAngle + Math.sin(time * driftSpeed + node.floatPhase) * 0.25
+    const floatX = Math.sin(time * 0.5 + node.floatPhase) * floatRadius
+    const floatY = Math.cos(time * 0.4 + node.floatPhase * 1.2) * floatRadius * 0.6
+    const breathe = 1 + Math.sin(time * 0.8 + node.floatPhase) * 0.06
+
+    const x = Math.cos(currentAngle) * node.distance + floatX
+    const y = Math.sin(currentAngle) * node.distance * 0.8 + floatY
+
+    return { x, y, breathe }
+  }
+
+  const getAttributeValue = (attrId) => {
+    if (!role.attributes) return 75
+    const attrMap = {
+      insight: role.attributes.insight || role.attributes.洞察力,
+      empathy: role.attributes.empathy || role.attributes.共情力,
+      logic: role.attributes.logic || role.attributes.批判力,
+      breadth: role.attributes.breadth || role.attributes.信息广度,
+      interest: role.attributes.interest || role.attributes.趣味性
+    }
+    return attrMap[attrId] || 70 + Math.floor(Math.random() * 20)
+  }
+
+  return (
+    <div className="palace-mind-container active">
+      <div className="palace-inner-frame">
+        <div className="palace-corner corner-tl" />
+        <div className="palace-corner corner-tr" />
+        <div className="palace-corner corner-bl" />
+        <div className="palace-corner corner-br" />
+
+        <div className="central-thinker">
+          <div className="thinker-halo" />
+          <div className="thinker-glow" />
+          <div className="thinker-frame">
+            <CharacterAvatar role={role} className="thinker-portrait" />
           </div>
-
-          <div className="hall-center">
-            <div className="center-fountain">
-              <div className="fountain-base" />
-              <div className="fountain-pillar" />
-              <div className="fountain-glow" />
-              <div className="fountain-ripples">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="ripple" style={{ animationDelay: `${i * 0.8}s` }} />
-                ))}
-              </div>
-              <div className="floating-crystals">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className={`crystal crystal-${i + 1}`}>💎</div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="niches-right">
-            {displayRoles.slice(6, 12).map((role, idx) => (
-              <div
-                key={role.local_image}
-                className={`niche ${hoveredRole === role.local_image ? 'hovered' : ''} ${selectedRole?.local_image === role.local_image ? 'selected' : ''}`}
-                style={{ animationDelay: `${(idx + 6) * 0.15}s` }}
-                onMouseEnter={() => setHoveredRole(role.local_image)}
-                onMouseLeave={() => setHoveredRole(null)}
-                onClick={() => setSelectedRole(role)}
-              >
-                <div className="niche-frame">
-                  <div className="niche-light" />
-                  <div className="niche-avatar-container">
-                    <div className="avatar-glow" style={{ backgroundColor: getRoleColor(role.base_rarity) }} />
-                    <img
-                      src={getCardImagePath(role.card_image)}
-                      alt={role.name}
-                      className="niche-avatar"
-                      onError={(e) => {
-                        e.target.style.display = 'none'
-                        e.target.nextSibling.style.display = 'flex'
-                      }}
-                    />
-                    <span className="niche-emoji">{role.emoji}</span>
-                  </div>
-                  <div className="niche-pedestal" />
-                  <div className="niche-nameplate">
-                    <span className="nameplate-name">{role.name}</span>
-                    <span className="nameplate-title">{getRarityTitle(role.base_rarity)}</span>
-                  </div>
-                </div>
-                <div className="niche-candles">
-                  <div className="candle left-candle">
-                    <div className="flame" />
-                  </div>
-                  <div className="candle right-candle">
-                    <div className="flame" />
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="thinker-pulse" />
+          <div className="thinker-info">
+            <h3 className="thinker-name">{role.name}</h3>
+            <p className="thinker-title">{role.title || '— 思维殿堂 —'}</p>
           </div>
         </div>
 
-        <div className="hall-pillars">
-          {[...Array(6)].map((_, i) => (
-            <div key={`pillar-l-${i}`} className={`pillar pillar-left pillar-${i + 1}`}>
-              <div className="pillar-capital" />
-              <div className="pillar-shaft" />
-              <div className="pillar-base" />
-            </div>
-          ))}
-          {[...Array(6)].map((_, i) => (
-            <div key={`pillar-r-${i}`} className={`pillar pillar-right pillar-${i + 1}`}>
-              <div className="pillar-capital" />
-              <div className="pillar-shaft" />
-              <div className="pillar-base" />
-            </div>
-          ))}
-        </div>
-      </div>
+        {THOUGHT_DIMENSIONS.map((node, idx) => {
+          const pos = getNodePosition(node, idx)
+          const isHovered = hoveredNode === node.id
+          const attrValue = getAttributeValue(node.id)
+          return (
+            <div
+              key={node.id}
+              className={`thought-orb ${isHovered ? 'hovered' : ''}`}
+              style={{
+                left: `calc(50% + ${pos.x}px)`,
+                top: `calc(50% + ${pos.y - 20}px)`,
+                transform: `translate(-50%, -50%) scale(${pos.breathe})`,
+                '--orb-accent': `var(--paper-accent)`
+              }}
+              onMouseEnter={() => setHoveredNode(node.id)}
+              onMouseLeave={() => setHoveredNode(null)}
+            >
+              <div className="orb-dot" />
+              <div className="orb-ring" />
+              <span className="orb-label">{node.label}</span>
 
-      {selectedRole && (
-        <div className="thinking-chain-overlay" onClick={() => setSelectedRole(null)}>
-          <div className="thinking-chain-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-corner top-left" />
-            <div className="modal-corner top-right" />
-            <div className="modal-corner bottom-left" />
-            <div className="modal-corner bottom-right" />
-
-            <button className="modal-close" onClick={() => setSelectedRole(null)}>✕</button>
-
-            <div className="chain-header">
-              <div className="chain-avatar-wrapper">
-                <div className="chain-avatar-glow" style={{ backgroundColor: getRoleColor(selectedRole.base_rarity) }} />
-                <img
-                  src={getCardImagePath(selectedRole.card_image)}
-                  alt={selectedRole.name}
-                  className="chain-avatar"
-                  onError={(e) => {
-                    e.target.style.display = 'none'
-                    e.target.nextSibling.style.display = 'flex'
-                  }}
-                />
-                <span className="chain-emoji">{selectedRole.emoji}</span>
-              </div>
-              <div className="chain-role-info">
-                <h2 className="chain-role-name">{selectedRole.name}</h2>
-                <p className="chain-role-desc">{selectedRole.description}</p>
-                <div className="chain-rarity-badge" style={{ borderColor: getRoleColor(selectedRole.base_rarity) }}>
-                  {getRarityTitle(selectedRole.base_rarity)}
-                </div>
-              </div>
-            </div>
-
-            <div className="chain-divider">
-              <span>✦ 思维链 ✦</span>
-            </div>
-
-            <div className="thinking-steps">
-              {getThinkingChain(selectedRole.local_image).map((step, idx) => (
-                <div key={step.step} className="thinking-step" style={{ animationDelay: `${idx * 0.2}s` }}>
-                  <div className="step-connector">
-                    <div className="step-line" />
-                    <div className="step-node" style={{ backgroundColor: getRoleColor(selectedRole.base_rarity) }}>
-                      <span className="node-icon">{step.icon}</span>
+              {isHovered && (
+                <div className="orb-card">
+                  <div className="card-header">
+                    <span className="card-icon">{node.icon}</span>
+                    <h4 className="card-title">{node.label}</h4>
+                  </div>
+                  <p className="card-subtitle">{node.desc}</p>
+                  <div className="card-attribute">
+                    <div className="attr-bar-bg">
+                      <div className="attr-bar-fill" style={{ width: `${attrValue}%` }} />
                     </div>
+                    <span className="attr-value">{attrValue}</span>
                   </div>
-                  <div className="step-content">
-                    <div className="step-header">
-                      <span className="step-number">第{['一', '二', '三', '四'][idx]}步</span>
-                      <span className="step-title">{step.title}</span>
-                    </div>
-                    <p className="step-text">{step.content}</p>
-                  </div>
+                  <p className="card-desc">{getThoughtContent(node)}</p>
                 </div>
-              ))}
+              )}
             </div>
+          )
+        })}
 
-            <div className="chain-footer">
-              <div className="stats-preview">
-                {Object.entries(selectedRole.stats).map(([key, value]) => (
-                  <div key={key} className="stat-item">
-                    <span className="stat-label">{getStatLabel(key)}</span>
-                    <div className="stat-bar-container">
-                      <div
-                        className="stat-bar"
-                        style={{
-                          width: `${value}%`,
-                          backgroundColor: getRoleColor(selectedRole.base_rarity),
-                        }}
-                      />
-                    </div>
-                    <span className="stat-value">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        <div className="palace-epigraph">
+          <span className="epigraph-rule" />
+          <span className="epigraph-text">思 维 如 光 ， 照 见 内 心</span>
+          <span className="epigraph-rule" />
         </div>
-      )}
-
-      <div className="palace-footer">
-        <div className="footer-symbol">◈ ◆ ◈</div>
-        <p className="footer-text">思维殿堂的秘密等待你探索</p>
       </div>
     </div>
   )
 }
 
-function getRoleColor(rarity) {
-  const colors = {
-    ur: '#ffd700',
-    ssr: '#a855f7',
-    sr: '#3b82f6',
-    r: '#22c55e',
-    n: '#94a3b8',
+function DiscussionPanel({ roles }) {
+  const [selectedChatRoles, setSelectedChatRoles] = useState([])
+  const [hotNews, setHotNews] = useState([])
+  const [selectedTopic, setSelectedTopic] = useState(null)
+  const [messages, setMessages] = useState([])
+  const [inputText, setInputText] = useState('')
+  const [isTyping, setIsTyping] = useState(null)
+  const messagesEndRef = useRef(null)
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    const news = getMockNews(8)
+    setHotNews(news)
+  }, [])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const getCurrentTime = () => {
+    const now = new Date()
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
   }
-  return colors[rarity] || colors.n
+
+  const toggleChatRole = (role) => {
+    setSelectedChatRoles(prev => {
+      const exists = prev.find(r => r.name === role.name)
+      if (exists) {
+        return prev.filter(r => r.name !== role.name)
+      }
+      if (prev.length >= 3) {
+        return [...prev.slice(1), role]
+      }
+      return [...prev, role]
+    })
+  }
+
+  const startDiscussion = (topic = null) => {
+    if (selectedChatRoles.length === 0) return
+    setSelectedTopic(topic)
+    setMessages([])
+
+    const welcomeMsg = topic
+      ? { id: 'sys-1', type: 'system', content: `📰 今日话题：${topic.title}`, time: getCurrentTime() }
+      : { id: 'sys-1', type: 'system', content: '💬 自由畅谈模式', time: getCurrentTime() }
+
+    setMessages([welcomeMsg])
+
+    if (topic) {
+      setMessages(prev => [...prev, {
+        id: 'news-1',
+        type: 'news',
+        news: topic,
+        time: getCurrentTime()
+      }])
+    }
+
+    selectedChatRoles.forEach((role, idx) => {
+      setTimeout(() => {
+        setIsTyping(role.name)
+        setTimeout(() => {
+          let content
+          if (topic) {
+            content = generateOpinion(role, topic)
+          } else {
+            const greetings = [
+              `${role.emoji || '✋'} 破茧者，今日想探讨些什么？`,
+              `幸会！我是${role.name}，有何见教？`,
+              `${role.emoji || '✨'} 很高兴与你交谈，请讲。`,
+              `来啦？想听听老夫对何事的看法？`
+            ]
+            content = greetings[Math.floor(Math.random() * greetings.length)]
+          }
+          const analysis = analyzeAttitude(content)
+          setMessages(prev => [...prev, {
+            id: `role-${idx}-${Date.now()}`,
+            type: 'role',
+            role,
+            content,
+            attitude: analysis?.attitude,
+            time: getCurrentTime()
+          }])
+          setIsTyping(null)
+        }, 1000 + Math.random() * 800)
+      }, 600 + idx * 1200)
+    })
+  }
+
+  const handleSend = () => {
+    if (!inputText.trim() || selectedChatRoles.length === 0) return
+
+    const userMsg = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: inputText.trim(),
+      time: getCurrentTime()
+    }
+    setMessages(prev => [...prev, userMsg])
+    setInputText('')
+
+    setTimeout(() => {
+      const replyRole = selectedChatRoles[Math.floor(Math.random() * selectedChatRoles.length)]
+      setIsTyping(replyRole.name)
+      setTimeout(() => {
+        let reply
+        if (selectedTopic) {
+          const opinions = [
+            `此言有理，容我补充... ${generateOpinion(replyRole, selectedTopic).slice(0, 100)}`,
+            `嗯，这个角度颇为有趣，我倒觉得...`,
+            `诚然！以我之见...`,
+            `容我思忖片刻...其实此事...`,
+            `你说到关键了！我此前也在想...`
+          ]
+          reply = opinions[Math.floor(Math.random() * opinions.length)]
+        } else {
+          const replies = [
+            `嗯嗯，此话题甚妙，且听我道来...`,
+            `哈哈，你这么说我倒想起一桩事...`,
+            `确实如此，我亦有同感！而且...`,
+            `有意思，换个角度思忖...`,
+            `这个问题问得好，我以为...`
+          ]
+          reply = replies[Math.floor(Math.random() * replies.length)]
+        }
+        setMessages(prev => [...prev, {
+          id: `reply-${Date.now()}`,
+          type: 'role',
+          role: replyRole,
+          content: reply,
+          time: getCurrentTime(),
+          isReply: true
+        }])
+        setIsTyping(null)
+      }, 800 + Math.random() * 800)
+    }, 400)
+  }
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
+  const formatViews = (views) => views >= 10000 ? (views / 10000).toFixed(1) + '万' : views
+
+  return (
+    <div className="discussion-parlor">
+      <div className="parlor-header">
+        <h3 className="parlor-title">— 茶 话 室 —</h3>
+        <p className="parlor-hint">选择一至三位角色，共话热点或闲谈</p>
+      </div>
+
+      <div className="role-select">
+        <p className="select-label">选择对话者：</p>
+        <div className="select-roles">
+          {roles.slice(0, 12).map(role => {
+            const isSelected = selectedChatRoles.find(r => r.name === role.name)
+            return (
+              <button
+                key={role.name}
+                className={`select-role ${isSelected ? 'picked' : ''}`}
+                onClick={() => toggleChatRole(role)}
+              >
+                <CharacterAvatar role={role} className="select-avatar" />
+                <span className="select-name">{role.name}</span>
+                {isSelected && <span className="select-mark">✓</span>}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {selectedChatRoles.length > 0 && messages.length === 0 && (
+        <div className="topic-parlor">
+          <div className="topic-section">
+            <p className="topic-heading">📰 热点话题</p>
+            <div className="topic-list">
+              {hotNews.slice(0, 5).map(news => (
+                <button
+                  key={news.id}
+                  className="topic-entry"
+                  onClick={() => startDiscussion(news)}
+                >
+                  <span className="topic-tag">{news.category}</span>
+                  <span className="topic-text">{news.title}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <button className="free-talk-btn" onClick={() => startDiscussion(null)}>
+            ✨ 自 由 闲 谈
+          </button>
+        </div>
+      )}
+
+      {messages.length > 0 && (
+        <div className="chat-parlor">
+          <div className="chat-scroll">
+            {messages.map(msg => {
+              if (msg.type === 'system') {
+                return (
+                  <div key={msg.id} className="chat-sys">
+                    <span className="sys-stamp">{msg.time}</span>
+                    <div className="sys-banner">{msg.content}</div>
+                  </div>
+                )
+              }
+              if (msg.type === 'news') {
+                return (
+                  <div key={msg.id} className="chat-news-clip">
+                    <div className="clip-top">
+                      <span className="clip-tag">📰 号外</span>
+                      <span className="clip-stamp">{msg.time}</span>
+                    </div>
+                    <h4 className="clip-title">{msg.news.title}</h4>
+                    <p className="clip-summary">{msg.news.summary}</p>
+                    <div className="clip-meta">
+                      <span>{msg.news.source}</span>
+                      <span>·</span>
+                      <span>阅览 {formatViews(msg.news.views)}</span>
+                    </div>
+                  </div>
+                )
+              }
+              if (msg.type === 'user') {
+                return (
+                  <div key={msg.id} className="chat-msg user">
+                    <div className="msg-body user-body">
+                      <div className="bubble user-bubble">{msg.content}</div>
+                      <span className="stamp">{msg.time}</span>
+                    </div>
+                    <div className="msg-portrait user-portrait">
+                      <span>👤</span>
+                    </div>
+                  </div>
+                )
+              }
+              if (msg.type === 'role') {
+                const cfg = msg.attitude ? ATTITUDE_CONFIG[msg.attitude] : null
+                return (
+                  <div key={msg.id} className={`chat-msg speaker ${msg.isReply ? 'reply' : ''}`}>
+                    <div className="msg-portrait">
+                      <CharacterAvatar role={msg.role} className="chat-avatar-sm" />
+                    </div>
+                    <div className="msg-body">
+                      <div className="msg-speaker">
+                        <span className="speaker-name">{msg.role.name}</span>
+                        {cfg && <span className="speaker-badge" style={{ background: cfg.bg, color: cfg.color }}>{cfg.icon}</span>}
+                      </div>
+                      <div className="bubble speaker-bubble">
+                        {msg.content}
+                      </div>
+                      <span className="stamp">{msg.time}</span>
+                    </div>
+                  </div>
+                )
+              }
+              return null
+            })}
+            {isTyping && (
+              <div className="chat-msg speaker typing">
+                <div className="msg-portrait">
+                  <span className="typing-icon">💭</span>
+                </div>
+                <div className="msg-body">
+                  <div className="msg-speaker">
+                    <span className="speaker-name">{isTyping}</span>
+                    <span className="typing-tag">思忖中...</span>
+                  </div>
+                  <div className="typing-dots">
+                    <span /><span /><span />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="chat-input-row">
+            <input
+              ref={inputRef}
+              type="text"
+              className="chat-input"
+              placeholder="畅所欲言..."
+              value={inputText}
+              onChange={e => setInputText(e.target.value)}
+              onKeyPress={handleKeyPress}
+            />
+            <button
+              className="chat-submit"
+              onClick={handleSend}
+              disabled={!inputText.trim()}
+            >
+              发 送
+            </button>
+          </div>
+          <p className="chat-tip">Enter 发送 · 以礼相待</p>
+
+          <button className="exit-chat" onClick={() => { setMessages([]); setSelectedTopic(null) }}>
+            ← 返回选择话题
+          </button>
+        </div>
+      )}
+    </div>
+  )
 }
 
-function getRarityTitle(rarity) {
-  const titles = {
-    ur: '传说',
-    ssr: '史诗',
-    sr: '稀有',
-    r: '高级',
-    n: '普通',
-  }
-  return titles[rarity] || '未知'
-}
+export default function MindPalace() {
+  const navigate = useNavigate()
+  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [activeTab, setActiveTab] = useState('map')
+  const displayRoles = MOCK_ROLES.slice(0, 12)
 
-function getStatLabel(key) {
-  const labels = {
-    insight: '洞察力',
-    empathy: '共情力',
-    criticism: '批判力',
-    breadth: '信息广度',
-    humor: '趣味性',
-  }
-  return labels[key] || key
-}
+  return (
+    <div className="mind-palace-page">
+      <div className="palace-masthead">
+        <button className="back-home" onClick={() => navigate('/')}>
+          ← 返回主页
+        </button>
+        <div className="masthead-center">
+          <div className="title-ornament">
+            <span className="ornament-line" />
+            <span className="ornament-diamond">◆</span>
+            <span className="ornament-line" />
+          </div>
+          <h1 className="palace-name">思 维 殿 堂</h1>
+          <p className="palace-slogan">MIND PALACE · 观其思，知其人</p>
+          <div className="title-ornament">
+            <span className="ornament-line" />
+            <span className="ornament-diamond">◆</span>
+            <span className="ornament-line" />
+          </div>
+        </div>
+        <div className="palace-tabs">
+          <button
+            className={`palace-tab ${activeTab === 'map' ? 'current' : ''}`}
+            onClick={() => setActiveTab('map')}
+          >
+            🏛️ 思维图谱
+          </button>
+          <button
+            className={`palace-tab ${activeTab === 'discuss' ? 'current' : ''}`}
+            onClick={() => setActiveTab('discuss')}
+          >
+            💬 茶话室
+          </button>
+        </div>
+      </div>
 
-export default MindPalace
+      <div className="palace-body">
+        <div className="characters-gallery">
+          <div className="gallery-title">
+            <span className="title-rule" />
+            <span>人 物 志</span>
+            <span className="title-rule" />
+          </div>
+          <div className="gallery-scroll">
+            {displayRoles.map((role, index) => {
+              const isSelected = selectedIndex === index
+              return (
+                <div
+                  key={role.name}
+                  className={`character-card ${isSelected ? 'chosen' : ''}`}
+                  onClick={() => { setSelectedIndex(index); setActiveTab('map') }}
+                >
+                  <div className="card-frame">
+                    <CharacterAvatar role={role} className="card-portrait" />
+                    {isSelected && <div className="card-selected-glow" />}
+                  </div>
+                  <div className="card-caption">{role.name}</div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="palace-stage">
+          {activeTab === 'map' ? (
+            <div className="stage-map">
+              <div className="stage-heading">
+                <span className="heading-deco">❋</span>
+                <h2 className="heading-text">思 维 图 谱</h2>
+                <span className="heading-deco">❋</span>
+              </div>
+              <p className="stage-hint">悬停思维节点，洞察人物维度</p>
+              <div className="map-canvas">
+                {displayRoles.map((role, index) => (
+                  <PalaceMindMap
+                    key={role.name}
+                    role={role}
+                    isActive={selectedIndex === index}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <DiscussionPanel roles={displayRoles} />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

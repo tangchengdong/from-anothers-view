@@ -6,11 +6,25 @@ import OnboardingOverlay from '../components/OnboardingOverlay'
 import BreakthroughToast from '../components/BreakthroughToast'
 import './Home.css'
 
+const RESET_ONBOARDING_EVENT = 'prism-reset-onboarding'
+
 function Home() {
-  const { setSelectedPerspectives, readCount } = useAppStore()
+  const { setSelectedPerspectives, readCount, resetSelection } = useAppStore()
   const navigate = useNavigate()
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(true)
+  const [onboardingKey, setOnboardingKey] = useState(0)
+
+  useEffect(() => {
+    const handleReset = () => {
+      window.scrollTo({ top: 0, behavior: 'auto' })
+      resetSelection()
+      setShowOnboarding(true)
+      setOnboardingKey(k => k + 1)
+    }
+    window.addEventListener(RESET_ONBOARDING_EVENT, handleReset)
+    return () => window.removeEventListener(RESET_ONBOARDING_EVENT, handleReset)
+  }, [resetSelection])
 
   const handlePerspectiveSelect = (perspectives, itemsCount = 20) => {
     setSelectedPerspectives(perspectives, itemsCount)
@@ -20,11 +34,26 @@ function Home() {
   const handleOnboardingStart = () => {
     setShowOnboarding(false)
     setTimeout(() => {
-      window.scrollTo({
-        top: window.innerHeight * 0.6,
-        behavior: 'smooth'
-      })
-    }, 200)
+      const pickerWelcome = document.querySelector('.picker-welcome')
+      if (pickerWelcome) {
+        const rect = pickerWelcome.getBoundingClientRect()
+        const offset = rect.top + window.scrollY - 80
+        window.scrollTo({
+          top: offset,
+          behavior: 'smooth'
+        })
+        const cardBack = document.querySelector('.card-container:not(.flipped) .card-back')
+        if (cardBack) {
+          cardBack.classList.add('attention-pulse')
+          setTimeout(() => cardBack.classList.remove('attention-pulse'), 1200)
+        }
+      } else {
+        window.scrollTo({
+          top: window.innerHeight * 0.55,
+          behavior: 'smooth'
+        })
+      }
+    }, 100)
   }
 
   useEffect(() => {
@@ -41,7 +70,7 @@ function Home() {
 
   return (
     <div className="home-page">
-      {showOnboarding && <OnboardingOverlay onStart={handleOnboardingStart} />}
+      {showOnboarding && <OnboardingOverlay key={onboardingKey} onStart={handleOnboardingStart} />}
 
       <div className="home-hero">
         <div className="hero-brand">
@@ -77,3 +106,4 @@ function Home() {
 }
 
 export default Home
+export { RESET_ONBOARDING_EVENT }

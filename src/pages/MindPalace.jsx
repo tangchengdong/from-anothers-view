@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MOCK_ROLES, getCardImagePath, getLocalImagePath, getMockNews, generateOpinion } from '../mock/data'
-import { analyzeAttitude, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
+import { MOCK_ROLES, getCardImagePath, getLocalImagePath } from '../mock/data'
+import PrismRoundtable from '../components/PrismRoundtable'
 import './MindPalace.css'
 
 function CharacterAvatar({ role, className = '' }) {
@@ -143,7 +143,7 @@ function PalaceMindMap({ role, isActive }) {
                 left: `calc(50% + ${pos.x}px)`,
                 top: `calc(50% + ${pos.y - 20}px)`,
                 transform: `translate(-50%, -50%) scale(${pos.breathe})`,
-                '--orb-accent': `var(--paper-accent)`
+                '--orb-accent': `var(--cyber-cyan)`
               }}
               onMouseEnter={() => setHoveredNode(node.id)}
               onMouseLeave={() => setHoveredNode(null)}
@@ -182,318 +182,11 @@ function PalaceMindMap({ role, isActive }) {
   )
 }
 
-function DiscussionPanel({ roles }) {
-  const [selectedChatRoles, setSelectedChatRoles] = useState([])
-  const [hotNews, setHotNews] = useState([])
-  const [selectedTopic, setSelectedTopic] = useState(null)
-  const [messages, setMessages] = useState([])
-  const [inputText, setInputText] = useState('')
-  const [isTyping, setIsTyping] = useState(null)
-  const messagesEndRef = useRef(null)
-  const inputRef = useRef(null)
-
-  useEffect(() => {
-    const news = getMockNews(8)
-    setHotNews(news)
-  }, [])
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
-  const getCurrentTime = () => {
-    const now = new Date()
-    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-  }
-
-  const toggleChatRole = (role) => {
-    setSelectedChatRoles(prev => {
-      const exists = prev.find(r => r.name === role.name)
-      if (exists) {
-        return prev.filter(r => r.name !== role.name)
-      }
-      if (prev.length >= 3) {
-        return [...prev.slice(1), role]
-      }
-      return [...prev, role]
-    })
-  }
-
-  const startDiscussion = (topic = null) => {
-    if (selectedChatRoles.length === 0) return
-    setSelectedTopic(topic)
-    setMessages([])
-
-    const welcomeMsg = topic
-      ? { id: 'sys-1', type: 'system', content: `📰 今日话题：${topic.title}`, time: getCurrentTime() }
-      : { id: 'sys-1', type: 'system', content: '💬 自由畅谈模式', time: getCurrentTime() }
-
-    setMessages([welcomeMsg])
-
-    if (topic) {
-      setMessages(prev => [...prev, {
-        id: 'news-1',
-        type: 'news',
-        news: topic,
-        time: getCurrentTime()
-      }])
-    }
-
-    selectedChatRoles.forEach((role, idx) => {
-      setTimeout(() => {
-        setIsTyping(role.name)
-        setTimeout(() => {
-          let content
-          if (topic) {
-            content = generateOpinion(role, topic)
-          } else {
-            const greetings = [
-              `${role.emoji || '✋'} 破茧者，今日想探讨些什么？`,
-              `幸会！我是${role.name}，有何见教？`,
-              `${role.emoji || '✨'} 很高兴与你交谈，请讲。`,
-              `来啦？想听听老夫对何事的看法？`
-            ]
-            content = greetings[Math.floor(Math.random() * greetings.length)]
-          }
-          const analysis = analyzeAttitude(content)
-          setMessages(prev => [...prev, {
-            id: `role-${idx}-${Date.now()}`,
-            type: 'role',
-            role,
-            content,
-            attitude: analysis?.attitude,
-            time: getCurrentTime()
-          }])
-          setIsTyping(null)
-        }, 1000 + Math.random() * 800)
-      }, 600 + idx * 1200)
-    })
-  }
-
-  const handleSend = () => {
-    if (!inputText.trim() || selectedChatRoles.length === 0) return
-
-    const userMsg = {
-      id: `user-${Date.now()}`,
-      type: 'user',
-      content: inputText.trim(),
-      time: getCurrentTime()
-    }
-    setMessages(prev => [...prev, userMsg])
-    setInputText('')
-
-    setTimeout(() => {
-      const replyRole = selectedChatRoles[Math.floor(Math.random() * selectedChatRoles.length)]
-      setIsTyping(replyRole.name)
-      setTimeout(() => {
-        let reply
-        if (selectedTopic) {
-          const opinions = [
-            `此言有理，容我补充... ${generateOpinion(replyRole, selectedTopic).slice(0, 100)}`,
-            `嗯，这个角度颇为有趣，我倒觉得...`,
-            `诚然！以我之见...`,
-            `容我思忖片刻...其实此事...`,
-            `你说到关键了！我此前也在想...`
-          ]
-          reply = opinions[Math.floor(Math.random() * opinions.length)]
-        } else {
-          const replies = [
-            `嗯嗯，此话题甚妙，且听我道来...`,
-            `哈哈，你这么说我倒想起一桩事...`,
-            `确实如此，我亦有同感！而且...`,
-            `有意思，换个角度思忖...`,
-            `这个问题问得好，我以为...`
-          ]
-          reply = replies[Math.floor(Math.random() * replies.length)]
-        }
-        setMessages(prev => [...prev, {
-          id: `reply-${Date.now()}`,
-          type: 'role',
-          role: replyRole,
-          content: reply,
-          time: getCurrentTime(),
-          isReply: true
-        }])
-        setIsTyping(null)
-      }, 800 + Math.random() * 800)
-    }, 400)
-  }
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
-    }
-  }
-
-  const formatViews = (views) => views >= 10000 ? (views / 10000).toFixed(1) + '万' : views
-
-  return (
-    <div className="discussion-parlor">
-      <div className="parlor-header">
-        <h3 className="parlor-title">— 茶 话 室 —</h3>
-        <p className="parlor-hint">选择一至三位角色，共话热点或闲谈</p>
-      </div>
-
-      <div className="role-select">
-        <p className="select-label">选择对话者：</p>
-        <div className="select-roles">
-          {roles.slice(0, 12).map(role => {
-            const isSelected = selectedChatRoles.find(r => r.name === role.name)
-            return (
-              <button
-                key={role.name}
-                className={`select-role ${isSelected ? 'picked' : ''}`}
-                onClick={() => toggleChatRole(role)}
-              >
-                <CharacterAvatar role={role} className="select-avatar" />
-                <span className="select-name">{role.name}</span>
-                {isSelected && <span className="select-mark">✓</span>}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {selectedChatRoles.length > 0 && messages.length === 0 && (
-        <div className="topic-parlor">
-          <div className="topic-section">
-            <p className="topic-heading">📰 热点话题</p>
-            <div className="topic-list">
-              {hotNews.slice(0, 5).map(news => (
-                <button
-                  key={news.id}
-                  className="topic-entry"
-                  onClick={() => startDiscussion(news)}
-                >
-                  <span className="topic-tag">{news.category}</span>
-                  <span className="topic-text">{news.title}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-          <button className="free-talk-btn" onClick={() => startDiscussion(null)}>
-            ✨ 自 由 闲 谈
-          </button>
-        </div>
-      )}
-
-      {messages.length > 0 && (
-        <div className="chat-parlor">
-          <div className="chat-scroll">
-            {messages.map(msg => {
-              if (msg.type === 'system') {
-                return (
-                  <div key={msg.id} className="chat-sys">
-                    <span className="sys-stamp">{msg.time}</span>
-                    <div className="sys-banner">{msg.content}</div>
-                  </div>
-                )
-              }
-              if (msg.type === 'news') {
-                return (
-                  <div key={msg.id} className="chat-news-clip">
-                    <div className="clip-top">
-                      <span className="clip-tag">📰 号外</span>
-                      <span className="clip-stamp">{msg.time}</span>
-                    </div>
-                    <h4 className="clip-title">{msg.news.title}</h4>
-                    <p className="clip-summary">{msg.news.summary}</p>
-                    <div className="clip-meta">
-                      <span>{msg.news.source}</span>
-                      <span>·</span>
-                      <span>阅览 {formatViews(msg.news.views)}</span>
-                    </div>
-                  </div>
-                )
-              }
-              if (msg.type === 'user') {
-                return (
-                  <div key={msg.id} className="chat-msg user">
-                    <div className="msg-body user-body">
-                      <div className="bubble user-bubble">{msg.content}</div>
-                      <span className="stamp">{msg.time}</span>
-                    </div>
-                    <div className="msg-portrait user-portrait">
-                      <span>👤</span>
-                    </div>
-                  </div>
-                )
-              }
-              if (msg.type === 'role') {
-                const cfg = msg.attitude ? ATTITUDE_CONFIG[msg.attitude] : null
-                return (
-                  <div key={msg.id} className={`chat-msg speaker ${msg.isReply ? 'reply' : ''}`}>
-                    <div className="msg-portrait">
-                      <CharacterAvatar role={msg.role} className="chat-avatar-sm" />
-                    </div>
-                    <div className="msg-body">
-                      <div className="msg-speaker">
-                        <span className="speaker-name">{msg.role.name}</span>
-                        {cfg && <span className="speaker-badge" style={{ background: cfg.bg, color: cfg.color }}>{cfg.icon}</span>}
-                      </div>
-                      <div className="bubble speaker-bubble">
-                        {msg.content}
-                      </div>
-                      <span className="stamp">{msg.time}</span>
-                    </div>
-                  </div>
-                )
-              }
-              return null
-            })}
-            {isTyping && (
-              <div className="chat-msg speaker typing">
-                <div className="msg-portrait">
-                  <span className="typing-icon">💭</span>
-                </div>
-                <div className="msg-body">
-                  <div className="msg-speaker">
-                    <span className="speaker-name">{isTyping}</span>
-                    <span className="typing-tag">思忖中...</span>
-                  </div>
-                  <div className="typing-dots">
-                    <span /><span /><span />
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="chat-input-row">
-            <input
-              ref={inputRef}
-              type="text"
-              className="chat-input"
-              placeholder="畅所欲言..."
-              value={inputText}
-              onChange={e => setInputText(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-            <button
-              className="chat-submit"
-              onClick={handleSend}
-              disabled={!inputText.trim()}
-            >
-              发 送
-            </button>
-          </div>
-          <p className="chat-tip">Enter 发送 · 以礼相待</p>
-
-          <button className="exit-chat" onClick={() => { setMessages([]); setSelectedTopic(null) }}>
-            ← 返回选择话题
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
-
 export default function MindPalace() {
   const navigate = useNavigate()
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [activeTab, setActiveTab] = useState('map')
+  const [showRoundtable, setShowRoundtable] = useState(false)
   const displayRoles = MOCK_ROLES.slice(0, 12)
 
   return (
@@ -525,9 +218,9 @@ export default function MindPalace() {
           </button>
           <button
             className={`palace-tab ${activeTab === 'discuss' ? 'current' : ''}`}
-            onClick={() => setActiveTab('discuss')}
+            onClick={() => { setActiveTab('discuss'); setShowRoundtable(true) }}
           >
-            💬 茶话室
+            🍵 茶话会
           </button>
         </div>
       </div>
@@ -560,29 +253,36 @@ export default function MindPalace() {
         </div>
 
         <div className="palace-stage">
-          {activeTab === 'map' ? (
-            <div className="stage-map">
-              <div className="stage-heading">
-                <span className="heading-deco">❋</span>
-                <h2 className="heading-text">思 维 图 谱</h2>
-                <span className="heading-deco">❋</span>
-              </div>
-              <p className="stage-hint">悬停思维节点，洞察人物维度</p>
-              <div className="map-canvas">
-                {displayRoles.map((role, index) => (
-                  <PalaceMindMap
-                    key={role.name}
-                    role={role}
-                    isActive={selectedIndex === index}
-                  />
-                ))}
-              </div>
+          <div className="stage-map">
+            <div className="stage-heading">
+              <span className="heading-deco">❋</span>
+              <h2 className="heading-text">思 维 图 谱</h2>
+              <span className="heading-deco">❋</span>
             </div>
-          ) : (
-            <DiscussionPanel roles={displayRoles} />
-          )}
+            <p className="stage-hint">悬停思维节点，洞察人物维度 · 点击「茶话会」开启多角色讨论</p>
+            <div className="map-canvas">
+              {displayRoles.map((role, index) => (
+                <PalaceMindMap
+                  key={role.name}
+                  role={role}
+                  isActive={selectedIndex === index}
+                />
+              ))}
+            </div>
+            <div className="palace-chat-entry">
+              <button className="palace-chat-btn" onClick={() => setShowRoundtable(true)}>
+                <span className="chat-btn-icon">🍵</span>
+                <span className="chat-btn-text">进入茶话会 · 开启多角色讨论</span>
+                <span className="chat-btn-arrow">→</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {showRoundtable && (
+        <PrismRoundtable onClose={() => { setShowRoundtable(false); setActiveTab('map') }} />
+      )}
     </div>
   )
 }

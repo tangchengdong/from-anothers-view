@@ -86,8 +86,16 @@ function PrismRoundtable({ onClose }) {
     return views
   }
 
+  const handleOverlayClick = () => {
+    if (activeTab === 'list') {
+      onClose()
+    } else {
+      handleBack()
+    }
+  }
+
   return (
-    <div className="roundtable-overlay" onClick={onClose}>
+    <div className="roundtable-overlay" onClick={handleOverlayClick}>
       <div className="roundtable-modal" onClick={e => e.stopPropagation()}>
         <div className="roundtable-header">
           <div className="roundtable-header-left">

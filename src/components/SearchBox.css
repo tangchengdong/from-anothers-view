@@ -14,14 +14,46 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem;
-  background: var(--paper-bg);
-  border: 2px solid var(--paper-ink);
+  background: rgba(17, 17, 24, 0.85);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.search-form::before,
+.search-form::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: rgba(0, 255, 255, 0.5);
+  border-style: solid;
   transition: all 0.3s ease;
 }
 
+.search-form::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.search-form::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
 .search-form:focus-within {
-  border-color: var(--paper-accent);
-  box-shadow: 0 2px 12px rgba(184, 134, 11, 0.15);
+  border-color: #00ffff;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), 0 0 40px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05);
+}
+
+.search-form:focus-within::before,
+.search-form:focus-within::after {
+  border-color: #00ffff;
+  width: 14px;
+  height: 14px;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
 .search-icon {
@@ -30,44 +62,57 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #00ffff;
+  filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.6));
 }
 
 .search-input {
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--paper-ink);
+  color: #e8e8ff;
   font-size: 0.95rem;
   padding: 0.6rem;
   outline: none;
-  font-family: var(--font-serif);
+  font-family: 'Rajdhani', sans-serif;
+  letter-spacing: 0.03em;
 }
 
 .search-input::placeholder {
-  color: var(--paper-ink-light);
-  font-style: italic;
+  color: #8888aa;
+  font-family: 'Share Tech Mono', monospace;
+  font-style: normal;
+  letter-spacing: 0.05em;
 }
 
 .search-btn {
   padding: 0.65rem 1.5rem;
-  background: var(--paper-ink);
-  border: none;
-  color: var(--paper-bg);
+  background: rgba(0, 255, 255, 0.15);
+  border: 1px solid #00ffff;
+  color: #00ffff;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: var(--font-serif);
-  letter-spacing: 0.1em;
+  font-family: 'Orbitron', 'Rajdhani', sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  position: relative;
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
 }
 
 .search-btn:hover:not(:disabled) {
-  background: var(--paper-accent);
+  background: rgba(0, 255, 255, 0.3);
+  color: #e8e8ff;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), 0 0 40px rgba(0, 255, 255, 0.2);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
 }
 
 .search-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .search-hints {
@@ -76,10 +121,16 @@
 
 .hints-title {
   font-size: 0.75rem;
-  color: var(--paper-ink-light);
+  color: #8888aa;
   margin-bottom: 0.5rem;
-  font-family: var(--font-serif);
-  font-style: italic;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hints-title::before {
+  content: '> ';
+  color: #00ffff;
 }
 
 .hints-list {
@@ -90,19 +141,53 @@
 
 .hint-tag {
   padding: 0.35rem 0.9rem;
-  background: var(--paper-bg-aged);
-  border: 1px solid var(--paper-rule-light);
-  color: var(--paper-ink-secondary);
+  background: transparent;
+  border: 1px solid rgba(0, 255, 255, 0.4);
+  color: #8888aa;
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: var(--font-serif);
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 0.05em;
+  position: relative;
+}
+
+.hint-tag::before,
+.hint-tag::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-color: rgba(0, 255, 255, 0.4);
+  border-style: solid;
+  transition: all 0.3s ease;
+}
+
+.hint-tag::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+
+.hint-tag::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1px 1px 0;
 }
 
 .hint-tag:hover {
-  background: var(--paper-ink);
-  color: var(--paper-bg);
-  border-color: var(--paper-ink);
+  background: rgba(0, 255, 255, 0.15);
+  color: #00ffff;
+  border-color: #00ffff;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+}
+
+.hint-tag:hover::before,
+.hint-tag:hover::after {
+  border-color: #00ffff;
+  width: 6px;
+  height: 6px;
 }
 
 @media (max-width: 768px) {

@@ -3,6 +3,7 @@
   padding: 32px 24px 80px;
   position: relative;
   z-index: 1;
+  background: var(--cyber-bg);
 }
 
 .search-container {
@@ -17,138 +18,206 @@
 .back-btn {
   background: none;
   border: none;
-  color: var(--paper-ink-secondary);
-  font-size: 0.9rem;
+  color: var(--cyber-muted);
+  font-size: 0.85rem;
   cursor: pointer;
-  font-family: var(--font-serif);
+  font-family: var(--font-cyber-mono);
   margin-bottom: 16px;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
   padding: 0;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .back-btn:hover {
-  color: var(--paper-ink);
+  color: var(--cyber-cyan);
+  text-shadow: var(--cyber-glow-cyan);
 }
 
 .search-title {
-  font-family: var(--font-serif);
-  font-size: 1.75rem;
+  font-family: var(--font-cyber);
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--paper-ink);
+  color: var(--cyber-ink);
   margin-bottom: 8px;
-  border-bottom: 2px solid var(--paper-ink);
+  border-bottom: 2px solid var(--cyber-cyan);
   padding-bottom: 0.5rem;
   display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: var(--cyber-glow-cyan);
+  position: relative;
+}
+
+.search-title::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: var(--cyber-magenta);
+  box-shadow: var(--cyber-glow-magenta);
 }
 
 .search-query-display {
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--paper-rule-light);
+  border-bottom: 1px solid var(--cyber-border);
+  position: relative;
+}
+
+.search-query-display::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--cyber-cyan) 0,
+    var(--cyber-cyan) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  opacity: 0.4;
 }
 
 .search-query {
-  color: var(--paper-accent);
+  color: var(--cyber-magenta);
   font-weight: 600;
+  font-family: var(--font-cyber-mono);
+  text-shadow: var(--cyber-glow-magenta);
 }
 
 .search-count {
-  color: var(--paper-ink-secondary);
-  font-size: 0.9rem;
-  font-family: var(--font-serif);
-  font-style: italic;
+  color: var(--cyber-muted);
+  font-size: 0.85rem;
+  font-family: var(--font-cyber-mono);
+  letter-spacing: 0.05em;
 }
 
 .search-error {
   text-align: center;
   padding: 3rem 1rem;
   margin: 2rem 0;
-  background: linear-gradient(135deg, rgba(231, 76, 60, 0.03), rgba(255, 179, 71, 0.03));
-  border: 1px solid var(--paper-rule);
-  border-left: 4px solid #e74c3c;
+  background: rgba(255, 51, 102, 0.05);
+  border: 1px solid rgba(255, 51, 102, 0.3);
+  border-left: 4px solid var(--cyber-red);
+  position: relative;
 }
 
 .search-error .error-icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
+  filter: drop-shadow(0 0 8px rgba(255, 51, 102, 0.5));
 }
 
 .search-error .error-text {
-  color: var(--paper-ink-secondary);
-  font-family: var(--font-serif);
+  color: var(--cyber-ink);
+  font-family: var(--font-cyber-body);
   font-size: 0.95rem;
   margin-bottom: 1.25rem;
 }
 
 .retry-btn {
   padding: 0.6rem 1.5rem;
-  background: linear-gradient(135deg, rgba(255, 179, 71, 0.15), rgba(255, 139, 123, 0.15));
-  border: 1px solid var(--paper-rule);
-  color: var(--paper-ink);
-  font-family: var(--font-serif);
-  font-size: 0.85rem;
+  background: transparent;
+  border: 1px solid var(--cyber-cyan);
+  color: var(--cyber-cyan);
+  font-family: var(--font-cyber);
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .retry-btn:hover {
-  background: linear-gradient(135deg, rgba(255, 179, 71, 0.25), rgba(255, 139, 123, 0.25));
-  border-color: var(--paper-accent);
-  transform: translateY(-1px);
+  background: var(--cyber-cyan);
+  color: var(--cyber-bg);
+  box-shadow: var(--cyber-glow-cyan);
 }
 
-/* Agent 视角观点板块 */
 .commentary-section {
   margin-bottom: 2.5rem;
   padding: 1.5rem;
-  background: var(--paper-bg);
-  border: 1px solid var(--paper-rule);
-  border-top: 3px double var(--paper-ink);
+  background: var(--cyber-panel);
+  border: 1px solid var(--cyber-border);
+  border-top: 2px solid transparent;
+  border-image: linear-gradient(90deg, var(--cyber-cyan), var(--cyber-magenta)) 1;
+  backdrop-filter: blur(8px);
+  position: relative;
+}
+
+.commentary-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 255, 0.01) 2px,
+    rgba(0, 255, 255, 0.01) 4px
+  );
+  pointer-events: none;
 }
 
 .commentary-header {
   margin-bottom: 1.25rem;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .commentary-title {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  font-family: var(--font-serif);
-  color: var(--paper-ink);
+  font-family: var(--font-cyber);
+  color: var(--cyber-ink);
   margin-bottom: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: var(--cyber-glow-cyan);
 }
 
 .commentary-subtitle {
   font-size: 0.8rem;
-  color: var(--paper-ink-light);
-  font-family: var(--font-serif);
-  font-style: italic;
+  color: var(--cyber-muted);
+  font-family: var(--font-cyber-mono);
+  letter-spacing: 0.08em;
 }
 
 .commentary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1rem;
+  position: relative;
+  z-index: 1;
 }
 
 .commentary-card {
-  background: var(--paper-bg-dark);
-  border: 1px solid var(--paper-rule-light);
+  background: var(--cyber-bg2);
+  border: 1px solid var(--cyber-border);
   padding: 1rem;
   position: relative;
   transition: all 0.3s ease;
 }
 
 .commentary-card:hover {
-  border-color: var(--paper-accent);
-  box-shadow: 0 2px 12px rgba(184, 134, 11, 0.1);
+  border-color: var(--cyber-cyan);
+  box-shadow: var(--cyber-glow-cyan);
+  transform: translateY(-2px);
 }
 
 .commentary-card-custom {
-  background: linear-gradient(135deg, rgba(255, 179, 71, 0.05), rgba(139, 38, 53, 0.03));
-  border: 1px dashed var(--paper-rule);
+  background: linear-gradient(135deg, rgba(255, 0, 255, 0.05), rgba(0, 255, 255, 0.03));
+  border: 1px dashed var(--cyber-magenta);
 }
 
 .custom-badge {
@@ -156,12 +225,14 @@
   top: 8px;
   right: 8px;
   padding: 2px 8px;
-  background: var(--paper-accent);
-  color: var(--paper-bg);
+  background: var(--cyber-magenta);
+  color: var(--cyber-bg);
   font-size: 0.6rem;
   font-weight: 700;
-  font-family: var(--font-serif);
-  letter-spacing: 0.05em;
+  font-family: var(--font-cyber-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: var(--cyber-glow-magenta);
 }
 
 .commentary-card-header {
@@ -170,34 +241,38 @@
   gap: 0.5rem;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--paper-rule-light);
+  border-bottom: 1px solid var(--cyber-border);
 }
 
 .commentary-emoji {
   font-size: 1.2rem;
+  filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.4));
 }
 
 .commentary-role {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  font-family: var(--font-serif);
+  font-family: var(--font-cyber-mono);
+  color: var(--cyber-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .commentary-headline {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--paper-ink);
+  color: var(--cyber-ink);
   margin-bottom: 0.5rem;
   line-height: 1.4;
-  font-family: var(--font-serif);
+  font-family: var(--font-cyber-body);
 }
 
 .commentary-viewpoint {
   font-size: 0.78rem;
-  color: var(--paper-ink-secondary);
+  color: var(--cyber-muted);
   line-height: 1.7;
   margin-bottom: 0.75rem;
-  font-family: var(--font-serif);
+  font-family: var(--font-cyber-body);
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
@@ -212,10 +287,12 @@
 
 .commentary-tag {
   padding: 2px 8px;
-  background: var(--paper-bg-aged);
+  background: rgba(0, 255, 255, 0.08);
+  border: 1px solid rgba(0, 255, 255, 0.2);
   font-size: 0.65rem;
-  color: var(--paper-ink-light);
-  font-family: var(--font-serif);
+  color: var(--cyber-cyan);
+  font-family: var(--font-cyber-mono);
+  letter-spacing: 0.05em;
 }
 
 .perspective-tabs {
@@ -224,29 +301,51 @@
   flex-wrap: wrap;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--paper-rule-light);
+  border-bottom: 1px solid var(--cyber-border);
+  position: relative;
+}
+
+.perspective-tabs::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--cyber-magenta) 0,
+    var(--cyber-magenta) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  opacity: 0.3;
 }
 
 .tab-btn {
-  padding: 0.4rem 1rem;
-  background: var(--paper-bg);
-  border: 1px solid var(--paper-rule);
-  color: var(--paper-ink-secondary);
-  font-size: 0.8rem;
-  font-family: var(--font-serif);
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--cyber-border);
+  color: var(--cyber-muted);
+  font-size: 0.75rem;
+  font-family: var(--font-cyber-mono);
   cursor: pointer;
   transition: all 0.3s ease;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .tab-btn:hover {
-  background: var(--paper-bg-aged);
-  color: var(--paper-ink);
+  background: rgba(0, 255, 255, 0.08);
+  color: var(--cyber-cyan);
+  border-color: var(--cyber-cyan);
 }
 
 .tab-btn.active {
-  background: var(--paper-ink);
-  border-color: var(--paper-ink);
-  color: var(--paper-bg);
+  background: var(--cyber-cyan);
+  border-color: var(--cyber-cyan);
+  color: var(--cyber-bg);
+  box-shadow: var(--cyber-glow-cyan);
 }
 
 .search-results-grid {
@@ -263,22 +362,24 @@
 .empty-icon {
   font-size: 3.5rem;
   margin-bottom: 1.5rem;
-  opacity: 0.6;
+  opacity: 0.5;
+  filter: grayscale(0.3);
 }
 
 .empty-text {
   font-size: 1.1rem;
-  color: var(--paper-ink);
+  color: var(--cyber-ink);
   margin-bottom: 0.5rem;
-  font-family: var(--font-serif);
+  font-family: var(--font-cyber);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .empty-hint {
   font-size: 0.9rem;
-  color: var(--paper-ink-light);
-  font-family: var(--font-serif);
-  font-style: italic;
+  color: var(--cyber-dim);
+  font-family: var(--font-cyber-mono);
 }
 
 @media (max-width: 768px) {
@@ -287,11 +388,10 @@
   }
 
   .search-title {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
   }
 
   .commentary-grid {
     grid-template-columns: 1fr;
   }
 }
-

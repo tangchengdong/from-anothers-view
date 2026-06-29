@@ -1,38 +1,54 @@
 .footer {
   padding: 40px 24px 32px;
-  border-top: 4px double var(--paper-ink);
-  background: var(--paper-bg);
+  border-top: 1px solid rgba(0, 255, 255, 0.3);
+  background: #0a0a0f;
   margin-top: auto;
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 
-/* Footer顶部棱镜光带 - 暖色调与Header呼应 */
+.footer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 255, 0.015) 2px,
+    rgba(0, 255, 255, 0.015) 4px
+  );
+  pointer-events: none;
+}
+
 .footer::before {
   content: '';
   position: absolute;
-  top: -4px;
+  top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg,
-    rgba(255, 179, 71, 0.5) 0%,
-    rgba(255, 139, 123, 0.7) 35%,
-    rgba(139, 38, 53, 0.6) 70%,
-    rgba(255, 139, 123, 0.4) 100%);
+  height: 3px;
+  background: linear-gradient(90deg, #00ffff 0%, #ff00ff 50%, #00ffff 100%);
   background-size: 200% 100%;
-  animation: footerPrismShift 8s ease-in-out infinite;
+  animation: cyberNeonShift 4s ease-in-out infinite;
+  box-shadow: 0 0 10px #00ffff, 0 0 20px rgba(0, 255, 255, 0.5), 0 0 30px rgba(255, 0, 255, 0.3);
 }
 
-@keyframes footerPrismShift {
-  0%, 100% { background-position: 0% 50%; opacity: 0.7; }
-  50% { background-position: 100% 50%; opacity: 1; }
+@keyframes cyberNeonShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .footer-content {
   max-width: 1000px;
   margin: 0 auto;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .footer-rule-top {
@@ -40,25 +56,28 @@
 }
 
 .footer-rule-top span {
-  color: var(--paper-accent);
+  color: #00ffff;
   font-size: 0.8rem;
   letter-spacing: 0.5em;
+  font-family: 'Orbitron', 'Rajdhani', sans-serif;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
 }
 
 .footer-tagline {
-  color: var(--paper-ink-secondary);
-  font-family: var(--font-serif);
-  font-style: italic;
+  color: #8888aa;
+  font-family: 'Rajdhani', sans-serif;
   font-size: 0.9rem;
   margin-bottom: 0.75rem;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 5px rgba(232, 232, 255, 0.3);
 }
 
 .footer-copyright {
-  color: var(--paper-ink-light);
+  color: #8888aa;
   font-size: 0.75rem;
-  font-family: var(--font-serif);
-  letter-spacing: 0.1em;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 0.15em;
+  opacity: 0.8;
 }
 
 @media (max-width: 768px) {
@@ -67,11 +86,10 @@
   }
 }
 
-/* TRAE标识 - 融入整体设计 */
 .trae-badge-block {
   margin-top: 1.5rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--paper-rule-light);
+  border-top: 1px solid rgba(0, 255, 255, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -83,25 +101,54 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, rgba(139, 38, 53, 0.06), rgba(255, 139, 123, 0.06));
-  border: 1px solid var(--paper-rule);
+  background: rgba(17, 17, 24, 0.85);
+  border: 1px solid rgba(0, 255, 255, 0.3);
   border-radius: 0;
   transition: all 0.3s ease;
+  position: relative;
+}
+
+.trae-badge::before,
+.trae-badge::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: #00ffff;
+  border-style: solid;
+}
+
+.trae-badge::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.trae-badge::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
 }
 
 .trae-badge:hover {
-  border-color: var(--paper-accent);
-  box-shadow: 0 2px 12px rgba(139, 38, 53, 0.12);
+  border-color: #ff00ff;
+  box-shadow: 0 0 15px rgba(255, 0, 255, 0.4), 0 0 30px rgba(255, 0, 255, 0.2);
+}
+
+.trae-badge:hover::before,
+.trae-badge:hover::after {
+  border-color: #ff00ff;
 }
 
 .trae-icon {
   font-size: 1.3rem;
-  animation: traePulse 2.5s ease-in-out infinite;
+  animation: cyberPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px #00ffff);
 }
 
-@keyframes traePulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(0.9); }
+@keyframes cyberPulse {
+  0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 8px #00ffff); }
+  50% { opacity: 0.8; transform: scale(1.05); filter: drop-shadow(0 0 15px #ff00ff); }
 }
 
 .trae-text {
@@ -114,72 +161,69 @@
 .trae-label {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--paper-ink);
-  font-family: var(--font-serif);
-  letter-spacing: 0.05em;
+  color: #e8e8ff;
+  font-family: 'Orbitron', 'Rajdhani', sans-serif;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
 }
 
 .trae-desc {
   font-size: 0.65rem;
-  color: var(--paper-ink-light);
-  letter-spacing: 0.03em;
+  color: #8888aa;
+  letter-spacing: 0.05em;
+  font-family: 'Share Tech Mono', monospace;
 }
 
 .trae-story {
   font-size: 0.7rem;
-  color: var(--paper-ink-light);
+  color: #8888aa;
   line-height: 1.7;
   max-width: 500px;
   text-align: center;
-  font-style: italic;
-  font-family: var(--font-serif);
+  font-family: 'Rajdhani', sans-serif;
   margin: 0;
   padding: 0 1rem;
 }
 
-/* 深色主题Footer适配 - 暖色调 */
 body.dark-theme .footer {
-  background: var(--dark-bg);
-  border-top-color: rgba(255, 220, 180, 0.1);
+  background: #0a0a0f;
+  border-top-color: rgba(0, 255, 255, 0.3);
 }
 
 body.dark-theme .footer::before {
-  background: linear-gradient(90deg,
-    rgba(255, 179, 71, 0.5) 0%,
-    rgba(255, 139, 123, 0.7) 35%,
-    rgba(139, 38, 53, 0.6) 70%,
-    rgba(255, 139, 123, 0.4) 100%);
+  background: linear-gradient(90deg, #00ffff 0%, #ff00ff 50%, #00ffff 100%);
 }
 
 body.dark-theme .footer-rule-top span {
-  color: var(--prism-warm-gold);
+  color: #00ffff;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
 }
 
 body.dark-theme .footer-tagline {
-  color: var(--dark-text-secondary);
+  color: #8888aa;
 }
 
 body.dark-theme .footer-copyright {
-  color: var(--dark-text-muted);
+  color: #8888aa;
 }
 
 body.dark-theme .trae-badge {
-  background: linear-gradient(135deg, rgba(255, 179, 71, 0.08), rgba(139, 38, 53, 0.06));
-  border-color: rgba(255, 220, 180, 0.12);
+  background: rgba(17, 17, 24, 0.85);
+  border-color: rgba(0, 255, 255, 0.3);
 }
 
 body.dark-theme .trae-label {
-  color: var(--dark-text);
+  color: #e8e8ff;
 }
 
 body.dark-theme .trae-desc {
-  color: var(--dark-text-muted);
+  color: #8888aa;
 }
 
 body.dark-theme .trae-story {
-  color: var(--dark-text-muted);
+  color: #8888aa;
 }
 
 body.dark-theme .trae-badge-block {
-  border-top-color: rgba(255, 220, 180, 0.08);
+  border-top-color: rgba(0, 255, 255, 0.15);
 }

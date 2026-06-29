@@ -14,12 +14,14 @@ function Home() {
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(true)
   const [onboardingKey, setOnboardingKey] = useState(0)
+  const [pageEntered, setPageEntered] = useState(false)
 
   useEffect(() => {
     const handleReset = () => {
       window.scrollTo({ top: 0, behavior: 'auto' })
       resetSelection()
       setShowOnboarding(true)
+      setPageEntered(false)
       setOnboardingKey(k => k + 1)
     }
     window.addEventListener(RESET_ONBOARDING_EVENT, handleReset)
@@ -33,27 +35,26 @@ function Home() {
 
   const handleOnboardingStart = () => {
     setShowOnboarding(false)
+    setPageEntered(true)
     setTimeout(() => {
-      const pickerWelcome = document.querySelector('.picker-welcome')
-      if (pickerWelcome) {
-        const rect = pickerWelcome.getBoundingClientRect()
-        const offset = rect.top + window.scrollY - 80
+      const quickPickTitle = document.querySelector('.picker-section-title')
+      if (quickPickTitle) {
+        const rect = quickPickTitle.getBoundingClientRect()
+        const headerHeight = 60
+        const offset = rect.top + window.scrollY - headerHeight
         window.scrollTo({
           top: offset,
           behavior: 'smooth'
         })
-        const cardBack = document.querySelector('.card-container:not(.flipped) .card-back')
-        if (cardBack) {
-          cardBack.classList.add('attention-pulse')
-          setTimeout(() => cardBack.classList.remove('attention-pulse'), 1200)
-        }
+        quickPickTitle.classList.add('section-highlight')
+        setTimeout(() => quickPickTitle.classList.remove('section-highlight'), 2000)
       } else {
         window.scrollTo({
-          top: window.innerHeight * 0.55,
+          top: 0,
           behavior: 'smooth'
         })
       }
-    }, 100)
+    }, 450)
   }
 
   useEffect(() => {
@@ -69,17 +70,27 @@ function Home() {
   }
 
   return (
-    <div className="home-page">
+    <div className={`home-page ${pageEntered ? 'entered' : ''}`}>
       {showOnboarding && <OnboardingOverlay key={onboardingKey} onStart={handleOnboardingStart} />}
 
       <div className="home-hero">
+        <div className="hero-cyber-corner tl" />
+        <div className="hero-cyber-corner tr" />
+        <div className="hero-cyber-corner bl" />
+        <div className="hero-cyber-corner br" />
+        <div className="hero-scan-line" />
         <div className="hero-brand">
           <span className="hero-diamond">◆</span>
-          <h1 className="hero-title font-serif">棱 镜</h1>
+          <h1 className="hero-title">棱 镜</h1>
           <span className="hero-diamond">◆</span>
         </div>
-        <p className="hero-subtitle font-serif">— PRISM NEWS · 换个视角看世界 —</p>
+        <p className="hero-subtitle">— PRISM NEWS · 换个视角看世界 —</p>
         <p className="hero-tagline">抽取你的专属身份，打破信息茧房</p>
+        <div className="hero-particles">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <span key={i} className={`hero-particle hp-${i}`} />
+          ))}
+        </div>
       </div>
 
       <PerspectivePicker

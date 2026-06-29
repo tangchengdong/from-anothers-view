@@ -5,14 +5,14 @@
   right: 0;
   bottom: 0;
   z-index: 3000;
-  background: rgba(26, 21, 16, 0.92);
+  background: rgba(10, 10, 15, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   animation: posterFadeIn 0.3s ease;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 @keyframes posterFadeIn {
@@ -20,34 +20,49 @@
   to { opacity: 1; }
 }
 
-/* 海报弹窗 - 统一深色主题 */
 .share-poster-modal {
   position: relative;
-  background: var(--dark-bg);
+  background: var(--cyber-panel);
   max-width: 420px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   padding: 1.5rem 1.5rem 1.25rem;
-  border: 1px solid rgba(139, 38, 53, 0.2);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(139, 38, 53, 0.15);
+  border: 1px solid var(--cyber-border-strong);
+  box-shadow: var(--cyber-glow-cyan), var(--cyber-glow-magenta);
   animation: posterSlideUp 0.4s ease;
-  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  clip-path: polygon(0 8px, 8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px));
 }
 
-/* 棱镜折射光带 - 顶部桥梁 */
 .share-poster-modal::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: var(--prism-gradient);
+  height: 3px;
+  background: linear-gradient(90deg, var(--cyber-cyan), var(--cyber-magenta), var(--cyber-cyan));
   background-size: 200% 100%;
-  animation: posterPrismShift 5s ease-in-out infinite;
+  animation: posterPrismShift 4s ease-in-out infinite;
   z-index: 5;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.share-poster-modal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 255, 0.012) 2px,
+    rgba(0, 255, 255, 0.012) 4px
+  );
+  pointer-events: none;
 }
 
 @keyframes posterPrismShift {
@@ -59,75 +74,83 @@
   from {
     transform: translateY(30px);
     opacity: 0;
+    filter: blur(4px);
   }
   to {
     transform: translateY(0);
     opacity: 1;
+    filter: blur(0);
   }
 }
 
 .poster-close-btn {
   position: absolute;
-  top: 15px;
-  right: 20px;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--dark-text);
-  font-size: 18px;
+  top: 12px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  background: transparent;
+  border: 1px solid var(--cyber-border);
+  color: var(--cyber-muted);
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   z-index: 10;
-  transition: all 0.2s ease;
-  font-family: var(--font-sans);
+  transition: all 0.25s ease;
+  font-family: var(--font-cyber-mono);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .poster-close-btn:hover {
-  background: var(--prism-primary);
-  color: #fff;
+  background: var(--cyber-red);
+  color: var(--cyber-bg);
   transform: rotate(90deg);
-  border-color: var(--prism-primary);
+  border-color: var(--cyber-red);
+  box-shadow: 0 0 12px rgba(255, 51, 102, 0.5);
 }
 
 .poster-title {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 800;
-  font-family: var(--font-serif);
-  color: var(--dark-text);
+  font-family: var(--font-cyber);
+  color: var(--cyber-ink);
   text-align: center;
   margin: 0 0 0.25rem;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: var(--cyber-glow-cyan);
+  position: relative;
+  z-index: 1;
 }
 
 .poster-subtitle {
-  font-size: 0.8rem;
-  color: rgba(255, 245, 235, 0.6);
+  font-size: 0.75rem;
+  color: var(--cyber-muted);
   text-align: center;
   margin: 0 0 1.25rem;
-  font-style: italic;
-  font-family: var(--font-serif);
+  font-family: var(--font-cyber-mono);
+  letter-spacing: 0.08em;
+  position: relative;
+  z-index: 1;
 }
 
-/* 海报预览区 - 深色棱镜入口 */
 .poster-preview {
   position: relative;
   width: 100%;
   aspect-ratio: 750 / 1000;
-  background: var(--dark-bg);
-  border: 1px solid rgba(255, 139, 123, 0.15);
+  background: var(--cyber-bg2);
+  border: 1px solid var(--cyber-border);
   overflow: hidden;
   margin-bottom: 1.25rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 179, 71, 0.1);
+  box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.05);
+  position: relative;
+  z-index: 1;
 }
 
-/* 预览区底部棱镜光带 */
 .poster-preview::after {
   content: '';
   position: absolute;
@@ -135,9 +158,9 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--prism-gradient);
+  background: linear-gradient(90deg, var(--cyber-magenta), var(--cyber-cyan), var(--cyber-magenta));
   background-size: 200% 100%;
-  animation: posterPrismShift 5s ease-in-out infinite;
+  animation: posterPrismShift 4s ease-in-out infinite;
   z-index: 2;
 }
 
@@ -152,19 +175,19 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  color: rgba(255, 245, 235, 0.6);
-  font-size: 0.85rem;
-  font-family: var(--font-serif);
+  color: var(--cyber-muted);
+  font-size: 0.8rem;
+  font-family: var(--font-cyber-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-/* 棱镜色加载动画 */
 .poster-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(255, 255, 255, 0.12);
-  border-top-color: var(--prism-primary);
-  border-right-color: var(--prism-secondary);
-  border-radius: 50%;
+  border: 2px solid rgba(0, 255, 255, 0.15);
+  border-top-color: var(--cyber-cyan);
+  border-right-color: var(--cyber-magenta);
   animation: posterSpin 0.8s linear infinite;
 }
 
@@ -183,6 +206,8 @@
   display: flex;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
+  position: relative;
+  z-index: 1;
 }
 
 .poster-btn {
@@ -192,42 +217,45 @@
   justify-content: center;
   gap: 0.4rem;
   padding: 0.75rem;
-  border: 2px solid rgba(255, 245, 235, 0.2);
-  background: rgba(255, 245, 235, 0.03);
-  color: var(--dark-text);
-  font-size: 0.85rem;
+  border: 1px solid var(--cyber-border);
+  background: transparent;
+  color: var(--cyber-ink);
+  font-size: 0.78rem;
   font-weight: 600;
-  font-family: var(--font-serif);
+  font-family: var(--font-cyber);
   cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.05em;
-  border-radius: var(--radius-md);
+  transition: all 0.25s ease;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .poster-btn-download:hover {
-  background: rgba(255, 245, 235, 0.08);
-  border-color: rgba(255, 245, 235, 0.35);
+  background: rgba(0, 255, 255, 0.08);
+  border-color: var(--cyber-cyan);
+  color: var(--cyber-cyan);
+  box-shadow: var(--cyber-glow-cyan);
 }
 
 .poster-btn-share {
-  background: var(--prism-primary);
-  color: #fff;
-  border-color: var(--prism-primary);
+  background: linear-gradient(135deg, var(--cyber-cyan), var(--cyber-magenta));
+  color: var(--cyber-bg);
+  border-color: transparent;
 }
 
 .poster-btn-share:hover {
-  background: #ff7a6a;
-  border-color: #ff7a6a;
-  box-shadow: 0 4px 16px rgba(139, 38, 53, 0.4);
+  box-shadow: var(--cyber-glow-cyan), var(--cyber-glow-magenta);
+  transform: translateY(-2px);
 }
 
 .poster-hint {
   font-size: 0.7rem;
-  color: rgba(255, 245, 235, 0.5);
+  color: var(--cyber-dim);
   text-align: center;
-  font-style: italic;
-  font-family: var(--font-serif);
+  font-family: var(--font-cyber-mono);
   margin: 0;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
 }
 
 @media (max-width: 768px) {

@@ -202,11 +202,12 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
 
   const getCharacterImageSources = (card) => {
     const sources = []
-    if (card.card_image && !imageLoadError[`card_${card.local_image}`]) {
+    const imageKey = card.local_image || `name_${card.name}`
+    if (card.card_image && !imageLoadError[`card_${imageKey}`]) {
       sources.push({
         url: getCardImagePath(card.card_image),
         isCard: true,
-        key: `card_${card.local_image}`
+        key: `card_${imageKey}`
       })
     }
     if (card.local_image && !imageLoadError[`local_${card.local_image}`]) {
@@ -247,7 +248,8 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
     const viewClass = card ? getViewClass(card.rarity) : null
     const rarityClass = card ? `rarity-${card.rarity}` : ''
     const imageSources = card ? getCharacterImageSources(card) : []
-    const hasFullCard = card?.card_image && !imageLoadError[`card_${card.local_image}`]
+    const imageKey = card?.local_image || `name_${card?.name}`
+    const hasFullCard = card?.card_image && !imageLoadError[`card_${imageKey}`]
     const hasLocalImage = card?.local_image && !imageLoadError[`local_${card.local_image}`]
     const hasAnyImage = imageSources.length > 0
     const isUrLocal = isInGrid && urLocalEffect.has(index)
@@ -421,7 +423,8 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
         <div className="suggestions-grid">
           {suggestions.slice(0, 6).map((item, index) => {
             const viewClass = getViewClass(item.base_rarity)
-            const hasCardImage = item.card_image && !imageLoadError[`card_${item.local_image}`]
+            const suggImageKey = item.local_image || `name_${item.name}`
+            const hasCardImage = item.card_image && !imageLoadError[`card_${suggImageKey}`]
             const hasLocalImage = item.local_image && !imageLoadError[`local_${item.local_image}`]
             const thumbnailUrl = hasCardImage ? getCardImagePath(item.card_image) : (hasLocalImage ? getLocalImagePath(item.local_image) : null)
             return (
@@ -436,7 +439,7 @@ export default function PerspectivePicker({ onSelect, selectedPerspective }) {
                     alt={item.name}
                     className="suggestion-card-thumbnail"
                     loading="lazy"
-                    onError={() => handleImageError(hasCardImage ? `card_${item.local_image}` : `local_${item.local_image}`)}
+                    onError={() => handleImageError(hasCardImage ? `card_${suggImageKey}` : `local_${item.local_image}`)}
                   />
                 ) : (
                   <>

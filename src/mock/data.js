@@ -26,7 +26,7 @@ const CARD_IMAGES = {
   'coffe': 'card_22_咖啡店老板(1).webp',
   'zhichang': 'card_23_职场HR(1).webp',
   'banzhuren': 'card_24_中学班主任(1).webp',
-  'kabei': 'card_25_出租车司机(1).webp'
+  'chuzuche': 'card_25_出租车司机(1).webp'
 }
 
 const REAL_NEWS = localNewsData.map(news => ({
@@ -1204,8 +1204,8 @@ export const MOCK_ROLES = [
     name: '出租车司机', 
     emoji: '🚕', 
     base_rarity: 'n', 
-    local_image: 'kabei', 
-    card_image: CARD_IMAGES['kabei'],
+    local_image: null, 
+    card_image: CARD_IMAGES['chuzuche'],
     stats: { insight: 75, empathy: 80, criticism: 65, breadth: 70, humor: 78 },
     description: '开了二十年车的老司机，听遍城市里的故事', 
     keywords: ['路况', '城市', '八卦', '民生', '出行'],

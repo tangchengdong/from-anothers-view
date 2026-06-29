@@ -20,7 +20,6 @@ function App() {
 
   useEffect(() => {
     document.body.classList.remove('paper-theme', 'dark-theme')
-    document.body.classList.add('paper-theme')
   }, [isHome])
 
   useEffect(() => {

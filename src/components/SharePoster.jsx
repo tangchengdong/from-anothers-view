@@ -12,10 +12,10 @@ const RARITY_LABELS = {
 
 const RARITY_COLORS = {
   ur: '#FFD700',
-  ssr: '#C9A0DC',
-  sr: '#7FB069',
-  r: '#8FA3B8',
-  n: '#A89680'
+  ssr: '#FF00FF',
+  sr: '#00FF88',
+  r: '#00FFFF',
+  n: '#8888AA'
 }
 
 function SharePoster({ perspective, opinion, newsTitle, onClose }) {
@@ -60,10 +60,10 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
     canvas.width = W
     canvas.height = H
 
-    const bgColor = '#1A1510'
-    const accentColor = perspective?.color || '#8B2635'
+    const bgColor = '#0a0a0f'
+    const accentColor = perspective?.color || '#00ffff'
     const rarity = perspective?.rarity || 'n'
-    const rarityColor = RARITY_COLORS[rarity] || '#A89680'
+    const rarityColor = RARITY_COLORS[rarity] || '#8888AA'
     const rarityLabel = RARITY_LABELS[rarity] || '普通'
     const { dateStr, issueNum } = getCurrentDate()
 
@@ -71,27 +71,27 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
     ctx.fillRect(0, 0, W, H)
 
     const gradBg1 = ctx.createRadialGradient(W * 0.5, H * 0.35, 0, W * 0.5, H * 0.35, 500)
-    gradBg1.addColorStop(0, 'rgba(139, 38, 53, 0.12)')
-    gradBg1.addColorStop(0.5, 'rgba(255, 179, 71, 0.06)')
+    gradBg1.addColorStop(0, 'rgba(0, 255, 255, 0.08)')
+    gradBg1.addColorStop(0.5, 'rgba(255, 0, 255, 0.05)')
     gradBg1.addColorStop(1, 'transparent')
     ctx.fillStyle = gradBg1
     ctx.fillRect(0, 0, W, H)
 
     const gradVignette = ctx.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, 600)
     gradVignette.addColorStop(0, 'transparent')
-    gradVignette.addColorStop(1, 'rgba(0, 0, 0, 0.4)')
+    gradVignette.addColorStop(1, 'rgba(0, 0, 0, 0.5)')
     ctx.fillStyle = gradVignette
     ctx.fillRect(0, 0, W, H)
 
     ctx.save()
-    ctx.strokeStyle = rarity === 'ur' ? '#FFD700' : (rarity === 'ssr' ? '#C9A0DC' : '#FFB347')
+    ctx.strokeStyle = rarity === 'ur' ? '#FFD700' : (rarity === 'ssr' ? '#FF00FF' : '#00ffff')
     ctx.lineWidth = 2
     ctx.shadowColor = hexToRgba(ctx.strokeStyle, 0.6)
     ctx.shadowBlur = 15
     ctx.strokeRect(25, 25, W - 50, H - 50)
     ctx.restore()
 
-    ctx.strokeStyle = hexToRgba('#FFF5EB', 0.15)
+    ctx.strokeStyle = hexToRgba('#e8e8ff', 0.1)
     ctx.lineWidth = 1
     ctx.strokeRect(35, 35, W - 70, H - 70)
 
@@ -99,9 +99,9 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
     const corners = [
       [35, 35], [W - 35, 35], [35, H - 35], [W - 35, H - 35]
     ]
-    ctx.strokeStyle = rarity === 'ur' ? '#FFD700' : '#FF8B7B'
+    ctx.strokeStyle = rarity === 'ur' ? '#FFD700' : '#00ffff'
     ctx.lineWidth = 3
-    ctx.lineCap = 'round'
+    ctx.lineCap = 'square'
     corners.forEach(([cx, cy], i) => {
       ctx.beginPath()
       const dirs = i === 0 ? [1, 1, 1, 1] : i === 1 ? [-1, 1, 1, 1] : i === 2 ? [1, -1, 1, 1] : [-1, -1, 1, 1]
@@ -113,26 +113,27 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
 
     const gradTop = ctx.createLinearGradient(50, 0, W - 50, 0)
     gradTop.addColorStop(0, 'transparent')
-    gradTop.addColorStop(0.15, '#FFD4A0')
-    gradTop.addColorStop(0.35, '#FFB347')
-    gradTop.addColorStop(0.5, '#FF8B7B')
-    gradTop.addColorStop(0.65, '#8B2635')
-    gradTop.addColorStop(0.85, '#FF8B7B')
+    gradTop.addColorStop(0.2, '#00ffff')
+    gradTop.addColorStop(0.5, '#ff00ff')
+    gradTop.addColorStop(0.8, '#00ffff')
     gradTop.addColorStop(1, 'transparent')
     ctx.fillStyle = gradTop
     ctx.fillRect(50, 75, W - 100, 3)
 
-    ctx.fillStyle = '#FFF5EB'
-    ctx.font = '900 22px "Noto Serif SC", serif'
+    ctx.fillStyle = '#00ffff'
+    ctx.font = '900 22px "Orbitron", "Noto Sans SC", sans-serif'
     ctx.textAlign = 'center'
+    ctx.shadowColor = 'rgba(0, 255, 255, 0.8)'
+    ctx.shadowBlur = 10
     ctx.fillText('棱 镜   P R I S M', W / 2, 120)
+    ctx.shadowBlur = 0
 
-    ctx.fillStyle = hexToRgba('#FFF5EB', 0.5)
-    ctx.font = '600 11px "Noto Sans SC", sans-serif'
-    ctx.fillText('NEWS · 换个视角看世界', W / 2, 145)
+    ctx.fillStyle = hexToRgba('#e8e8ff', 0.5)
+    ctx.font = '600 11px "Share Tech Mono", "Noto Sans SC", monospace'
+    ctx.fillText('NEWS · SEE THE WORLD DIFFERENTLY', W / 2, 145)
 
-    ctx.fillStyle = hexToRgba('#FFF5EB', 0.35)
-    ctx.font = '400 10px "Noto Sans SC", sans-serif'
+    ctx.fillStyle = hexToRgba('#8888aa', 0.6)
+    ctx.font = '400 10px "Share Tech Mono", monospace'
     ctx.textAlign = 'left'
     ctx.fillText(dateStr, 55, 60)
     ctx.textAlign = 'right'
@@ -198,9 +199,9 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
         ctx.drawImage(characterImg, W / 2 - avatarRadius, avatarCenterY - avatarRadius, imgSize, imgSize)
       }
     } else {
-      ctx.fillStyle = 'rgba(45, 37, 32, 0.9)'
+      ctx.fillStyle = 'rgba(17, 17, 24, 0.9)'
       ctx.fillRect(W / 2 - avatarRadius, avatarCenterY - avatarRadius, avatarRadius * 2, avatarRadius * 2)
-      ctx.font = '80px serif'
+      ctx.font = '80px sans-serif'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(perspective?.emoji || '🎴', W / 2, avatarCenterY)
@@ -229,28 +230,31 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
     ctx.fillStyle = rarityColor
     roundRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, 13)
     ctx.fill()
-    ctx.fillStyle = rarity === 'ur' ? '#1A1510' : '#FFF5EB'
-    ctx.font = '800 13px "Noto Sans SC", sans-serif'
+    ctx.fillStyle = rarity === 'ur' ? '#0a0a0f' : '#e8e8ff'
+    ctx.font = '800 13px "Orbitron", "Noto Sans SC", sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(`✦ ${rarityLabel} ✦`, W / 2, badgeY + badgeHeight / 2)
     ctx.textBaseline = 'alphabetic'
 
-    ctx.fillStyle = '#FFF5EB'
-    ctx.font = '900 42px "Noto Serif SC", serif'
+    ctx.fillStyle = '#e8e8ff'
+    ctx.font = '900 42px "Orbitron", "Noto Sans SC", sans-serif'
     ctx.textAlign = 'center'
     const name = perspective?.name || '未知身份'
+    ctx.shadowColor = 'rgba(0, 255, 255, 0.5)'
+    ctx.shadowBlur = 8
     ctx.fillText(name, W / 2, 465)
+    ctx.shadowBlur = 0
 
     if (perspective?.description) {
-      ctx.fillStyle = hexToRgba('#FFF5EB', 0.5)
-      ctx.font = '400 13px "Noto Sans SC", sans-serif'
+      ctx.fillStyle = hexToRgba('#8888aa', 0.7)
+      ctx.font = '400 13px "Rajdhani", "Noto Sans SC", sans-serif'
       const desc = truncateText(perspective.description, 22)
       ctx.fillText(desc, W / 2, 495)
     }
 
     const dividerY = 535
-    ctx.strokeStyle = hexToRgba('#FF8B7B', 0.3)
+    ctx.strokeStyle = hexToRgba('#00ffff', 0.3)
     ctx.lineWidth = 1
     ctx.setLineDash([6, 4])
     ctx.beginPath()
@@ -260,26 +264,26 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
     ctx.setLineDash([])
 
     const quoteMark = '"'
-    ctx.fillStyle = hexToRgba(accentColor, 0.25)
-    ctx.font = '900 80px "Noto Serif SC", serif'
+    ctx.fillStyle = hexToRgba('#ff00ff', 0.25)
+    ctx.font = '900 80px "Orbitron", sans-serif'
     ctx.textAlign = 'left'
     ctx.fillText(quoteMark, 70, 580)
 
-    ctx.fillStyle = hexToRgba('#FF8B7B', 0.8)
-    ctx.font = '700 13px "Noto Sans SC", sans-serif'
+    ctx.fillStyle = hexToRgba('#00ffff', 0.8)
+    ctx.font = '700 13px "Share Tech Mono", monospace'
     ctx.textAlign = 'left'
-    ctx.fillText('◈ 今日金句', 95, 575)
+    ctx.fillText('◈ TODAY\'S QUOTE', 95, 575)
 
     if (newsTitle) {
-      ctx.fillStyle = hexToRgba('#FFF5EB', 0.4)
-      ctx.font = '400 11px "Noto Sans SC", sans-serif'
+      ctx.fillStyle = hexToRgba('#e8e8ff', 0.4)
+      ctx.font = '400 11px "Rajdhani", "Noto Sans SC", sans-serif'
       ctx.textAlign = 'left'
       const truncatedTitle = truncateText(newsTitle, 28)
       ctx.fillText(`关于「${truncatedTitle}」`, 95, 600)
     }
 
-    ctx.fillStyle = '#FFF5EB'
-    ctx.font = 'italic 600 20px "Noto Serif SC", serif'
+    ctx.fillStyle = '#e8e8ff'
+    ctx.font = '600 20px "Rajdhani", "Noto Sans SC", sans-serif'
     ctx.textAlign = 'left'
     const opinionText = opinion || perspective?.description || '换个视角看世界'
     const truncatedOpinion = truncateText(opinionText, 50)
@@ -288,40 +292,46 @@ function SharePoster({ perspective, opinion, newsTitle, onClose }) {
     const sloganY = H - 195
     const gradSlogan = ctx.createLinearGradient(100, sloganY, W - 100, sloganY)
     gradSlogan.addColorStop(0, 'transparent')
-    gradSlogan.addColorStop(0.5, '#FFD4A0')
+    gradSlogan.addColorStop(0.5, '#00ffff')
     gradSlogan.addColorStop(1, 'transparent')
-    ctx.fillStyle = hexToRgba('#FFF5EB', 0.08)
+    ctx.fillStyle = hexToRgba('#00ffff', 0.06)
     ctx.fillRect(70, sloganY - 20, W - 140, 55)
-    ctx.strokeStyle = hexToRgba('#FF8B7B', 0.2)
+    ctx.strokeStyle = hexToRgba('#00ffff', 0.25)
     ctx.lineWidth = 1
     ctx.strokeRect(70, sloganY - 20, W - 140, 55)
 
-    ctx.fillStyle = '#FFF5EB'
-    ctx.font = '700 16px "Noto Sans SC", sans-serif'
+    ctx.fillStyle = '#00ffff'
+    ctx.font = '700 16px "Orbitron", "Noto Sans SC", sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('打 破 信 息 茧 房', W / 2, sloganY + 2)
-    ctx.fillStyle = hexToRgba('#FFB347', 0.9)
-    ctx.font = '600 13px "Noto Sans SC", sans-serif'
-    ctx.fillText('· 换个视角看世界 ·', W / 2, sloganY + 26)
+    ctx.shadowColor = 'rgba(0, 255, 255, 0.6)'
+    ctx.shadowBlur = 8
+    ctx.fillText('BREAK THE COCOON', W / 2, sloganY + 2)
+    ctx.shadowBlur = 0
+    ctx.fillStyle = hexToRgba('#ff00ff', 0.9)
+    ctx.font = '600 13px "Share Tech Mono", monospace'
+    ctx.fillText('· SEE THE WORLD DIFFERENTLY ·', W / 2, sloganY + 26)
 
     const ctaY = H - 120
-    ctx.fillStyle = hexToRgba('#FF8B7B', 0.12)
-    roundRect(ctx, 80, ctaY - 5, W - 160, 40, 20)
+    ctx.fillStyle = hexToRgba('#00ffff', 0.1)
+    roundRect(ctx, 80, ctaY - 5, W - 160, 40, 0)
     ctx.fill()
-    ctx.strokeStyle = hexToRgba('#FF8B7B', 0.4)
+    ctx.strokeStyle = hexToRgba('#00ffff', 0.4)
     ctx.lineWidth = 1
-    roundRect(ctx, 80, ctaY - 5, W - 160, 40, 20)
+    roundRect(ctx, 80, ctaY - 5, W - 160, 40, 0)
     ctx.stroke()
 
-    ctx.fillStyle = '#FFD4A0'
-    ctx.font = '700 14px "Noto Sans SC", sans-serif'
+    ctx.fillStyle = '#00ffff'
+    ctx.font = '700 14px "Orbitron", "Noto Sans SC", sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('即 刻 体 验  →  prism-news.app', W / 2, ctaY + 20)
+    ctx.shadowColor = 'rgba(0, 255, 255, 0.6)'
+    ctx.shadowBlur = 6
+    ctx.fillText('START NOW  →  prism-news.app', W / 2, ctaY + 20)
+    ctx.shadowBlur = 0
 
-    ctx.fillStyle = hexToRgba('#FFF5EB', 0.2)
-    ctx.font = '400 10px "Noto Sans SC", sans-serif'
+    ctx.fillStyle = hexToRgba('#8888aa', 0.4)
+    ctx.font = '400 10px "Share Tech Mono", monospace'
     ctx.textAlign = 'center'
-    ctx.fillText('© 2026 棱镜新闻 PRISM NEWS · 看见不同，才能理解不同', W / 2, H - 55)
+    ctx.fillText('© 2026 PRISM NEWS · SEE DIFFERENTLY', W / 2, H - 55)
 
     setDataUrl(canvas.toDataURL('image/png'))
     setGenerated(true)

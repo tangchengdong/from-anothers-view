@@ -1,103 +1,82 @@
 .header {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 100;
-  transition: all 0.3s ease;
-}
-
-/* 报纸主题Header */
-.header-paper {
-  background: var(--paper-bg);
-  border-bottom: 3px double var(--paper-ink);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* 报纸Header底部棱镜光带 - 暖色调视觉桥梁 */
-.header-paper::after {
-  content: '';
-  position: absolute;
-  bottom: -3px;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg,
-    rgba(255, 179, 71, 0.5) 0%,
-    rgba(255, 139, 123, 0.7) 35%,
-    rgba(139, 38, 53, 0.6) 70%,
-    rgba(255, 139, 123, 0.4) 100%);
-  background-size: 200% 100%;
-  animation: headerPrismShift 8s ease-in-out infinite;
+  z-index: 1000;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--cyber-border);
+  padding: 0;
 }
 
-@keyframes headerPrismShift {
-  0%, 100% { background-position: 0% 50%; opacity: 0.7; }
-  50% { background-position: 100% 50%; opacity: 1; }
-}
-
-/* 深色主题Header - 暖色调 */
-.header-dark {
-  background: linear-gradient(180deg, rgba(42, 31, 36, 0.98) 0%, rgba(58, 42, 50, 0.95) 100%);
-  border-bottom: 1px solid rgba(255, 220, 180, 0.1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyber-cyan), var(--cyber-magenta), transparent);
+  opacity: 0.6;
 }
 
 .header-container {
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 14px 24px;
+  padding: 0.9rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
 }
 
 .logo {
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-family: var(--font-cyber);
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--cyber-cyan);
+  letter-spacing: 0.15em;
+  text-shadow: var(--cyber-glow-cyan);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s;
+}
+
+.logo::before {
+  content: '◆';
+  font-size: 0.7em;
+  color: var(--cyber-magenta);
+  text-shadow: var(--cyber-glow-magenta);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.logo::after {
+  content: '◆';
+  font-size: 0.7em;
+  color: var(--cyber-magenta);
+  text-shadow: var(--cyber-glow-magenta);
+  animation: pulse-glow 2s ease-in-out infinite;
+  animation-delay: 0.5s;
 }
 
 .logo:hover {
-  transform: scale(1.02);
+  color: var(--cyber-magenta);
+  text-shadow: var(--cyber-glow-magenta);
 }
 
 .logo-text h1 {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: inherit;
+  font-weight: inherit;
   margin: 0;
+  line-height: 1;
 }
 
-/* 报纸主题Logo - 衬线字体 */
 .logo-serif {
-  font-family: var(--font-serif);
-  font-weight: 900;
-  color: var(--paper-ink);
-  font-size: 1.35rem;
-  letter-spacing: 0.15em;
-  transition: color 0.2s ease;
-}
-
-.logo:hover .logo-serif {
-  color: var(--paper-accent);
-}
-
-/* 深色主题Logo - 温暖棱镜渐变 */
-.logo-gradient {
-  font-family: var(--font-serif);
-  font-weight: 900;
-  font-size: 1.5rem;
+  font-family: var(--font-cyber);
   letter-spacing: 0.2em;
-  background: linear-gradient(135deg, #FFD4A0 0%, #FFB347 20%, #FF8B7B 45%, #8B2635 80%, #FF8B7B 100%);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 5s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
 }
 
 .header-actions {
@@ -106,96 +85,87 @@
   gap: 0.75rem;
 }
 
-.mind-palace-header-btn {
-  padding: 8px 16px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  font-family: var(--font-serif);
-  color: #b8860b;
+.mind-palace-header-btn,
+.debate-header-btn,
+.redraw-header-btn {
+  font-family: var(--font-cyber);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.6rem 1.2rem;
+  color: var(--cyber-muted);
+  border: 1px solid transparent;
   background: transparent;
-  border: 2px solid #daa520;
-  border-radius: 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.05em;
-  min-height: 44px;
+  transition: all 0.3s;
+  position: relative;
+  min-height: auto;
+  min-width: auto;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  text-decoration: none;
+}
+
+.mind-palace-header-btn {
+  color: var(--cyber-yellow);
 }
 
 .mind-palace-header-btn:hover {
-  background: linear-gradient(135deg, #ffd700 0%, #daa520 100%);
-  color: #1a1525;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+  color: var(--cyber-bg);
+  background: var(--cyber-yellow);
+  box-shadow: var(--cyber-glow-yellow);
 }
 
 .debate-header-btn {
-  padding: 8px 16px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  font-family: var(--font-serif);
-  color: var(--paper-accent);
-  background: transparent;
-  border: 2px solid var(--paper-accent);
-  border-radius: 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.05em;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+  color: var(--cyber-magenta);
 }
 
 .debate-header-btn:hover {
-  background: var(--paper-accent);
-  color: var(--paper-bg);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 38, 53, 0.3);
+  color: var(--cyber-bg);
+  background: var(--cyber-magenta);
+  box-shadow: var(--cyber-glow-magenta);
 }
 
 .redraw-header-btn {
-  padding: 8px 20px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  font-family: var(--font-serif);
-  color: var(--paper-ink);
-  background: transparent;
-  border: 2px solid var(--paper-ink);
-  border-radius: 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.05em;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
+  color: var(--cyber-cyan);
+  border-color: var(--cyber-cyan);
 }
 
 .redraw-header-btn:hover {
-  background: var(--paper-accent);
-  color: var(--paper-bg);
-  border-color: var(--paper-accent);
-  transform: translateY(-1px);
+  color: var(--cyber-bg);
+  background: var(--cyber-cyan);
+  box-shadow: var(--cyber-glow-cyan);
 }
 
 @media (max-width: 768px) {
   .header-container {
-    padding: 12px 16px;
+    padding: 0.7rem 1rem;
   }
 
-  .logo-serif {
-    font-size: 1.15rem;
+  .logo {
+    font-size: 1.2rem;
   }
 
-  .logo-gradient {
-    font-size: 1.3rem;
-  }
-
+  .mind-palace-header-btn,
+  .debate-header-btn,
   .redraw-header-btn {
-    padding: 6px 14px;
-    font-size: 0.8rem;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+  }
+
+  .header-actions {
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    gap: 0.3rem;
+  }
+
+  .mind-palace-header-btn,
+  .debate-header-btn {
+    display: none;
   }
 }

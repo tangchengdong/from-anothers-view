@@ -6,12 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:github": "cross-env DEPLOY_TARGET=github vite build",
-    "build:iga": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "compress-images": "node compress-images.cjs",
-    "deploy": "npm run build:github && gh-pages -d dist"
+    "deploy": "vite build && gh-pages -d dist"
   },
   "dependencies": {
     "axios": "^1.18.1",

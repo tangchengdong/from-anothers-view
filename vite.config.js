@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ command }) => ({
   plugins: [react()],
-  base: process.env.DEPLOY_TARGET === 'github' ? '/from-anothers-view/' : '/',
+  base: './',
   server: {
     port: 3000,
     strictPort: true

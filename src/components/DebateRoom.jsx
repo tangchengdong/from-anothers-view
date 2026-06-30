@@ -210,6 +210,12 @@ function DebateRoom({ onClose }) {
           <span className="label-text">点将</span>
         </div>
         <h2 className="phase-title">选择辩论阵容</h2>
+        {selectedNews && (
+          <div className="selected-topic-banner">
+            <span className="topic-banner-tag">辩题</span>
+            <span className="topic-banner-text font-serif">{selectedNews.title}</span>
+          </div>
+        )}
         <p className="phase-desc font-serif">
           当前：
           <span className={`current-side ${currentSide}`}>

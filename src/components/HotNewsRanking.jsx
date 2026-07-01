@@ -200,7 +200,16 @@ function HotNewsRanking({ onNewsSelect }) {
                             {cfg.icon} {cfg.label}
                           </span>
                         </div>
-                        <p className="hot-opinion-text font-serif">"{opinion}"</p>
+                        <p className="hot-opinion-text font-serif">
+                          {opinion && opinion !== '...' ? (
+                            <>"{opinion}"</>
+                          ) : (
+                            <span className="opinion-loading">
+                              <span className="loading-pulse"></span>
+                              正在思考中...
+                            </span>
+                          )}
+                        </p>
                       </div>
                     )
                   })}

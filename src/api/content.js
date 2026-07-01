@@ -57,6 +57,121 @@ export function getCommentaryStatus() {
   return request.get('/commentary/status')
 }
 
+// ========== 新闻搜索 Agent（按角色视角筛选+标注） ==========
+
+/**
+ * 按角色视角搜索新闻（含筛选+标注）
+ * @param {string} perspective - 视角角色名称
+ * @param {object} opts - { query, limit, category, useLLM }
+ */
+export function searchNewsForPerspective(perspective, opts = {}) {
+  const params = { perspective }
+  if (opts.query) params.q = opts.query
+  if (opts.limit) params.limit = opts.limit
+  if (opts.category) params.category = opts.category
+  if (opts.useLLM !== undefined) params.use_llm = opts.useLLM
+  return request.get('/news/search', { params })
+}
+
+/**
+ * 流式新闻搜索（SSE）
+ * @param {string} perspective
+ * @param {object} opts - { query, limit, category, useLLM }
+ * @param {object} callbacks - { onThinking, onItem, onDone, onError }
+ */
+export function streamNewsSearch(perspective, opts = {}, callbacks = {}) {
+  let url = `http://localhost:8000/api/news/stream?perspective=${encodeURIComponent(perspective)}`
+  if (opts.query) url += `&q=${encodeURIComponent(opts.query)}`
+  if (opts.limit) url += `&limit=${opts.limit}`
+  if (opts.category) url += `&category=${encodeURIComponent(opts.category)}`
+  if (opts.useLLM !== undefined) url += `&use_llm=${opts.useLLM}`
+
+  const eventSource = new EventSource(url)
+
+  eventSource.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data)
+      if (data.event === 'thinking' && callbacks.onThinking) {
+        callbacks.onThinking(data)
+      } else if (data.event === 'item' && callbacks.onItem) {
+        callbacks.onItem(data)
+      } else if (data.event === 'done' && callbacks.onDone) {
+        callbacks.onDone(data)
+        eventSource.close()
+      }
+    } catch (e) {
+      if (callbacks.onError) callbacks.onError(e)
+      eventSource.close()
+    }
+  }
+
+  eventSource.onerror = (err) => {
+    if (callbacks.onError) callbacks.onError(err)
+    eventSource.close()
+  }
+
+  return eventSource
+}
+
+// ========== Agent 自主搜索（实时 RSS + LLM 策略） ==========
+
+/**
+ * Agent 自主搜索新闻（不依赖缓存，实时抓取）
+ * @param {string} perspective - 视角角色名称
+ * @param {object} opts - { keywords, limit, useLLMStrategy, useLLMAnnotate }
+ */
+export function autonomousSearch(perspective, opts = {}) {
+  const params = { perspective }
+  if (opts.keywords) params.keywords = Array.isArray(opts.keywords) ? opts.keywords.join(',') : opts.keywords
+  if (opts.limit) params.limit = opts.limit
+  if (opts.useLLMStrategy !== undefined) params.use_llm_strategy = opts.useLLMStrategy
+  if (opts.useLLMAnnotate !== undefined) params.use_llm_annotate = opts.useLLMAnnotate
+  return request.get('/news/autonomous', { params })
+}
+
+/**
+ * 流式自主搜索（SSE）
+ * @param {string} perspective
+ * @param {object} opts - { keywords, limit, useLLMStrategy, useLLMAnnotate }
+ * @param {object} callbacks - { onThinking, onItem, onDone, onError }
+ */
+export function streamAutonomousSearch(perspective, opts = {}, callbacks = {}) {
+  let url = `http://localhost:8000/api/news/stream-autonomous?perspective=${encodeURIComponent(perspective)}`
+  if (opts.keywords) {
+    const kw = Array.isArray(opts.keywords) ? opts.keywords.join(',') : opts.keywords
+    url += `&keywords=${encodeURIComponent(kw)}`
+  }
+  if (opts.limit) url += `&limit=${opts.limit}`
+  if (opts.useLLMStrategy !== undefined) url += `&use_llm_strategy=${opts.useLLMStrategy}`
+  if (opts.useLLMAnnotate !== undefined) url += `&use_llm_annotate=${opts.useLLMAnnotate}`
+
+  const eventSource = new EventSource(url)
+
+  eventSource.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data)
+      if (data.event === 'thinking' && callbacks.onThinking) {
+        callbacks.onThinking(data)
+      } else if (data.event === 'item' && callbacks.onItem) {
+        callbacks.onItem(data)
+      } else if (data.event === 'done' && callbacks.onDone) {
+        callbacks.onDone(data)
+        eventSource.close()
+      }
+    } catch (e) {
+      if (callbacks.onError) callbacks.onError(e)
+      eventSource.close()
+    }
+  }
+
+  eventSource.onerror = (err) => {
+    if (callbacks.onError) callbacks.onError(err)
+    eventSource.close()
+  }
+
+  return eventSource
+}
+
 /**
  * 流式评论（SSE）
  * @param {number} newsId

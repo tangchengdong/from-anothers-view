@@ -6,7 +6,7 @@ from app.agents import get_agent
 from app.services.data_source import get_all_news
 
 _cache = {}
-_cache_ttl = 300
+_cache_ttl = 60  # 缩短到 60 秒，确保用户切换视角时能尽快获取新鲜数据
 
 
 def _get_cache_key(perspective: str, limit: int, category: str = None) -> str:
@@ -29,6 +29,7 @@ def _set_cache(key: str, data: Any) -> None:
 async def get_perspective_feed(
     perspective: str, limit: int = 8, category: str = None
 ) -> Dict[str, Any]:
+    """获取视角新闻列表 — 选择视角时主动触发 NewsSearchAgent 获取新鲜数据"""
     cache_key = _get_cache_key(perspective, limit, category)
     cached = _get_from_cache(cache_key)
     if cached:
@@ -38,6 +39,49 @@ async def get_perspective_feed(
     if not agent:
         return {"items": [], "insights": [], "hot_topics": [], "total": 0, "perspective": perspective}
 
+    # 优先用 NewsSearchAgent 自主搜索新鲜数据（实时 RSS + 角色筛选）
+    try:
+        from app.agents.news_search_agent import NewsSearchAgent
+        search_agent = NewsSearchAgent(perspective)
+        search_result = await search_agent.autonomous_search(
+            limit=limit, use_llm_strategy=False, use_llm_annotate=False,
+        )
+        items = search_result.get("items", [])
+        if items:
+            # 转换为 feed 格式
+            feed_items = []
+            for item in items:
+                feed_items.append({
+                    "id": item.get("id"),
+                    "title": item.get("title", ""),
+                    "summary": item.get("summary", ""),
+                    "content": item.get("content", ""),
+                    "source": item.get("source", ""),
+                    "category": item.get("category", ""),
+                    "tags": item.get("tags", []),
+                    "publish_time": item.get("publish_time", ""),
+                    "views": item.get("views", 0),
+                    "image_url": item.get("image_url", ""),
+                    "link": item.get("link", ""),
+                    "relevance_score": item.get("relevance_score", 0),
+                    "matched_keywords": item.get("matched_keywords", []),
+                })
+            result = {
+                "perspective": perspective,
+                "emoji": agent._get_emoji(),
+                "color": agent._get_color(),
+                "items": feed_items,
+                "insights": [],
+                "hot_topics": agent.get_hot_topics(feed_items),
+                "total": len(feed_items),
+                "source": "agent_search",
+            }
+            _set_cache(cache_key, result)
+            return result
+    except Exception:
+        pass
+
+    # 降级：从缓存池筛选
     news_pool = get_all_news()
     if category:
         news_pool = [n for n in news_pool if n["category"] == category]
@@ -53,6 +97,7 @@ async def get_perspective_feed(
         "insights": insights,
         "hot_topics": hot_topics,
         "total": len(items),
+        "source": "cache_pool",
     }
     _set_cache(cache_key, result)
     return result

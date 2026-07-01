@@ -213,7 +213,16 @@ function PrismRoundtable({ onClose }) {
                           {cfg.icon} {cfg.label}
                         </span>
                       </div>
-                      <p className="rt-opinion-text font-serif">"{opinion}"</p>
+                      <p className="rt-opinion-text font-serif">
+                        {opinion && opinion !== '...' ? (
+                          <>"{opinion}"</>
+                        ) : (
+                          <span className="opinion-loading">
+                            <span className="loading-pulse"></span>
+                            正在思考中...
+                          </span>
+                        )}
+                      </p>
                     </div>
                   )
                 })}

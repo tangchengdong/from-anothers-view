@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { getSearchResults, getSuggestedPerspectives, generateOpinion, RARITY_CONFIG } from '../mock/data'
+import { searchContent, suggestPerspectives, getCommentary } from '../api/content'
+import { RARITY_CONFIG } from '../mock/data'
 import { useAppStore } from '../store/useAppStore'
 import SearchBox from '../components/SearchBox'
 import ContentItem from '../components/ContentItem'
@@ -34,53 +35,70 @@ function SearchResults() {
     setLoading(true)
     setError(null)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
       let perspective = currentPerspective
-      
-      const searchResult = getSearchResults(query, perspective, 20)
-      setResults(searchResult.results || [])
-      
-      const generatedCommentaries = []
-      const roles = getSuggestedPerspectives(Math.min(4 + customList.length, 8))
-      
-      roles.forEach(role => {
-        const rarityCfg = RARITY_CONFIG[role.base_rarity || 'n']
-        generatedCommentaries.push({
-          perspective_id: role.name,
-          role_name: role.name,
-          emoji: role.emoji,
-          color: rarityCfg.color,
-          headline: `${role.name}怎么看「${query}」`,
-          viewpoint: generateOpinion(role, { title: query, category: 'general' }),
-          tags: role.keywords?.slice(0, 3) || [],
-          is_custom: false
-        })
-      })
-      
-      customList.forEach(name => {
-        const customRole = {
-          name,
-          emoji: '🎭',
-          base_rarity: 'n',
-          keywords: [],
-          opinion_templates: {
-            general: [`作为${name}，我认为${query}这件事很值得关注。`, `从${name}的角度来看，这件事有不同的意义。`]
+
+      const searchResult = await searchContent(query, perspective, 20)
+      const searchResults = Array.isArray(searchResult)
+        ? searchResult
+        : (searchResult?.results || [])
+      setResults(searchResults)
+
+      // 没有 news_id 时跳过视角评论生成，仅展示搜索结果
+      const newsId = searchResults[0]?.id
+      if (!newsId) {
+        setCommentaries([])
+        return
+      }
+
+      const rolesResp = await suggestPerspectives(Math.min(4 + customList.length, 8))
+      const roles = Array.isArray(rolesResp) ? rolesResp : (rolesResp?.results || [])
+
+      const generatedCommentaries = await Promise.all(
+        roles.map(async (role) => {
+          const rarityCfg = RARITY_CONFIG[role.base_rarity || 'n']
+          let viewpoint = ''
+          try {
+            const res = await getCommentary(newsId, role.name)
+            viewpoint = res?.commentary || ''
+          } catch (e) {
+            console.error(`生成 ${role.name} 评论失败`, e)
           }
-        }
-        generatedCommentaries.push({
-          perspective_id: name,
-          role_name: name,
-          emoji: '🎭',
-          color: '#B8860B',
-          headline: `${name}怎么看「${query}」`,
-          viewpoint: generateOpinion(customRole, { title: query, category: 'general' }),
-          tags: ['自定义视角'],
-          is_custom: true
+          return {
+            perspective_id: role.name,
+            role_name: role.name,
+            emoji: role.emoji,
+            color: rarityCfg?.color || role.color || '#888',
+            headline: `${role.name}怎么看「${query}」`,
+            viewpoint,
+            tags: role.keywords?.slice(0, 3) || [],
+            is_custom: false
+          }
         })
-      })
-      
-      setCommentaries(generatedCommentaries)
+      )
+
+      const customCommentaries = await Promise.all(
+        customList.map(async (name) => {
+          let viewpoint = ''
+          try {
+            const res = await getCommentary(newsId, name)
+            viewpoint = res?.commentary || ''
+          } catch (e) {
+            console.error(`生成 ${name} 评论失败`, e)
+          }
+          return {
+            perspective_id: name,
+            role_name: name,
+            emoji: '🎭',
+            color: '#B8860B',
+            headline: `${name}怎么看「${query}」`,
+            viewpoint,
+            tags: ['自定义视角'],
+            is_custom: true
+          }
+        })
+      )
+
+      setCommentaries([...generatedCommentaries, ...customCommentaries])
     } catch (err) {
       console.error('搜索失败', err)
       setError('搜索失败，请稍后重试')

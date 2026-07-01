@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import { getHotNewsRanking, getMultiPerspectiveNews, MOCK_ROLES, getLocalImagePath, getCardImagePath } from '../mock/data'
+import { getLocalImagePath, getCardImagePath } from '../mock/data'
+import { getHotNews, getBatchCommentary, suggestPerspectives } from '../api/content'
 import { analyzeAttitude, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
 import TeaPartyChat from './TeaPartyChat'
 import './HotNewsRanking.css'
+
+const PERSPECTIVE_COLORS = ['#FF6B9D', '#8B5CF6', '#3B82F6', '#06B6D4', '#10B981', '#F59E0B', '#EC4899', '#6366F1']
+
+const FALLBACK_PERSPECTIVES = [
+  { name: 'AI研究员', emoji: '🤖', color: '#8B5CF6' },
+  { name: '科技控', emoji: '💻', color: '#3B82F6' },
+  { name: '创作者', emoji: '🎨', color: '#EC4899' },
+  { name: '投资人', emoji: '💰', color: '#F59E0B' },
+  { name: '哲学家', emoji: '🤔', color: '#6366F1' }
+]
 
 function HotNewsRanking({ onNewsSelect }) {
   const [hotNews, setHotNews] = useState([])
@@ -15,34 +26,50 @@ function HotNewsRanking({ onNewsSelect }) {
   const [activeTab, setActiveTab] = useState('perspectives')
 
   useEffect(() => {
-    const news = getHotNewsRanking(8)
-    setHotNews(news)
-    const defaultPerspectives = MOCK_ROLES.slice(0, 5)
-    setPerspectives(defaultPerspectives)
-    setLoading(false)
+    const loadData = async () => {
+      try {
+        const data = await getHotNews(8)
+        setHotNews(data.items || [])
+      } catch (err) {
+        console.error('Failed to fetch hot news:', err)
+        setHotNews([])
+      }
+
+      try {
+        const data = await suggestPerspectives(5)
+        const list = data.data || data.items || data || []
+        const withColors = (Array.isArray(list) ? list : []).map((p, idx) => ({
+          ...p,
+          color: p.color || PERSPECTIVE_COLORS[idx % PERSPECTIVE_COLORS.length]
+        }))
+        setPerspectives(withColors.length > 0 ? withColors : FALLBACK_PERSPECTIVES)
+      } catch (err) {
+        console.error('Failed to fetch perspectives:', err)
+        setPerspectives(FALLBACK_PERSPECTIVES)
+      }
+
+      setLoading(false)
+    }
+    loadData()
   }, [])
 
-  const handleNewsClick = (news) => {
+  const handleNewsClick = async (news) => {
     setSelectedNews(news.id)
     setActiveTab('perspectives')
-    const multiNews = getMultiPerspectiveNews(perspectives, 1)
-    const targetNews = multiNews.find(n => n.id === news.id) || {
-      ...news,
-      opinions: {}
-    }
-    perspectives.forEach(p => {
-      if (!targetNews.opinions[p.name]) {
-        targetNews.opinions[p.name] = generateQuickOpinion(p, news)
-      }
-    })
-    setDetailNews(targetNews)
+    setDetailNews({ ...news, opinions: {} })
     setShowDetail(true)
     onNewsSelect?.(news)
-  }
 
-  const generateQuickOpinion = (perspective, news) => {
-    const attitudes = ['这是一个值得关注的现象', '对此我有不同看法', '从专业角度来看', '这背后反映了深层问题', '作为普通市民的我想说']
-    return `${attitudes[Math.floor(Math.random() * attitudes.length)]}，${news.title}——${perspective.name}认为这与我们每个人都息息相关，需要理性看待和深入思考。`
+    try {
+      const perspectiveNames = perspectives.map(p => p.name)
+      const data = await getBatchCommentary(news.id, perspectiveNames)
+      setDetailNews(prev => prev ? {
+        ...prev,
+        opinions: data.opinions || {}
+      } : prev)
+    } catch (err) {
+      console.error('Failed to fetch commentary:', err)
+    }
   }
 
   const handleCloseDetail = () => {

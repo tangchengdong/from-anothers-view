@@ -41,17 +41,15 @@ function Header() {
           </div>
         </Link>
         <div className="header-actions">
-          <Link to="/mind-palace" className="mind-palace-header-btn">
+          <a href="/#/mind-palace" className="redraw-header-btn">
             🏛️ 思维殿堂
-          </Link>
-          <button className="debate-header-btn" onClick={() => window.dispatchEvent(new CustomEvent('open-debate-room'))}>
+          </a>
+          <button className="redraw-header-btn" onClick={() => window.dispatchEvent(new CustomEvent('open-debate-room'))}>
             ⚖️ 辩论室
           </button>
-          {!isHome && (
-            <button className="redraw-header-btn" onClick={handleRedraw}>
-              ✦ 重新抽卡
-            </button>
-          )}
+          <button className="redraw-header-btn" onClick={handleRedraw}>
+            ✦ 重新抽卡
+          </button>
         </div>
       </div>
     </header>

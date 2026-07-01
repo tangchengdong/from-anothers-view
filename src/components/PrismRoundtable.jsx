@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { getHotNewsRanking, getMultiPerspectiveNews, MOCK_ROLES, getLocalImagePath, getCardImagePath } from '../mock/data'
+import { getLocalImagePath, getCardImagePath } from '../mock/data'
+import { getHotNews, getBatchCommentary, suggestPerspectives } from '../api/content'
 import { analyzeAttitude, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
 import TeaPartyChat from './TeaPartyChat'
 import './PrismRoundtable.css'
+
+const DEFAULT_PERSPECTIVES = [
+  { name: 'AI研究员', emoji: '🤖', description: '在硅基智能边界探索的造物者', base_rarity: 'SSR', local_image: 'weilaiai', card_image: 'card_03_未来AI(1).webp', color: '#FF6B9D' },
+  { name: '外卖骑手', emoji: '🛵', description: '与算法和时间赛跑的城市摆渡人', base_rarity: 'R', local_image: 'waimai', card_image: 'card_16_外卖骑手(1).webp', color: '#3B82F6' },
+  { name: '美食评论家', emoji: '🍜', description: '在味蕾上旅行的风味捕手', base_rarity: 'N', local_image: 'meishi', card_image: 'card_18_美食博主(1).webp', color: '#64748B' },
+  { name: '森林护林员', emoji: '🌲', description: '在万木丛中守护绿色的孤独守望者', base_rarity: 'R', local_image: 'senlinglieren', card_image: 'card_12_森林猎人(1).webp', color: '#3B82F6' },
+  { name: '退休大妈', emoji: '👵', description: '广场舞领队兼家族情报站站长', base_rarity: 'N', local_image: 'guangchangdama', card_image: 'card_15_退休广场舞大妈(1).webp', color: '#64748B' },
+]
 
 function PrismRoundtable({ onClose }) {
   const [hotNews, setHotNews] = useState([])
@@ -13,26 +22,49 @@ function PrismRoundtable({ onClose }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const news = getHotNewsRanking(6)
-    setHotNews(news)
-    const defaultPerspectives = MOCK_ROLES.slice(0, 5)
-    setPerspectives(defaultPerspectives)
-    setLoading(false)
+    const loadInitial = async () => {
+      try {
+        const newsData = await getHotNews(6)
+        setHotNews(newsData.items || [])
+      } catch (e) {
+        console.error('加载热点新闻失败', e)
+        setHotNews([])
+      }
+      try {
+        const res = await suggestPerspectives(5)
+        const roles = res.data || []
+        setPerspectives(roles.length > 0 ? roles : DEFAULT_PERSPECTIVES)
+      } catch (e) {
+        console.error('加载视角失败', e)
+        setPerspectives(DEFAULT_PERSPECTIVES)
+      }
+      setLoading(false)
+    }
+    loadInitial()
   }, [])
 
-  const handleNewsSelect = (news) => {
-    const multiNews = getMultiPerspectiveNews(perspectives, 1)
-    const targetNews = multiNews.find(n => n.id === news.id) || {
-      ...news,
-      opinions: {}
-    }
-    perspectives.forEach(p => {
-      if (!targetNews.opinions[p.name]) {
-        targetNews.opinions[p.name] = generateQuickOpinion(p, news)
-      }
-    })
+  const handleNewsSelect = async (news) => {
+    const targetNews = { ...news, opinions: {} }
     setSelectedNews(targetNews)
     setActiveTab('perspectives')
+    try {
+      const perspectiveNames = perspectives.map(p => p.name)
+      const data = await getBatchCommentary(news.id, perspectiveNames)
+      const opinions = data.opinions || {}
+      perspectives.forEach(p => {
+        if (!opinions[p.name]) {
+          opinions[p.name] = generateQuickOpinion(p, news)
+        }
+      })
+      setSelectedNews(prev => prev ? { ...prev, opinions } : prev)
+    } catch (e) {
+      console.error('获取视角评论失败', e)
+      const opinions = {}
+      perspectives.forEach(p => {
+        opinions[p.name] = generateQuickOpinion(p, news)
+      })
+      setSelectedNews(prev => prev ? { ...prev, opinions } : prev)
+    }
   }
 
   const generateQuickOpinion = (perspective, news) => {

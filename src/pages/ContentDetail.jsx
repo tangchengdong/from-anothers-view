@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { getMockContentDetail, getMockRelatedContent, MOCK_ROLES, generateOpinion, getLocalImagePath, getCardImagePath } from '../mock/data'
+import { getLocalImagePath, getCardImagePath } from '../mock/data'
+import { getCommentary, getDeepCommentary, getContentDetail, getRelatedContent, suggestPerspectives, streamCommentary } from '../api/content'
 import { useAppStore } from '../store/useAppStore'
 import SharePoster from '../components/SharePoster'
 import BreakthroughToast from '../components/BreakthroughToast'
-import PrismRoundtable from '../components/PrismRoundtable'
 import { analyzeAttitude, extractKeywords, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
-import { generateDeepOpinionByStyle } from '../utils/opinionGenerator'
 import './ContentDetail.css'
 
 const CATEGORY_EXTENSIONS = {
@@ -34,10 +33,6 @@ function extendArticleBody(title, category, summary) {
   ]
 }
 
-function getOtherPerspectives(currentPerspName, count = 4) {
-  return MOCK_ROLES.filter(r => r.name !== currentPerspName).sort(() => Math.random() - 0.5).slice(0, count)
-}
-
 function ContentDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -47,29 +42,30 @@ function ContentDetail() {
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
   const [showSharePoster, setShowSharePoster] = useState(false)
-  const [showRoundtable, setShowRoundtable] = useState(false)
+  const [hasSelectedRole, setHasSelectedRole] = useState(false)
   const [readCount, setReadCount] = useState(0)
   const [activePerspective, setActivePerspective] = useState(null)
   const [mainImgError, setMainImgError] = useState(false)
   const [relatedImgErrors, setRelatedImgErrors] = useState({})
   const [avatarErrors, setAvatarErrors] = useState({})
   const [prevNext, setPrevNext] = useState({ prev: null, next: null })
+  const [perspectives, setPerspectives] = useState([])
+  const [perspectiveOpinion, setPerspectiveOpinion] = useState(null)
+  const [opinionLoading, setOpinionLoading] = useState(false)
+  const [opinionError, setOpinionError] = useState(null)
+  const [deepOpinion, setDeepOpinion] = useState(null)
+  const [deepLoading, setDeepLoading] = useState(false)
+  const [deepError, setDeepError] = useState(null)
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [streamRetryCount, setStreamRetryCount] = useState(0)
   const countedRef = useRef(false)
+  const pendingPerspectiveRef = useRef(null)
+  const streamRef = useRef(null)
+  const contentRef = useRef(null) // 始终持有最新 content，避免闭包陈旧值
+  const retryAttemptRef = useRef(0) // 当前重试次数
+  const MAX_STREAM_RETRY = 3 // 流式输出最多自动重试3次
 
-  const defaultPerspective = location.state?.perspective || (selectedPerspectives?.length === 1 ? selectedPerspectives[0] : (selectedPerspectives?.[0] || null))
-  const [otherPersps, setOtherPersps] = useState(() => getOtherPerspectives(defaultPerspective?.name, 4))
-
-  const currentPerspective = activePerspective || defaultPerspective
-
-  const perspectiveOpinion = useMemo(() => {
-    if (!content || !currentPerspective) return null
-    return generateOpinion(currentPerspective, content)
-  }, [content, currentPerspective])
-
-  const deepOpinion = useMemo(() => {
-    if (!content || !currentPerspective || !perspectiveOpinion) return null
-    return generateDeepOpinionByStyle(currentPerspective, content, perspectiveOpinion)
-  }, [content, currentPerspective, perspectiveOpinion])
+  const currentPerspective = activePerspective
 
   const opinionAnalysis = useMemo(() => {
     if (!deepOpinion) return null
@@ -110,14 +106,25 @@ function ContentDetail() {
 
   useEffect(() => {
     countedRef.current = false
+    contentRef.current = null
+    pendingPerspectiveRef.current = null
     setLoading(true)
     setMainImgError(false)
     setRelatedImgErrors({})
     setAvatarErrors({})
     setActivePerspective(null)
-    setOtherPersps(getOtherPerspectives(defaultPerspective?.name, 4))
+    setHasSelectedRole(false)
+    setPerspectiveOpinion(null)
+    setDeepOpinion(null)
+    setOpinionError(null)
+    setDeepError(null)
+    setOpinionLoading(false)
+    setDeepLoading(false)
     window.scrollTo({ top: 0, behavior: 'auto' })
-    loadContent()
+    loadContent().catch(err => {
+      console.error('loadContent 调用失败:', err)
+      setLoading(false)
+    })
   }, [id, location.state])
 
   useEffect(() => {
@@ -127,62 +134,262 @@ function ContentDetail() {
       countedRef.current = true
     }
   }, [content])
+  
+  // 当 content 加载完成时，检查是否有挂起的评论加载
+  useEffect(() => {
+    if (content && pendingPerspectiveRef.current && hasSelectedRole) {
+      loadPerspectiveCommentary(pendingPerspectiveRef.current)
+      pendingPerspectiveRef.current = null
+    }
+  }, [content])
+
+  // 加载视角角色池
+  useEffect(() => {
+    let cancelled = false
+    const statePerspective = location.state?.perspective
+    
+    const loadPerspectives = async () => {
+      try {
+        const res = await suggestPerspectives(12)
+        if (!cancelled) {
+          const list = res?.data || (Array.isArray(res) ? res : [])
+          setPerspectives(Array.isArray(list) ? list : [])
+          
+          // 优先使用 state 中传递的 perspective
+          if (statePerspective && !hasSelectedRole) {
+            // 检查 statePerspective 是否在列表中，不在的话补进去
+            let targetPerspective = list.find(p => p.name === statePerspective.name)
+            if (!targetPerspective) {
+              targetPerspective = statePerspective
+              setPerspectives([targetPerspective, ...list])
+            }
+            handleSelectRole(targetPerspective)
+          } 
+          // 否则默认选中第一个视角
+          else if (Array.isArray(list) && list.length > 0 && !hasSelectedRole) {
+            handleSelectRole(list[0])
+          }
+        }
+      } catch (err) {
+        // 视角池加载失败，但如果有 statePerspective 还是要选中它
+        if (statePerspective && !hasSelectedRole) {
+          setPerspectives([statePerspective])
+          handleSelectRole(statePerspective)
+        }
+      }
+    }
+    loadPerspectives()
+    return () => { cancelled = true }
+  }, [id])
+
+  // 用户选择视角后，懒加载该视角的短评与深度解读
+  const handleSelectRole = async (p) => {
+    setActivePerspective(p)
+    setHasSelectedRole(true)
+
+    // 使用 ref 读取最新 content，避免闭包陈旧值导致逻辑错乱
+    if (!contentRef.current) {
+      pendingPerspectiveRef.current = p
+      return
+    }
+
+    await loadPerspectiveCommentary(p)
+  }
+  
+  // 加载指定角色的评论 — 直接流式输出，带自动重试
+  const loadPerspectiveCommentary = async (p, attempt = 1) => {
+    // 关闭之前的 stream
+    if (streamRef.current) {
+      streamRef.current.close()
+      streamRef.current = null
+    }
+
+    retryAttemptRef.current = attempt
+    setStreamRetryCount(attempt)
+
+    // 重置状态
+    setDeepLoading(true)
+    setDeepError(null)
+    setDeepOpinion(null)
+    setIsStreaming(true)
+    setPerspectiveOpinion(null)
+
+    const currentContent = contentRef.current
+    if (!currentContent) {
+      setDeepLoading(false)
+      setIsStreaming(false)
+      setDeepError(new Error('内容未就绪'))
+      return
+    }
+
+    let fullContent = ''
+    let streamClosed = false
+    let hasReceivedChunk = false
+
+    try {
+      const es = streamCommentary(currentContent.id, p.name, {
+        onThinking: (role) => {
+          // 思考中状态，已由 isStreaming 控制展示
+        },
+        onChunk: (chunk) => {
+          hasReceivedChunk = true
+          fullContent += chunk
+          setDeepOpinion(fullContent)
+        },
+        onDone: (finalContent) => {
+          streamClosed = true
+          setDeepOpinion(finalContent)
+          setIsStreaming(false)
+          setDeepLoading(false)
+          setDeepError(null)
+          streamRef.current = null
+          // 短评也用流式结果的前两句
+          const short = (finalContent || '').split('\n\n')[0] || finalContent || ''
+          setPerspectiveOpinion(short.slice(0, 100))
+        },
+        onError: (e) => {
+          console.error('流式评论失败（第' + attempt + '次）:', e)
+          streamClosed = true
+          streamRef.current = null
+          setIsStreaming(false)
+
+          // 自动重试：最多 MAX_STREAM_RETRY 次，还没收到过数据才重试（避免重复输出）
+          if (!hasReceivedChunk && attempt < MAX_STREAM_RETRY) {
+            setDeepLoading(true)
+            setTimeout(() => {
+              loadPerspectiveCommentary(p, attempt + 1)
+            }, 800)
+          } else if (attempt >= MAX_STREAM_RETRY) {
+            // 重试耗尽，回退到非流式
+            fallbackLoadDeepOpinion(p)
+          }
+        }
+      }, 'deep')
+
+      streamRef.current = es
+
+      // 超时保护：80秒
+      let waitTime = 0
+      while (!streamClosed && waitTime < 80000) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        waitTime += 100
+      }
+
+      if (!streamClosed) {
+        setIsStreaming(false)
+        setDeepLoading(false)
+        // 超时也触发重试或回退
+        if (attempt < MAX_STREAM_RETRY && !hasReceivedChunk) {
+          setDeepLoading(true)
+          setTimeout(() => {
+            loadPerspectiveCommentary(p, attempt + 1)
+          }, 800)
+        } else if (attempt >= MAX_STREAM_RETRY) {
+          fallbackLoadDeepOpinion(p)
+        }
+      }
+    } catch (err) {
+      console.error('加载评论错误:', err)
+      setIsStreaming(false)
+      streamRef.current = null
+      if (attempt < MAX_STREAM_RETRY) {
+        setDeepLoading(true)
+        setTimeout(() => {
+          loadPerspectiveCommentary(p, attempt + 1)
+        }, 800)
+      } else {
+        fallbackLoadDeepOpinion(p)
+      }
+    }
+  }
+
+  // 回退加载策略
+  const fallbackLoadDeepOpinion = async (p) => {
+    setDeepLoading(true)
+    try {
+      const data = await getDeepCommentary(content.id, p.name)
+      setDeepOpinion(data.deep_commentary || '')
+    } catch (err) {
+      setDeepError(err)
+    } finally {
+      setDeepLoading(false)
+    }
+  }
 
   const loadContent = async () => {
     setLoading(true)
 
-    const stateContent = location.state?.content
-    if (stateContent) {
-      const summary = stateContent.summary || ''
-      const bodyParagraphs = summary.length < 100
-        ? extendArticleBody(stateContent.title, stateContent.category, summary)
-        : [summary]
-
-      const fullContent = {
-        ...stateContent,
-        content: bodyParagraphs.join('\n\n'),
-        _bodyParagraphs: bodyParagraphs,
-        publish_time: stateContent.publish_time || '2026年6月25日',
-        image_url: stateContent.image_url || stateContent.image,
-      }
-      setContent(fullContent)
-      const relatedItems = getMockRelatedContent(id, null, 3)
-      setRelated(relatedItems)
-      setOtherPersps(getOtherPerspectives(defaultPerspective?.name, 4))
-      computePrevNext(relatedItems)
-      setLoading(false)
-      return
-    }
-
     try {
-      const { getContentDetail, getRelatedContent } = await import('../api/content')
-      const res = await getContentDetail(id)
-      if (res.data) {
-        setContent(res.data)
-        const relatedRes = await getRelatedContent(id, res.data.perspective_name || null, 3)
-        setRelated(relatedRes.data || [])
-        setOtherPersps(getOtherPerspectives(defaultPerspective?.name, 4))
-        computePrevNext(relatedRes.data || [])
+      const stateContent = location.state?.content
+      const statePerspective = location.state?.perspective
+      if (stateContent) {
+        const summary = stateContent.summary || ''
+        const bodyParagraphs = summary.length < 100
+          ? extendArticleBody(stateContent.title, stateContent.category, summary)
+          : [summary]
+
+        const fullContent = {
+          ...stateContent,
+          content: bodyParagraphs.join('\n\n'),
+          _bodyParagraphs: bodyParagraphs,
+          publish_time: stateContent.publish_time || '2026年6月25日',
+          image_url: stateContent.image_url || stateContent.image,
+        }
+        setContent(fullContent)
+        contentRef.current = fullContent
+        // 渐进式加载：主内容就绪即关闭 loading，相关阅读后台异步加载
         setLoading(false)
+
+        // 后台加载相关阅读与上下篇（不阻塞主内容展示）
+        getRelatedContent(id, null, 3)
+          .then((relatedRes) => {
+            const relatedItems = relatedRes?.data || []
+            setRelated(relatedItems)
+            computePrevNext(relatedItems)
+          })
+          .catch(() => {
+            setRelated([])
+            setPrevNext({ prev: null, next: null })
+          })
+
+        // 如果有 state 中传的 perspective，优先使用
+        if (statePerspective) {
+          pendingPerspectiveRef.current = statePerspective
+        }
         return
       }
-    } catch (err) {
-      // API unavailable, using mock data
-    }
 
-    const mockDetail = getMockContentDetail(id, defaultPerspective)
-    if (mockDetail) {
-      setContent(mockDetail)
-      const relatedItems = getMockRelatedContent(id, defaultPerspective?.name, 3)
-      setRelated(relatedItems)
-      setOtherPersps(getOtherPerspectives(defaultPerspective?.name, 4))
-      computePrevNext(relatedItems)
+      const res = await getContentDetail(id)
+      const detail = res?.data
+      if (detail) {
+        setContent(detail)
+        contentRef.current = detail
+        // 渐进式加载：主内容就绪即关闭 loading
+        setLoading(false)
+
+        getRelatedContent(id, detail.perspective_name || null, 3)
+          .then((relatedRes) => {
+            const relatedItems = relatedRes?.data || []
+            setRelated(relatedItems)
+            computePrevNext(relatedItems)
+          })
+          .catch(() => {
+            setRelated([])
+            setPrevNext({ prev: null, next: null })
+          })
+        return
+      }
+      // 接口返回但无数据
+      setContent(null)
+      contentRef.current = null
       setLoading(false)
-      return
+    } catch (err) {
+      console.error('加载内容失败:', err)
+      // 接口不可用：使用 location.state 中的最小信息或显示错误
+      setContent(null)
+      contentRef.current = null
+      setLoading(false)
     }
-
-    setContent(null)
-    setLoading(false)
   }
 
   const handleAvatarError = (key) => {
@@ -215,15 +422,6 @@ function ContentDetail() {
       )
     }
     return <span className={`${className}-emoji`}>{p.emoji}</span>
-  }
-
-  const handleSwitchPerspective = (p) => {
-    setActivePerspective(p)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const handleResetPerspective = () => {
-    setActivePerspective(null)
   }
 
   const handleShare = () => {
@@ -279,7 +477,8 @@ function ContentDetail() {
       <div className="detail-page">
         <div className="detail-loading">
           <div className="loading-spinner"></div>
-          <p>正在排版...</p>
+          <p>正在准备视角...</p>
+          <p className="loading-hint">挑选身份 · 整理资讯 · 即将就绪</p>
         </div>
       </div>
     )
@@ -337,15 +536,50 @@ function ContentDetail() {
             {renderBodyParagraphs()}
           </div>
 
-          {currentPerspective && deepOpinion && (
-            <div className={`prism-perspective-block attitude-${opinionAnalysis.attitude}`}>
+          {/* 角色选择栏 */}
+          {perspectives.length > 0 && (
+            <div className="role-selector-bar">
+              <div className="role-selector-label">选择视角解读：</div>
+              <div className="role-chips-scroll">
+                {perspectives.map((p, idx) => {
+                  const isActive = currentPerspective?.name === p.name
+                  const avatar = getAvatarUrl(p, `role_${idx}`)
+                  return (
+                    <button
+                      key={idx}
+                      className={`role-chip ${isActive ? 'active' : ''}`}
+                      style={{ borderColor: p.color || '#64748B' }}
+                      onClick={() => handleSelectRole(p)}
+                    >
+                      {avatar ? (
+                        <img
+                          src={avatar.url}
+                          alt={p.name}
+                          className="role-chip-avatar"
+                          onError={() => handleAvatarError(avatar.key)}
+                        />
+                      ) : (
+                        <span className="role-chip-emoji">{p.emoji}</span>
+                      )}
+                      <span className="role-chip-name" style={{ color: isActive ? p.color : undefined }}>{p.name}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {currentPerspective && (
+            <div className={`prism-perspective-block attitude-${opinionAnalysis?.attitude || 'neutral'} ${isStreaming ? 'streaming-glow' : ''}`}>
               <div className="prism-block-header">
                 <span className="prism-icon">◈</span>
                 {renderAvatar(currentPerspective, 'main', 'prism-avatar')}
                 <span className="prism-label">棱镜深度 · {currentPerspective.name} 独家解读</span>
-                <span className="ai-generated-badge" title="由AI基于角色人设动态生成">⚡ AI 深度</span>
-                {attitudeCfg && (
-                  <span 
+                <span className="ai-generated-badge" title="由AI基于角色人设动态生成">
+                  {isStreaming ? `⚡ 生成中 ${streamRetryCount > 1 ? `(第${streamRetryCount}次重试)` : ''}` : '⚡ AI 深度'}
+                </span>
+                {attitudeCfg && !isStreaming && deepOpinion && (
+                  <span
                     className="attitude-badge-large"
                     style={{ background: attitudeCfg.bg, color: attitudeCfg.color, borderColor: attitudeCfg.border }}
                   >
@@ -354,63 +588,59 @@ function ContentDetail() {
                 )}
               </div>
               <div className="prism-block-content">
-                {deepOpinion.split('\n\n').filter(p => p.trim()).map((para, pIdx) => (
-                  <p key={pIdx} className={`prism-opinion-text font-serif ${pIdx === 0 ? 'first-deep-para' : ''}`}>
-                    {pIdx === 0 && para.charAt(0) && <span className="drop-cap">{para.charAt(0)}</span>}
-                    {pIdx === 0 ? para.slice(1) : para}
-                  </p>
-                ))}
-                {opinionKeywords.length > 0 && (
-                  <div className="opinion-keywords">
-                    {opinionKeywords.map((kw, ki) => (
-                      <span key={ki} className="keyword-tag">#{kw}</span>
+                {deepError ? (
+                  <>
+                    <div className="error-icon">⚡</div>
+                    <p className="prism-opinion-text font-serif first-deep-para">
+                      深度解读生成失败，让 {currentPerspective.name} 再尝试一下？
+                    </p>
+                    <div className="retry-actions">
+                      <button
+                        className="retry-btn"
+                        onClick={() => loadPerspectiveCommentary(currentPerspective)}
+                      >
+                        🔄 重新生成解读
+                      </button>
+                      <button
+                        className="retry-btn secondary"
+                        onClick={() => navigate('/')}
+                      >
+                        ← 换个新闻看看
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {(deepOpinion || '').split('\n\n').filter(p => p.trim()).map((para, pIdx) => (
+                      <p key={pIdx} className={`prism-opinion-text font-serif ${pIdx === 0 ? 'first-deep-para' : ''}`}>
+                        {pIdx === 0 && para.charAt(0) && <span className="drop-cap">{para.charAt(0)}</span>}
+                        {pIdx === 0 ? para.slice(1) : para}
+                      </p>
                     ))}
-                  </div>
-                )}
-                <div className="prism-bio">
-                  <span className="bio-tag">{currentPerspective.description}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {otherPersps.length > 0 && (
-            <div className="other-perspectives-block">
-              <div className="other-persp-header">
-                <span className="other-persp-icon">❖</span>
-                <span className="other-persp-title">其他身份怎么看？</span>
-                <span className="other-persp-hint">点击切换视角</span>
-              </div>
-              <div className="other-persp-list">
-                {otherPersps.map((p, idx) => {
-                  const pOpinion = generateOpinion(p, content)
-                  const pAttitude = analyzeAttitude(pOpinion)
-                  const pCfg = ATTITUDE_CONFIG[pAttitude.attitude]
-                  const isActive = activePerspective?.name === p.name
-                  const avatarKey = `other_${p.name}`
-                  return (
-                    <button
-                      key={idx}
-                      className={`other-persp-item ${isActive ? 'active' : ''}`}
-                      style={{ borderLeftColor: pCfg.color, borderLeftWidth: isActive ? '4px' : '3px' }}
-                      onClick={() => isActive ? handleResetPerspective() : handleSwitchPerspective(p)}
-                    >
-                      <div className="other-persp-name">
-                        {renderAvatar(p, avatarKey, 'other-persp-avatar')}
-                        <span className="other-persp-name-text">{p.name}</span>
-                        <span className="other-persp-attitude" style={{ color: pCfg.color, background: pCfg.bg }}>
-                          {pCfg.icon}
-                        </span>
+                    {isStreaming && !deepOpinion && (
+                      <div className="streaming-thinking">
+                        <div className="thinking-dots">
+                          <span></span><span></span><span></span>
+                        </div>
+                        <p className="prism-opinion-text font-serif first-deep-para">
+                          {currentPerspective.name} 正在思考中...
+                          {streamRetryCount > 1 && <span className="retry-hint">（第{streamRetryCount}次尝试）</span>}
+                        </p>
                       </div>
-                      <p className="other-persp-quote font-serif">"{pOpinion}"</p>
-                    </button>
-                  )
-                })}
-              </div>
-              <div className="other-persp-footer">
-                <button className="see-more-btn" onClick={handleDrawMore}>
-                  换个身份看世界 →
-                </button>
+                    )}
+                    {isStreaming && deepOpinion && <span className="streaming-indicator"></span>}
+                    {opinionKeywords.length > 0 && !isStreaming && deepOpinion && (
+                      <div className="opinion-keywords">
+                        {opinionKeywords.map((kw, ki) => (
+                          <span key={ki} className="keyword-tag">#{kw}</span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="prism-bio">
+                      <span className="bio-tag">{currentPerspective.description}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -419,10 +649,6 @@ function ContentDetail() {
             <button className="action-btn" onClick={() => setShowSharePoster(true)}>
               <span className="action-icon">⌘</span>
               <span>生成海报</span>
-            </button>
-            <button className="action-btn action-btn-roundtable" onClick={() => setShowRoundtable(true)}>
-              <span className="action-icon">❖</span>
-              <span>棱镜圆桌会</span>
             </button>
             <button className="action-btn" onClick={handleShare}>
               <span className="action-icon">⇗</span>
@@ -487,12 +713,6 @@ function ContentDetail() {
           opinion={perspectiveOpinion}
           newsTitle={content?.title}
           onClose={() => setShowSharePoster(false)}
-        />
-      )}
-
-      {showRoundtable && (
-        <PrismRoundtable
-          onClose={() => setShowRoundtable(false)}
         />
       )}
 

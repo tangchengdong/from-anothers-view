@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getMultiPerspectiveNews, getLocalImagePath, getCardImagePath } from '../mock/data'
+import { getHotNews, getBatchCommentary } from '../api/content'
+import { getLocalImagePath, getCardImagePath } from '../mock/data'
 import { analyzeAttitude, extractKeywords, calculateCollision, findConsensusAndDivergence, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
 import './PerspectiveComparison.css'
 
@@ -19,14 +20,48 @@ function PerspectiveComparison({ perspectives, onHighlightedPerspectiveChange })
   }
 
   useEffect(() => {
-    setLoading(true)
-    setImageLoadError({})
-    setTimeout(() => {
-      const multiNews = getMultiPerspectiveNews(perspectives, 6)
-      setNews(multiNews)
-      setLoading(false)
-      setHighlightedPerspective(null)
-    }, 600)
+    let cancelled = false
+    const loadData = async () => {
+      setLoading(true)
+      setImageLoadError({})
+      try {
+        const hotNewsResp = await getHotNews(6)
+        const newsList = Array.isArray(hotNewsResp)
+          ? hotNewsResp
+          : (hotNewsResp?.results || [])
+
+        const perspectiveNames = perspectives.map(p => p.name)
+
+        const newsWithOpinions = await Promise.all(
+          newsList.map(async (newsItem) => {
+            let opinions = {}
+            try {
+              const res = await getBatchCommentary(newsItem.id, perspectiveNames)
+              opinions = res?.opinions || {}
+            } catch (e) {
+              console.error(`获取新闻 ${newsItem.id} 评论失败`, e)
+            }
+            return { ...newsItem, opinions }
+          })
+        )
+
+        if (!cancelled) {
+          setNews(newsWithOpinions)
+          setHighlightedPerspective(null)
+        }
+      } catch (err) {
+        console.error('加载多视角新闻失败', err)
+        if (!cancelled) {
+          setNews([])
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+    loadData()
+    return () => { cancelled = true }
   }, [perspectives])
 
   const handleImageError = (key) => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { getHotNewsRanking, getSuggestedPerspectives, getCardImagePath } from '../mock/data'
+import { getCardImagePath, getLocalImagePath } from '../mock/data'
+import { getHotNews, suggestPerspectives, getCommentary, streamCommentary } from '../api/content'
 import './DebateRoom.css'
 
 const DEBATE_ROLES = [
@@ -24,11 +25,24 @@ function DebateRoom({ onClose }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const news = getHotNewsRanking(8)
-    setHotNews(news)
-    const roles = getSuggestedPerspectives(12)
-    setAvailableRoles(roles)
-    setLoading(false)
+    const loadInitial = async () => {
+      try {
+        const newsData = await getHotNews(8)
+        setHotNews(newsData.items || [])
+      } catch (e) {
+        console.error('加载热点新闻失败', e)
+        setHotNews([])
+      }
+      try {
+        const res = await suggestPerspectives(12)
+        setAvailableRoles(res.data || [])
+      } catch (e) {
+        console.error('加载视角失败', e)
+        setAvailableRoles([])
+      }
+      setLoading(false)
+    }
+    loadInitial()
   }, [])
 
   const handleNewsSelect = (news) => {
@@ -67,9 +81,13 @@ function DebateRoom({ onClose }) {
   }
 
   const getAvatarUrl = (p) => {
-    const cardKey = `debate_${p.local_image}`
+    const cardKey = `debate_card_${p.name}`
+    const localKey = `debate_local_${p.name}`
     if (p.card_image && !imageLoadError[cardKey]) {
       return { url: getCardImagePath(p.card_image), key: cardKey }
+    }
+    if (p.local_image && !imageLoadError[localKey]) {
+      return { url: getLocalImagePath(p.local_image), key: localKey }
     }
     return null
   }
@@ -79,46 +97,49 @@ function DebateRoom({ onClose }) {
   }
 
   const generateDebateSpeech = (role, side, position, news) => {
-    const proTemplates = {
+    var n = news.title || ''
+    var r = role.name || ''
+    var proTemplates = {
       1: [
-        `尊敬的评委、对方辩友，大家好。我方认为，${news.title}是时代发展的必然趋势。作为${role.name}，我深知这其中蕴含的深远意义...`,
-        `开宗明义，我方坚定认为${news.title}利大于弊。历史的长河告诉我们，进步的脚步不可阻挡...`,
+        '尊敬的评委、对方辩友，大家好。我方认为，' + n + '是时代发展的必然趋势。作为' + r + '，我深知这其中蕴含的深远意义...',
+        '开宗明义，我方坚定认为' + n + '利大于弊。历史的长河告诉我们，进步的脚步不可阻挡...',
       ],
       2: [
-        `对方辩友的观点看似有理，实则经不起推敲。让我们从事实出发，看看${news.title}究竟带来了什么...`,
-        `刚才对方辩友的论述存在几个明显的漏洞。首先，${news.title}并非如对方所说的那样...`,
+        '对方辩友的观点看似有理，实则经不起推敲。让我们从事实出发，看看' + n + '究竟带来了什么...',
+        '刚才对方辩友的论述存在几个明显的漏洞。首先，' + n + '并非如对方所说的那样...',
       ],
       3: [
-        `综上所述，我方从多个角度论证了${news.title}的合理性与必然性。这是时代的选择，更是人民的选择...`,
-        `最后，我想再次强调，${news.title}不仅是一个趋势，更是一种责任。让我们拥抱变化，共创未来...`,
+        '综上所述，我方从多个角度论证了' + n + '的合理性与必然性。这是时代的选择，更是人民的选择...',
+        '最后，我想再次强调，' + n + '不仅是一个趋势，更是一种责任。让我们拥抱变化，共创未来...',
       ],
     }
 
-    const conTemplates = {
+    var conTemplates = {
       1: [
-        `尊敬的评委、对方辩友，大家好。我方认为，${news.title}需要审慎对待，不能盲目乐观。作为${role.name}，我看到了其中隐藏的问题...`,
-        `开宗明义，我方认为${news.title}弊大于利。历史的教训告诉我们，凡事过犹不及...`,
+        '尊敬的评委、对方辩友，大家好。我方认为，' + n + '需要审慎对待，不能盲目乐观。作为' + r + '，我看到了其中隐藏的问题...',
+        '开宗明义，我方认为' + n + '弊大于利。历史的教训告诉我们，凡事过犹不及...',
       ],
       2: [
-        `对方辩友的论证看似充分，实则回避了核心问题。让我们冷静思考，${news.title}真的如对方所说的那么美好吗...`,
-        `刚才对方辩友的论述有失偏颇。我方认为，在讨论${news.title}时，不能只看到光鲜的一面...`,
+        '对方辩友的论证看似充分，实则回避了核心问题。让我们冷静思考，' + n + '真的如对方所说的那么美好吗...',
+        '刚才对方辩友的论述有失偏颇。我方认为，在讨论' + n + '时，不能只看到光鲜的一面...',
       ],
       3: [
-        `综上所述，我方从多个层面揭示了${news.title}可能带来的风险与问题。这不是危言耸听，而是理性的警示...`,
-        `最后，我想说的是，${news.title}需要的不是盲目追捧，而是理性审视。让我们放慢脚步，三思而后行...`,
+        '综上所述，我方从多个层面揭示了' + n + '可能带来的风险与问题。这不是危言耸听，而是理性的警示...',
+        '最后，我想说的是，' + n + '需要的不是盲目追捧，而是理性审视。让我们放慢脚步，三思而后行...',
       ],
     }
 
-    const templates = side === 'pro' ? proTemplates : conTemplates
-    const positionTemplates = templates[position]
+    var templates = side === 'pro' ? proTemplates : conTemplates
+    var positionTemplates = templates[position]
     return positionTemplates[Math.floor(Math.random() * positionTemplates.length)]
   }
 
-  const startDebate = () => {
+  const startDebate = async () => {
     setPhase('debate')
     setDebateStarted(true)
+    setCurrentSpeaker(null)
+    setDebateMessages([])
 
-    const messages = []
     const order = [
       { side: 'pro', position: 0 },
       { side: 'con', position: 0 },
@@ -128,32 +149,107 @@ function DebateRoom({ onClose }) {
       { side: 'con', position: 2 },
     ]
 
-    order.forEach((item, index) => {
+    for (let i = 0; i < order.length; i++) {
+      const item = order[i]
       const team = item.side === 'pro' ? proTeam : conTeam
       const role = team[item.position]
-      const speech = generateDebateSpeech(role, item.side, item.position + 1, selectedNews)
-      messages.push({
-        id: index,
+      const tempId = i
+
+      setDebateMessages(prev => [...prev, {
+        id: tempId,
         side: item.side,
         position: item.position,
         role: role,
-        speech: speech,
-        delay: index * 2000,
+        speech: '正在思考...',
+        isStreaming: true,
+        hasContent: false,
+      }])
+      setCurrentSpeaker(i)
+
+      const fallbackSpeech = generateDebateSpeech(role, item.side, item.position + 1, selectedNews)
+
+      await new Promise((resolve) => {
+        let speechAccum = ''
+        let hasReceivedChunk = false
+        let settled = false
+        let firstChunkTimer = null
+        let totalTimer = null
+        let eventSource = null
+
+        const doFallback = () => {
+          if (settled) return
+          settled = true
+          if (eventSource) { try { eventSource.close() } catch (_) {} }
+          if (firstChunkTimer) clearTimeout(firstChunkTimer)
+          if (totalTimer) clearTimeout(totalTimer)
+          setDebateMessages(prev => prev.map(msg =>
+            msg.id === tempId
+              ? { ...msg, speech: fallbackSpeech, hasContent: true, isStreaming: false }
+              : msg
+          ))
+          resolve()
+        }
+
+        const doSuccess = (text) => {
+          if (settled) return
+          settled = true
+          if (firstChunkTimer) clearTimeout(firstChunkTimer)
+          if (totalTimer) clearTimeout(totalTimer)
+          const finalText = text && text.trim().length > 0 ? text : fallbackSpeech
+          setDebateMessages(prev => prev.map(msg =>
+            msg.id === tempId
+              ? { ...msg, speech: finalText, hasContent: true, isStreaming: false }
+              : msg
+          ))
+          resolve()
+        }
+
+        try {
+          eventSource = streamCommentary(selectedNews.id, role.name, {
+            onChunk: (chunk) => {
+              if (settled) return
+              hasReceivedChunk = true
+              speechAccum += chunk
+              setDebateMessages(prev => prev.map(msg =>
+                msg.id === tempId
+                  ? { ...msg, speech: speechAccum, hasContent: true, isStreaming: true }
+                  : msg
+              ))
+            },
+            onDone: (finalContent) => {
+              doSuccess(finalContent)
+            },
+            onError: (e) => {
+              console.error('辩论流式输出失败:', e)
+              doFallback()
+            }
+          }, 'deep')
+
+          // 首字节超时：15秒（deep模式时间稍长
+          firstChunkTimer = setTimeout(() => {
+            if (!hasReceivedChunk && !settled) {
+              console.warn('辩论首字节超时:', role.name)
+              doFallback()
+            }
+          }, 15000)
+
+          // 总超时：60秒
+          totalTimer = setTimeout(() => {
+            if (!settled) {
+              console.warn('辩论总超时:', role.name)
+              doFallback()
+            }
+          }, 60000)
+
+        } catch (e) {
+          console.error('辩论发言错误:', e)
+          doFallback()
+        }
       })
-    })
 
-    setDebateMessages(messages)
-
-    let currentIndex = 0
-    const showNext = () => {
-      if (currentIndex < messages.length) {
-        setCurrentSpeaker(currentIndex)
-        currentIndex++
-        setTimeout(showNext, 2500)
-      }
+      // 下一位辩手间隔
+      await new Promise(resolve => setTimeout(resolve, 600))
     }
-
-    setTimeout(showNext, 1000)
   }
 
   const formatViews = (views) => {
@@ -327,8 +423,8 @@ function DebateRoom({ onClose }) {
         </div>
         <div className="pool-grid">
           {availableRoles.map((role, idx) => {
-            const isSelected = proTeam.some(p => p?.local_image === role.local_image) ||
-                              conTeam.some(p => p?.local_image === role.local_image)
+            const isSelected = proTeam.some(p => p?.name === role.name) ||
+                              conTeam.some(p => p?.name === role.name)
             return (
               <div
                 key={idx}

@@ -5,6 +5,12 @@
   max-width: 100%;
   overflow-x: hidden;
   position: relative;
+  animation: detail-fade-in 0.35s ease-out;
+}
+
+@keyframes detail-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .detail-page::before {
@@ -379,6 +385,89 @@
   border-left: 2px solid #00ffff;
 }
 
+.role-selector-bar {
+  margin: 24px 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.role-selector-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 12px;
+  font-family: var(--font-serif);
+}
+
+.role-chips-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+}
+
+.role-chips-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.role-chips-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.role-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 2px solid;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.role-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.role-chip.active {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+}
+
+.role-chip-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.role-chip-emoji {
+  font-size: 24px;
+}
+
+.role-chip-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.role-select-prompt {
+  text-align: center;
+  padding: 32px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px;
+  font-family: var(--font-serif);
+}
+
 .other-perspectives-block {
   margin: 2rem auto;
   padding: 1.25rem;
@@ -462,6 +551,147 @@
   background: rgba(0, 255, 255, 0.08);
   box-shadow: inset 0 0 0 1px #00ffff, 0 0 15px rgba(0, 255, 255, 0.15);
   border-left-color: #00ffff;
+}
+
+.loading-spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem 0 1rem;
+}
+
+.loading-spinner-small {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(0, 255, 255, 0.2);
+  border-top-color: #00ffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-icon {
+  font-size: 2rem;
+  text-align: center;
+  margin: 0.5rem 0 1rem;
+  filter: drop-shadow(0 0 6px rgba(255, 107, 157, 0.3));
+}
+
+.retry-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.retry-btn {
+  padding: 0.6rem 1.25rem;
+  background: rgba(0, 255, 255, 0.08);
+  border: 1px solid #00ffff;
+  color: #00ffff;
+  border-radius: 0;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.retry-btn:hover {
+  background: rgba(0, 255, 255, 0.15);
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.retry-btn.secondary {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.retry-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: none;
+}
+
+/* 流式输出效果 */
+.streaming-indicator {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: #00ffff;
+  animation: blink 0.8s infinite;
+  margin-left: 4px;
+  vertical-align: -3px;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.streaming-glow {
+  animation: streamPulse 2s infinite;
+}
+
+@keyframes streamPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(0, 255, 255, 0.05);
+  }
+}
+
+/* 流式思考中状态 */
+.streaming-thinking {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.thinking-dots {
+  display: inline-flex;
+  gap: 4px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.thinking-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00ffff;
+  animation: thinkingBounce 1.4s infinite ease-in-out both;
+}
+
+.thinking-dots span:nth-child(1) { animation-delay: -0.32s; }
+.thinking-dots span:nth-child(2) { animation-delay: -0.16s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0s; }
+
+@keyframes thinkingBounce {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.retry-hint {
+  color: #888;
+  font-size: 0.85em;
+  margin-left: 8px;
 }
 
 .other-persp-name {
@@ -830,6 +1060,14 @@
   font-family: 'Share Tech Mono', monospace;
   font-style: italic;
   gap: 1rem;
+}
+
+.detail-loading .loading-hint {
+  font-size: 0.8rem;
+  color: #5a5a78;
+  letter-spacing: 0.1em;
+  font-style: normal;
+  opacity: 0.8;
 }
 
 .loading-spinner {

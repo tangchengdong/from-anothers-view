@@ -1,6 +1,7 @@
 .perspective-comparison {
   max-width: 100%;
   margin: 1.5rem 0;
+  height: 200px;
 }
 
 .comparison-loading {

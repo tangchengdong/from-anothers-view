@@ -70,7 +70,65 @@ _ROLE_POOL = [
     {"name": "克苏鲁邪神", "emoji": "🐙", "description": "在宇宙深渊中低语的不可名状之存在", "keywords": ["混沌", "疯狂", "深渊", "低语", "古老", "梦境", "真相"], "base_rarity": "UR"},
     {"name": "会说话的猫", "emoji": "🐈", "description": "看透人类本质却选择不说的神秘生物", "keywords": ["喵星人", "蔑视", "慵懒", "掌控", "观察", "人类", "沙发"], "base_rarity": "UR"},
     {"name": "上帝", "emoji": "✨", "description": "在第七天休假顺便看看人间闹剧的造物主", "keywords": ["创世", "全知", "休息日", "笑话", "自由意志", "计划", "意外"], "base_rarity": "UR"},
+    # === 以下为前端卡牌对齐新增角色 ===
+    {"name": "蓝色机器猫", "emoji": "🐱", "description": "来自22世纪的未来机器猫，口袋里装满了神奇道具", "keywords": ["未来", "道具", "帮助", "冒险", "友情", "梦想", "科技"], "base_rarity": "SSR"},
+    {"name": "古代皇帝", "emoji": "👑", "description": "坐拥天下却为朝政烦忧的九五之尊", "keywords": ["江山", "朝政", "百姓", "权力", "历史", "社稷", "盛衰"], "base_rarity": "SSR"},
+    {"name": "战地记者", "emoji": "📸", "description": "在枪林弹雨中记录真相的新闻战士", "keywords": ["战争", "真相", "前线", "记录", "勇气", "和平", "报道"], "base_rarity": "SSR"},
+    {"name": "古代侠客", "emoji": "🗡️", "description": "仗剑天涯快意恩仇的江湖儿女", "keywords": ["江湖", "侠义", "武功", "恩怨", "正义", "自由", "浪迹"], "base_rarity": "SR"},
+    {"name": "00后大学生", "emoji": "🎓", "description": "在象牙塔与现实中寻找自我的Z世代", "keywords": ["大学", "内卷", "考研", "就业", "宿舍", "恋爱", "青春"], "base_rarity": "R"},
+    {"name": "古代医者", "emoji": "🌿", "description": "悬壶济世望闻问切的中医传人", "keywords": ["中医", "草药", "把脉", "养生", "医德", "传承", "方剂"], "base_rarity": "SR"},
+    {"name": "古董收藏家", "emoji": "🏺", "description": "在岁月沉淀中寻觅珍宝的雅士", "keywords": ["古董", "收藏", "鉴定", "拍卖", "历史", "珍品", "传承"], "base_rarity": "SR"},
+    {"name": "资深程序员", "emoji": "⌨️", "description": "在代码世界里构建数字大厦的工程师", "keywords": ["编程", "Bug", "加班", "架构", "开源", "技术", "35岁"], "base_rarity": "R"},
+    {"name": "美食博主", "emoji": "🍱", "description": "用镜头记录舌尖上人间烟火的美食猎人", "keywords": ["美食", "探店", "打卡", "摆盘", "味道", "网红", "滤镜"], "base_rarity": "R"},
+    {"name": "健身教练", "emoji": "💪", "description": "用汗水雕刻身体线条的形体塑师", "keywords": ["健身", "撸铁", "蛋白粉", "减脂", "增肌", "自律", "体型"], "base_rarity": "N"},
+    {"name": "咖啡店老板", "emoji": "☕", "description": "在豆香中编织社区温度的小店主人", "keywords": ["咖啡", "熟客", "租金", "拉花", "慢生活", "情怀", "创业"], "base_rarity": "N"},
+    {"name": "职场HR", "emoji": "📋", "description": "在面试与绩效中平衡公司与员工的桥梁", "keywords": ["招聘", "面试", "简历", "KPI", "裁员", "薪资", "跳槽"], "base_rarity": "R"},
+    {"name": "中学班主任", "emoji": "📚", "description": "在早自习与晚自习间守护青春成长的摆渡人", "keywords": ["考试", "升学", "班会", "家访", "青春期", "成绩", "管理"], "base_rarity": "R"},
 ]
+
+# 角色名 → 卡牌图片映射（有卡牌的角色才会显示卡牌头像，其余使用 emoji）
+# 对齐前端 25 张卡牌资产
+_CARD_IMAGE_MAP = {
+    # === 卡牌 01-25 完整映射 ===
+    "唐代诗人": ("libai", "card_01_李白(1).webp"),
+    "失恋诗人": ("libai", "card_01_李白(1).webp"),
+    "火星殖民者": ("waixingren", "card_02_外星观察者(1).webp"),
+    "AI研究员": ("weilaiai", "card_03_未来AI(1).webp"),
+    "2050年时间旅行者": ("weilaiai", "card_03_未来AI(1).webp"),
+    "量子物理学家": ("weilaiai", "card_03_未来AI(1).webp"),
+    "蓝色机器猫": ("jiqimao", "card_04_蓝色机器猫(1).webp"),
+    "古代皇帝": ("gudaihuangdi", "card_05_古代皇帝(1).webp"),
+    "古代将军": ("gudaihuangdi", "card_05_古代皇帝(1).webp"),
+    "战地记者": ("zhandijizhe", "card_06_战地记者(1).webp"),
+    "侦探": ("zhandijizhe", "card_06_战地记者(1).webp"),
+    "古代侠客": ("wuxiajianke", "card_07_古代侠客(1).webp"),
+    "宇航员": ("yuhangyuan", "card_08_宇航员(1).webp"),
+    "航天工程师": ("yuhangyuan", "card_08_宇航员(1).webp"),
+    "00后大学生": ("00daxuesheng", "card_09_00后大学生(1).webp"),
+    "幼儿园小朋友": ("xiaopengyou", "card_10_幼儿园小朋友(1).webp"),
+    "流浪猫": ("liuliangmao", "card_11_流浪猫(1).webp"),
+    "森林护林员": ("senlinglieren", "card_12_森林猎人(1).webp"),
+    "古代医者": ("gudaiyisheng", "card_13_古代医者(1).webp"),
+    "急诊室医生": ("gudaiyisheng", "card_13_古代医者(1).webp"),
+    "古董收藏家": ("gudongshoucang", "card_14_古董收藏家(1).webp"),
+    "考古学家": ("gudongshoucang", "card_14_古董收藏家(1).webp"),
+    "退休大妈": ("guangchangdama", "card_15_退休广场舞大妈(1).webp"),
+    "外卖骑手": ("waimai", "card_16_外卖骑手(1).webp"),
+    "资深程序员": ("chengxuyuan", "card_17_资深程序员(1).webp"),
+    "赛博朋克黑客": ("chengxuyuan", "card_17_资深程序员(1).webp"),
+    "美食博主": ("meishi", "card_18_美食博主(1).webp"),
+    "美食评论家": ("meishi", "card_18_美食博主(1).webp"),
+    "宫廷御厨": ("meishi", "card_18_美食博主(1).webp"),
+    "网红博主": ("wanghong", "card_19_网红主播(1).webp"),
+    "健身教练": ("jianshen", "card_20_健身教练(1).webp"),
+    "菜市场小贩": ("xiaofan", "card_21_菜市场小贩(1).webp"),
+    "咖啡店老板": ("coffe", "card_22_咖啡店老板(1).webp"),
+    "咖啡师": ("coffe", "card_22_咖啡店老板(1).webp"),
+    "职场HR": ("zhichang", "card_23_职场HR(1).webp"),
+    "中学班主任": ("banzhuren", "card_24_中学班主任(1).webp"),
+    "乡村教师": ("banzhuren", "card_24_中学班主任(1).webp"),
+    "出租车司机": ("chuzuche", "card_25_出租车司机(1).webp"),
+}
 
 _PRISM_COLORS = ["#FF6B9D", "#8B5CF6", "#3B82F6", "#06B6D4", "#10B981", "#F59E0B", "#EC4899", "#6366F1"]
 
@@ -80,12 +138,62 @@ def _pick_color(name: str) -> str:
     return _PRISM_COLORS[h % len(_PRISM_COLORS)]
 
 
+def _enrich_role(role: dict) -> dict:
+    """为角色数据补充 card_image、local_image、color 字段"""
+    enriched = dict(role)
+    name = role.get("name", "")
+    # 卡牌图片
+    if name in _CARD_IMAGE_MAP:
+        local_key, card_file = _CARD_IMAGE_MAP[name]
+        enriched["local_image"] = local_key
+        enriched["card_image"] = card_file
+    # 颜色：基于稀有度
+    rarity = role.get("base_rarity", "N")
+    rarity_cfg = _RARITY_CONFIG.get(rarity, _RARITY_CONFIG["N"])
+    enriched["color"] = rarity_cfg["color"]
+    return enriched
+
+
+# 内存级 Agent 实例缓存：启动时预初始化，运行时直接命中，避免每次请求重复构造
+_AGENT_CACHE: dict = {}
+
+
+def init_agents_cache():
+    """启动时预初始化所有角色池中的 Agent 实例到内存。
+    一次构建，多次复用，加快首次请求效率。
+    """
+    global _AGENT_CACHE
+    if _AGENT_CACHE:
+        return
+    cache = {}
+    for role in _ROLE_POOL:
+        name = role.get("name")
+        if not name:
+            continue
+        try:
+            cache[name] = DynamicAgent(name, role_data=role)
+        except Exception:
+            # 单个角色构造失败不影响其它角色
+            pass
+    _AGENT_CACHE = cache
+
+
 def get_agent(perspective_name: str):
-    """根据视角名称创建 DynamicAgent 实例（不再使用预设Agent）"""
+    """根据视角名称获取 Agent 实例（命中缓存直接返回，未命中则现场创建并缓存）"""
     if not perspective_name:
         return None
+    # 1. 命中缓存
+    if perspective_name in _AGENT_CACHE:
+        return _AGENT_CACHE[perspective_name]
+    # 2. 模糊匹配缓存（支持"古代将军"命中"古代将军"等）
+    for cached_name, agent in _AGENT_CACHE.items():
+        if cached_name == perspective_name or perspective_name in cached_name or cached_name in perspective_name:
+            return agent
+    # 3. 未命中：现场创建并缓存
     role_data = _find_role_in_pool(perspective_name)
-    return DynamicAgent(perspective_name, role_data=role_data)
+    agent = DynamicAgent(perspective_name, role_data=role_data)
+    _AGENT_CACHE[perspective_name] = agent
+    return agent
 
 
 def get_dynamic_agent(perspective_name: str) -> DynamicAgent:
@@ -128,6 +236,11 @@ def get_random_perspective() -> dict:
         "glow": rarity_cfg["glow"],
         "is_llm_generated": False,
     }
+    # 补充卡牌图片
+    if role["name"] in _CARD_IMAGE_MAP:
+        local_key, card_file = _CARD_IMAGE_MAP[role["name"]]
+        result["local_image"] = local_key
+        result["card_image"] = card_file
 
     try:
         from app.services.llm_service import llm

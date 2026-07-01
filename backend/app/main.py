@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import perspectives, feed, content, auth, user
+from app.routers import perspectives, feed, content, auth, user, commentary
 from app.services.auth_service import init_test_user
 from app.services.rss_service import refresh_cache_async, get_cache_info
+from app.agents import init_agents_cache
 
 app = FastAPI(
     title="换个视角看世界 - API",
@@ -32,11 +33,14 @@ app.include_router(feed.router)
 app.include_router(content.router)
 app.include_router(auth.router)
 app.include_router(user.router)
+app.include_router(commentary.router)
 
 
 @app.on_event("startup")
 async def startup_event():
     init_test_user()
+    # 内存预初始化角色 Agent 池（一次构建，多次复用，加快首次请求）
+    init_agents_cache()
     # 启动时后台预加载 RSS 缓存（不阻塞启动）
     import asyncio
     asyncio.create_task(refresh_cache_async())

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { getLocalImagePath, getCardImagePath, generateOpinion } from '../mock/data'
+import { getLocalImagePath, getCardImagePath } from '../mock/data'
+import { streamCommentary } from '../api/content'
 import { analyzeAttitude, ATTITUDE_CONFIG } from '../utils/opinionAnalyzer'
 import './TeaPartyChat.css'
 
@@ -10,6 +11,7 @@ function TeaPartyChat({ news, perspectives, onClose }) {
   const [imageLoadError, setImageLoadError] = useState({})
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  const initializedRef = useRef(false) // 防止重复初始化
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -20,7 +22,8 @@ function TeaPartyChat({ news, perspectives, onClose }) {
   }, [messages])
 
   useEffect(() => {
-    if (!news || !perspectives) return
+    if (!news || !perspectives || initializedRef.current) return
+    initializedRef.current = true // 标记已初始化
 
     const initialMessages = [
       {
@@ -39,23 +42,104 @@ function TeaPartyChat({ news, perspectives, onClose }) {
 
     setMessages(initialMessages)
 
+    // 依次让每个角色发言，流式输出
+    let delay = 600
     perspectives.forEach((p, idx) => {
       setTimeout(() => {
+        const msgId = 'role-' + idx + '-' + p.name
         setIsTyping(p.name)
-        setTimeout(() => {
-          const opinion = news.opinions?.[p.name] || generateOpinion(p, news)
-          const analysis = analyzeAttitude(opinion)
-          setMessages(prev => [...prev, {
-            id: `role-${idx}-${p.name}`,
-            type: 'role',
-            perspective: p,
-            content: opinion,
-            attitude: analysis.attitude,
-            time: getCurrentTime()
-          }])
+
+        const fallbackText = '这件事吧，我觉得挺有意思的。从我的角度来看，确实值得好好聊聊。'
+
+        // 先添加占位消息
+        setMessages(prev => [...prev, {
+          id: msgId,
+          type: 'role',
+          perspective: p,
+          content: '正在输入...',
+          attitude: 'neutral',
+          time: getCurrentTime(),
+          isStreaming: true,
+        }])
+
+        let fullContent = ''
+        let hasReceivedChunk = false
+        let settled = false // 是否已完成（成功/失败）
+        let firstChunkTimer = null
+        let totalTimer = null
+        let eventSource = null
+
+        const doFallback = () => {
+          if (settled) return
+          settled = true
+          if (eventSource) { try { eventSource.close() } catch (_) {} }
+          if (firstChunkTimer) clearTimeout(firstChunkTimer)
+          if (totalTimer) clearTimeout(totalTimer)
+          const analysis = analyzeAttitude(fallbackText)
+          setMessages(prev => prev.map(msg =>
+            msg.id === msgId
+              ? { ...msg, content: fallbackText, attitude: analysis.attitude, isStreaming: false }
+              : msg
+          ))
           setIsTyping(false)
-        }, 1200 + Math.random() * 800)
-      }, 800 + idx * 1500)
+        }
+
+        const doSuccess = (text) => {
+          if (settled) return
+          settled = true
+          if (firstChunkTimer) clearTimeout(firstChunkTimer)
+          if (totalTimer) clearTimeout(totalTimer)
+          const finalText = text && text.trim().length > 0 ? text : fallbackText
+          const analysis = analyzeAttitude(finalText)
+          setMessages(prev => prev.map(msg =>
+            msg.id === msgId
+              ? { ...msg, content: finalText, attitude: analysis.attitude, isStreaming: false }
+              : msg
+          ))
+          setIsTyping(false)
+        }
+
+        try {
+          eventSource = streamCommentary(news.id, p.name, {
+            onChunk: (chunk) => {
+              if (settled) return
+              hasReceivedChunk = true
+              fullContent += chunk
+              setMessages(prev => prev.map(msg =>
+                msg.id === msgId ? { ...msg, content: fullContent } : msg
+              ))
+            },
+            onDone: (finalContent) => {
+              doSuccess(finalContent)
+            },
+            onError: (e) => {
+              console.error('茶话会流式输出失败:', e)
+              doFallback()
+            }
+          }, 'short')
+
+          // 首次内容超时：10秒内没收到第一个 chunk，认为失败
+          firstChunkTimer = setTimeout(() => {
+            if (!hasReceivedChunk && !settled) {
+              console.warn('茶话会首字节超时:', p.name)
+              doFallback()
+            }
+          }, 10000)
+
+          // 总超时：40秒
+          totalTimer = setTimeout(() => {
+            if (!settled) {
+              console.warn('茶话会总超时:', p.name)
+              doFallback()
+            }
+          }, 40000)
+
+        } catch (e) {
+          console.error('茶话会发言错误:', e)
+          doFallback()
+        }
+      }, delay)
+      delay += 1800
     })
   }, [news, perspectives])
 
@@ -100,7 +184,7 @@ function TeaPartyChat({ news, perspectives, onClose }) {
     if (!inputText.trim()) return
 
     const userMessage = {
-      id: `user-${Date.now()}`,
+      id: 'user-' + Date.now(),
       type: 'user',
       content: inputText.trim(),
       time: getCurrentTime()
@@ -112,31 +196,98 @@ function TeaPartyChat({ news, perspectives, onClose }) {
     setTimeout(() => {
       const randomPerspective = perspectives[Math.floor(Math.random() * perspectives.length)]
       setIsTyping(randomPerspective.name)
-      
-      setTimeout(() => {
-        const replies = [
-          `说得有道理！我补充一点看法...`,
-          `这个角度很有意思，不过我觉得...`,
-          `哈哈，确实！从我的角度来看...`,
-          `嗯，让我想想...其实这件事...`,
-          `你说到点子上了！我之前也在想...`,
-          `这个话题太有意思了，我觉得...`
-        ]
-        const randomReply = replies[Math.floor(Math.random() * replies.length)]
-        const followOpinion = generateOpinion(randomPerspective, news)
-        const analysis = analyzeAttitude(followOpinion)
-        
-        setMessages(prev => [...prev, {
-          id: `reply-${Date.now()}`,
-          type: 'role',
-          perspective: randomPerspective,
-          content: `${randomReply} ${followOpinion.slice(0, 80)}...`,
-          attitude: analysis.attitude,
-          time: getCurrentTime(),
-          isReply: true
-        }])
+
+      const replyId = 'reply-' + Date.now()
+      const fallbackText = '嗯，这个话题挺有意思的，让我想想...其实从我的角度来看，这件事还挺值得深思的。'
+
+      // 先添加回复占位
+      setMessages(prev => [...prev, {
+        id: replyId,
+        type: 'role',
+        perspective: randomPerspective,
+        content: '正在输入...',
+        attitude: 'neutral',
+        time: getCurrentTime(),
+        isReply: true,
+        isStreaming: true,
+      }])
+
+      let fullReply = ''
+      let hasReceivedChunk = false
+      let settled = false
+      let firstChunkTimer = null
+      let totalTimer = null
+      let eventSource = null
+
+      const doFallback = () => {
+        if (settled) return
+        settled = true
+        if (eventSource) { try { eventSource.close() } catch (_) {} }
+        if (firstChunkTimer) clearTimeout(firstChunkTimer)
+        if (totalTimer) clearTimeout(totalTimer)
+        const analysis = analyzeAttitude(fallbackText)
+        setMessages(prev => prev.map(msg =>
+          msg.id === replyId
+            ? { ...msg, content: fallbackText, attitude: analysis.attitude, isStreaming: false }
+            : msg
+        ))
         setIsTyping(false)
-      }, 1000 + Math.random() * 1000)
+      }
+
+      const doSuccess = (text) => {
+        if (settled) return
+        settled = true
+        if (firstChunkTimer) clearTimeout(firstChunkTimer)
+        if (totalTimer) clearTimeout(totalTimer)
+        const finalText = text && text.trim().length > 0 ? text : fallbackText
+        const analysis = analyzeAttitude(finalText)
+        setMessages(prev => prev.map(msg =>
+          msg.id === replyId
+            ? { ...msg, content: finalText, attitude: analysis.attitude, isStreaming: false }
+            : msg
+        ))
+        setIsTyping(false)
+      }
+
+      try {
+        eventSource = streamCommentary(news.id, randomPerspective.name, {
+          onChunk: (chunk) => {
+            if (settled) return
+            hasReceivedChunk = true
+            fullReply += chunk
+            setMessages(prev => prev.map(msg =>
+              msg.id === replyId ? { ...msg, content: fullReply } : msg
+            ))
+          },
+          onDone: (finalContent) => {
+            doSuccess(finalContent)
+          },
+          onError: (e) => {
+            console.error('茶话会回复流式失败:', e)
+            doFallback()
+          }
+        }, 'short')
+
+        // 首次内容超时：10秒
+        firstChunkTimer = setTimeout(() => {
+          if (!hasReceivedChunk && !settled) {
+            console.warn('茶话会回复首字节超时')
+            doFallback()
+          }
+        }, 10000)
+
+        // 总超时：40秒
+        totalTimer = setTimeout(() => {
+          if (!settled) {
+            console.warn('茶话会回复总超时')
+            doFallback()
+          }
+        }, 40000)
+
+      } catch (e) {
+        console.error('茶话会回复错误:', e)
+        doFallback()
+      }
     }, 500)
   }
 

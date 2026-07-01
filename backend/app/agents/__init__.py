@@ -1,6 +1,7 @@
 import random
 import hashlib
 from .dynamic_agent import DynamicAgent
+from .news_search_agent import NewsSearchAgent, search_news_for_perspective_async, start_auto_search
 
 _RARITY_CONFIG = {
     "UR": {"prob": 0.02, "color": "#FFD700", "glow": "0 0 60px rgba(255, 215, 0, 0.6)", "label": "UR", "name": "传说"},

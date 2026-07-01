@@ -424,6 +424,30 @@
   word-break: break-word;
 }
 
+.opinion-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--cyber-muted);
+  font-style: normal;
+  font-size: 0.82rem;
+}
+
+.loading-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cyber-cyan);
+  animation: opinionPulse 1.4s ease-in-out infinite;
+  box-shadow: 0 0 6px var(--cyber-cyan);
+}
+
+@keyframes opinionPulse {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1.2); }
+}
+
 .read-more-btn {
   display: block;
   width: 100%;

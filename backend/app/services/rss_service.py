@@ -19,7 +19,7 @@ from app.data.rss_feeds import RSS_FEEDS
 # 内存缓存
 _rss_cache: List[Dict] = []
 _cache_time: float = 0
-_cache_ttl = 600  # 10 分钟刷新一次
+_cache_ttl = 300  # 5 分钟刷新一次
 _last_fetch_status: Dict[str, str] = {}  # 各源的抓取状态
 
 

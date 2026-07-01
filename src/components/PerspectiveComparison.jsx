@@ -285,7 +285,14 @@ function PerspectiveComparison({ perspectives, onHighlightedPerspectiveChange })
                   </div>
 
                   <p className="opinion-content font-serif">
-                    "{item.opinion}"
+                    {item.opinion && item.opinion !== '...' ? (
+                      <>"{item.opinion}"</>
+                    ) : (
+                      <span className="opinion-loading">
+                        <span className="loading-pulse"></span>
+                        正在思考中...
+                      </span>
+                    )}
                   </p>
                 </div>
               )

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import ContentItem from './ContentItem'
 import './StreamFeed.css'
 import './Skeleton.css'
-import { getMockNews, getMoreMockNews } from '../mock/data'
+import { getFeed } from '../api/content'
 
 const CATEGORY_LABELS = {
   social: '社会',
@@ -113,16 +113,23 @@ function StreamFeed({ perspective, subcategory, limit = 20, sectionTitle }) {
         setThinking((prev) => [...prev, thinkingMessages[i]])
       }
 
-      await new Promise(resolve => setTimeout(resolve, 400))
+      await new Promise(resolve => setTimeout(resolve, 300))
       if (requestIdRef.current !== myRequestId) return
-      const mockItems = getMockNews(limit, perspective)
-      
+
+      // 从后端 API 获取实时新闻数据
+      const perspectiveNameStr = perspective.name || perspective
+      const resp = await getFeed(perspectiveNameStr, limit)
+      const apiItems = resp?.items || []
+
+      if (requestIdRef.current !== myRequestId) return
+
+      // 逐条展示（保留流式加载动效）
       const collectedItems = []
-      for (let i = 0; i < mockItems.length; i++) {
+      for (let i = 0; i < apiItems.length; i++) {
         if (requestIdRef.current !== myRequestId) return
         await new Promise(resolve => setTimeout(resolve, limit <= 10 ? 60 : 80))
         if (requestIdRef.current !== myRequestId) return
-        collectedItems.push(mockItems[i])
+        collectedItems.push(apiItems[i])
         setItems([...collectedItems])
         setProgress((prev) => ({
           current: i + 1,
@@ -150,16 +157,24 @@ function StreamFeed({ perspective, subcategory, limit = 20, sectionTitle }) {
     setLoadingMore(true)
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 800))
+      await new Promise(resolve => setTimeout(resolve, 600))
       if (loadMoreIdRef.current !== myLoadId) return
       
-      const moreItems = getMoreMockNews(itemsRef.current, 10, perspective)
+      // 从 API 加载更多（用更大的 limit，取已有之后的部分）
+      const perspectiveNameStr = perspective?.name || perspective
+      if (!perspectiveNameStr) return
+      const moreLimit = itemsRef.current.length + 10
+      const resp = await getFeed(perspectiveNameStr, moreLimit)
+      const allItems = resp?.items || []
+      const moreItems = allItems.slice(itemsRef.current.length)
       
       if (loadMoreIdRef.current !== myLoadId) return
-      setItems((prev) => [...prev, ...moreItems])
-      setPage((prev) => prev + 1)
+      if (moreItems.length > 0) {
+        setItems((prev) => [...prev, ...moreItems])
+        setPage((prev) => prev + 1)
+      }
       
-      if (itemsRef.current.length + moreItems.length >= 80) {
+      if (allItems.length <= itemsRef.current.length + moreItems.length || moreItems.length === 0) {
         setHasMore(false)
       }
       

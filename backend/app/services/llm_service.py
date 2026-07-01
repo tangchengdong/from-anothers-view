@@ -228,6 +228,35 @@ class LLMService:
         except Exception:
             return self._fallback_deep_insight(news, perspective_info)
 
+    async def _generate_simple(self, prompt: str, max_tokens: int = 40) -> str:
+        """简单的一次性文本生成（用于新闻搜索 Agent 的简短标注等）。
+
+        不走缓存，不构建复杂 prompt，直接返回生成文本。
+        """
+        if not self.enabled:
+            return ""
+        try:
+            client = self._get_client()
+            resp = await client.post(
+                f"{self.base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": self.model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": max_tokens,
+                    "temperature": 0.7,
+                },
+                timeout=15,
+            )
+            data = resp.json()
+            content = data["choices"][0]["message"]["content"].strip()
+            return content
+        except Exception:
+            return ""
+
     async def generate_stream(
         self, messages: List[Dict], max_tokens: int = 300, temperature: float = 0.8
     ) -> AsyncGenerator[str, None]:
